@@ -1,4 +1,4 @@
-# Life OS
+# Becoming
 
 A visual operating system for a life — organized by **purpose**, not time.
 
