@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520" font-family="Inter, system-ui, sans-serif">
+  <rect width="760" height="520" fill="#FBFAF6"/>
+  <text x="40" y="56" font-size="24" fill="#4A4658" font-family="Georgia, serif">Life OS — visual reference</text>
+
+  <!-- Palette -->
+  <text x="40" y="100" font-size="12" letter-spacing="2" fill="#9A96A8">PASTEL CATEGORY PALETTE</text>
+  <g transform="translate(40,120)">
+    <g>
+      <circle cx="24" cy="24" r="24" fill="#A9C4F5"/>
+      <text x="24" y="70" font-size="12" fill="#4A4658" text-anchor="middle">AI</text>
+      <text x="24" y="86" font-size="10" fill="#9A96A8" text-anchor="middle">#A9C4F5</text>
+    </g>
+    <g transform="translate(115,0)">
+      <circle cx="24" cy="24" r="24" fill="#F2AFB4"/>
+      <text x="24" y="70" font-size="12" fill="#4A4658" text-anchor="middle">Career</text>
+      <text x="24" y="86" font-size="10" fill="#9A96A8" text-anchor="middle">#F2AFB4</text>
+    </g>
+    <g transform="translate(230,0)">
+      <circle cx="24" cy="24" r="24" fill="#A8DAC0"/>
+      <text x="24" y="70" font-size="12" fill="#4A4658" text-anchor="middle">Health</text>
+      <text x="24" y="86" font-size="10" fill="#9A96A8" text-anchor="middle">#A8DAC0</text>
+    </g>
+    <g transform="translate(345,0)">
+      <circle cx="24" cy="24" r="24" fill="#F5C6A0"/>
+      <text x="24" y="70" font-size="12" fill="#4A4658" text-anchor="middle">Relationships</text>
+      <text x="24" y="86" font-size="10" fill="#9A96A8" text-anchor="middle">#F5C6A0</text>
+    </g>
+    <g transform="translate(460,0)">
+      <circle cx="24" cy="24" r="24" fill="#C9B8F0"/>
+      <text x="24" y="70" font-size="12" fill="#4A4658" text-anchor="middle">Reading</text>
+      <text x="24" y="86" font-size="10" fill="#9A96A8" text-anchor="middle">#C9B8F0</text>
+    </g>
+    <g transform="translate(575,0)">
+      <circle cx="24" cy="24" r="24" fill="#F3E1A0"/>
+      <text x="24" y="70" font-size="12" fill="#4A4658" text-anchor="middle">Creativity</text>
+      <text x="24" y="86" font-size="10" fill="#9A96A8" text-anchor="middle">#F3E1A0</text>
+    </g>
+  </g>
+
+  <!-- Momentum orbs -->
+  <text x="40" y="266" font-size="12" letter-spacing="2" fill="#9A96A8">MOMENTUM ORBS  (size + glow = momentum)</text>
+  <g transform="translate(40,290)">
+    <circle cx="30" cy="30" r="10" fill="#A9C4F5" opacity="0.55"/>
+    <circle cx="120" cy="30" r="16" fill="#A8DAC0" opacity="0.7"/>
+    <circle cx="220" cy="30" r="22" fill="#F2AFB4" opacity="0.85"/>
+    <circle cx="330" cy="30" r="12" fill="#C9B8F0" opacity="0.35"/>
+    <text x="330" y="66" font-size="10" fill="#9A96A8" text-anchor="middle">dormant 🌙</text>
+    <text x="30" y="66" font-size="10" fill="#9A96A8" text-anchor="middle">low</text>
+    <text x="220" y="66" font-size="10" fill="#9A96A8" text-anchor="middle">high</text>
+  </g>
+
+  <!-- Day cells -->
+  <text x="40" y="386" font-size="12" letter-spacing="2" fill="#9A96A8">CALENDAR DAY CELLS  (translucent overlapping circles, no text)</text>
+  <g transform="translate(40,404)">
+    <!-- empty -->
+    <circle cx="15" cy="15" r="1.2" fill="#C7C3D2"/>
+    <!-- single -->
+    <circle cx="55" cy="15" r="5" fill="#F2AFB4" opacity="0.62"/>
+    <!-- two -->
+    <circle cx="93" cy="13" r="5" fill="#A8DAC0" opacity="0.62"/>
+    <circle cx="97" cy="17" r="4" fill="#A9C4F5" opacity="0.62"/>
+    <!-- three -->
+    <circle cx="133" cy="12" r="5.5" fill="#F2AFB4" opacity="0.62"/>
+    <circle cx="129" cy="18" r="4" fill="#A8DAC0" opacity="0.62"/>
+    <circle cx="137" cy="18" r="4.5" fill="#F5C6A0" opacity="0.62"/>
+    <!-- busy -->
+    <circle cx="175" cy="12" r="6" fill="#A9C4F5" opacity="0.62"/>
+    <circle cx="170" cy="18" r="4" fill="#F2AFB4" opacity="0.62"/>
+    <circle cx="180" cy="18" r="5" fill="#A8DAC0" opacity="0.62"/>
+    <circle cx="176" cy="15" r="3.5" fill="#C9B8F0" opacity="0.62"/>
+    <text x="15" y="46" font-size="10" fill="#9A96A8" text-anchor="middle">empty</text>
+    <text x="55" y="46" font-size="10" fill="#9A96A8" text-anchor="middle">one</text>
+    <text x="95" y="46" font-size="10" fill="#9A96A8" text-anchor="middle">two</text>
+    <text x="133" y="46" font-size="10" fill="#9A96A8" text-anchor="middle">three</text>
+    <text x="176" y="46" font-size="10" fill="#9A96A8" text-anchor="middle">full day</text>
+  </g>
+
+  <text x="40" y="500" font-size="11" fill="#C7C3D2">Fraunces (serif) = identity · Inter (sans) = data. Run npm run dev for live screens.</text>
+</svg>
