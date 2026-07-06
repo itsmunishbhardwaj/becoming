@@ -6,6 +6,8 @@ Not a calendar app, habit tracker, task manager, or journal. The calendar is one
 
 > Does this help the user understand who they are becoming?
 
+![Year view — the year as history, each block a month](docs/screenshots/year.png)
+
 ## Run
 
 ```bash
