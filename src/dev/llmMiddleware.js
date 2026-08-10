@@ -19,21 +19,18 @@ export function createLlmMiddleware({ env = process.env } = {}) {
     const url = req.url || "";
 
     if (req.method === "GET" && url === "/api/llm/status") {
-      send(res, 200, { configured: Boolean(env.LLM_API_KEY) });
-      return next();
+      return send(res, 200, { configured: Boolean(env.LLM_API_KEY) });
     }
 
     if (req.method === "POST" && url === "/api/llm") {
       if (!env.LLM_API_KEY) {
-        send(res, 503, { error: "LLM not configured (LLM_API_KEY missing)" });
-        return next();
+        return send(res, 503, { error: "LLM not configured (LLM_API_KEY missing)" });
       }
       try {
         const raw = await readBody(req);
         const { messages, model: overrideModel, temperature } = JSON.parse(raw || "{}");
         if (!Array.isArray(messages)) {
-          send(res, 400, { error: "messages must be an array" });
-          return next();
+          return send(res, 400, { error: "messages must be an array" });
         }
         const upstream = await fetch(`${baseUrl}/chat/completions`, {
           method: "POST",
@@ -49,16 +46,14 @@ export function createLlmMiddleware({ env = process.env } = {}) {
         });
         if (!upstream.ok) {
           const errBody = await upstream.text().catch(() => "");
-          send(res, 502, { error: `upstream ${upstream.status}: ${errBody.slice(0, 400)}` });
-          return next();
+          console.warn(`[llm] upstream ${upstream.status}: ${errBody.slice(0, 400)}`);
+          return send(res, 502, { error: `upstream ${upstream.status}` });
         }
         const data = await upstream.json();
         const content = data?.choices?.[0]?.message?.content ?? "";
-        send(res, 200, { content });
-        return next();
+        return send(res, 200, { content });
       } catch (err) {
-        send(res, 502, { error: String(err?.message || err) });
-        return next();
+        return send(res, 502, { error: String(err?.message || err) });
       }
     }
 

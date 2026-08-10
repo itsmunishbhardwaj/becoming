@@ -40,12 +40,14 @@ function mock(method, url, body) {
     },
   };
   const state = { status: 200, body: "" };
+  let resolve;
+  const done = new Promise((r) => { resolve = r; });
   const res = {
     setHeader() {},
     writeHead(s) { state.status = s; },
-    end(payload) { state.body = payload ?? ""; },
+    end(payload) { state.body = payload ?? ""; resolve(); },
   };
-  return { req, res, state };
+  return { req, res, state, done };
 }
 
 function makeMw({ withKey = true } = {}) {
@@ -61,16 +63,18 @@ function makeMw({ withKey = true } = {}) {
 describe("GET /api/llm/status", () => {
   it("reports configured=true when key is set", async () => {
     const mw = makeMw({ withKey: true });
-    const { req, res, state } = mock("GET", "/api/llm/status");
-    await new Promise((r) => mw(req, res, r));
+    const { req, res, state, done } = mock("GET", "/api/llm/status");
+    mw(req, res, () => {});
+    await done;
     expect(state.status).toBe(200);
     expect(JSON.parse(state.body)).toEqual({ configured: true });
   });
 
   it("reports configured=false when key is missing", async () => {
     const mw = makeMw({ withKey: false });
-    const { req, res, state } = mock("GET", "/api/llm/status");
-    await new Promise((r) => mw(req, res, r));
+    const { req, res, state, done } = mock("GET", "/api/llm/status");
+    mw(req, res, () => {});
+    await done;
     expect(JSON.parse(state.body)).toEqual({ configured: false });
   });
 });
@@ -83,8 +87,9 @@ describe("POST /api/llm", () => {
       model: "override-model",
       temperature: 0.3,
     });
-    const { req, res, state } = mock("POST", "/api/llm", body);
-    await new Promise((r) => mw(req, res, r));
+    const { req, res, state, done } = mock("POST", "/api/llm", body);
+    mw(req, res, () => {});
+    await done;
     expect(state.status).toBe(200);
     expect(JSON.parse(state.body)).toEqual({ content: "OK from upstream" });
     expect(lastUpstreamReq.url).toBe("/chat/completions");
@@ -97,8 +102,9 @@ describe("POST /api/llm", () => {
   it("uses env default model when body omits it", async () => {
     const mw = makeMw();
     const body = JSON.stringify({ messages: [{ role: "user", content: "hi" }] });
-    const { req, res } = mock("POST", "/api/llm", body);
-    await new Promise((r) => mw(req, res, r));
+    const { req, res, done } = mock("POST", "/api/llm", body);
+    mw(req, res, () => {});
+    await done;
     expect(lastUpstreamReq.body.model).toBe("test-model");
     expect(lastUpstreamReq.body.temperature).toBe(0.7);
   });
@@ -106,8 +112,9 @@ describe("POST /api/llm", () => {
   it("returns 503 when no API key is configured", async () => {
     const mw = makeMw({ withKey: false });
     const body = JSON.stringify({ messages: [{ role: "user", content: "hi" }] });
-    const { req, res, state } = mock("POST", "/api/llm", body);
-    await new Promise((r) => mw(req, res, r));
+    const { req, res, state, done } = mock("POST", "/api/llm", body);
+    mw(req, res, () => {});
+    await done;
     expect(state.status).toBe(503);
     expect(JSON.parse(state.body).error).toMatch(/not configured/i);
   });
@@ -123,8 +130,9 @@ describe("upstream error handling", () => {
       },
     });
     const body = JSON.stringify({ messages: [{ role: "user", content: "hi" }] });
-    const { req, res, state } = mock("POST", "/api/llm", body);
-    await new Promise((r) => mw(req, res, r));
+    const { req, res, state, done } = mock("POST", "/api/llm", body);
+    mw(req, res, () => {});
+    await done;
     expect(state.status).toBe(502);
     expect(JSON.parse(state.body).error).toBeTruthy();
   });
