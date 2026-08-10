@@ -2,7 +2,11 @@
 
 Read this first. Then `docs/philosophy.md`. The philosophy is the spec; this file is how to work in the repo.
 
+`docs/origin-spreadsheets.md` is the empirical ground truth — the two real spreadsheets (2024 manual + 2025 purchased) this app descends from, what worked, and the failure modes Becoming must not repeat. Consult it when a product decision is ambiguous.
+
 **Brand + psychology rules live in `docs/brand.md` — read it before touching any UI.** App name: **Becoming**. One paper theme, no red, accumulation framing, irregular shapes, paper grain. The refined reference prototype is `docs/prototype-full.jsx`.
+
+**`docs/ui-spec.md` is the build spec** — screen-by-screen anatomy with exact values, component contracts, build order, and a definition of done. It's codified from the Figma file [Becoming — UI/UX](https://www.figma.com/design/97VazqojfNOspymPEF0uc1). Read it before implementing any screen; `src/tokens.js` wins on any disagreement.
 
 ## What this is
 
@@ -52,6 +56,7 @@ docs/
   philosophy.md          THE SPEC
   design-system.md       palette, type, motion, components
   architecture.md        data model + graph direction
+  obsidian-backend.md    persistence plan — vault as database, Bases as tables
   roadmap.md             v1 done / v2 backlog
 ```
 

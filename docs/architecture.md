@@ -58,6 +58,14 @@ The prototype shows one % bar for both. Model should carry a `goalKind` and rend
 - Facts (counts, dates, gaps) are certain → state them.
 - Patterns (correlations from noisy self-report) are uncertain → ask. n is small; most correlations are spurious. A wrong insight stated confidently destroys trust.
 
-## Persistence (later)
+## Persistence (decided — Obsidian vault)
 
-Local-first. Graph in something queryable (SQLite/kv + edge table, or a graph lib). Natural-language logging → LLM extraction → graph writes. Passive integrations (calendar, GitHub, Apple Health) write Activities directly — should be core, not an afterthought.
+Local-first, via the user's Obsidian vault: goals are notes with flat
+frontmatter, marked days are lines in daily notes, Obsidian Bases provides
+Notion-style table views over the same files. Full plan, schema, adapter
+interface, and phased migration: **`docs/obsidian-backend.md`**. The earlier
+SQLite/kv sketch is superseded — markdown-in-vault won because the vault is
+already the user's knowledge graph and the exit story is plain text.
+Natural-language logging → LLM extraction → daily-note lines. Passive
+integrations (calendar, GitHub, Apple Health) append the same lines — same
+grammar as a human typing in Obsidian.

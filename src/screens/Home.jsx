@@ -10,8 +10,9 @@ export default function Home() {
     month: "long",
     day: "numeric",
   });
-  const active = GOALS.filter((g) => g.state !== "dormant").length;
-  const resting = GOALS.length - active;
+  const inMotion = GOALS.filter((g) => g.state === "active" || g.state === "drift").length;
+  const resting = GOALS.filter((g) => g.state === "dormant").length;
+  const becameReal = GOALS.filter((g) => g.state === "completed").length;
 
   return (
     <div
@@ -63,7 +64,8 @@ export default function Home() {
             Who are you becoming?
           </h1>
           <p style={{ color: NIGHT.dim, fontSize: 14, margin: "10px 0 0" }}>
-            {active} goals in motion · {resting} resting
+            {inMotion} goals in motion · {resting} resting
+            {becameReal > 0 && <> · {becameReal} became real</>}
           </p>
         </header>
 
