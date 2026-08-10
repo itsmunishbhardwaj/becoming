@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { CATS, PAPER, FONT } from "../tokens.js";
-import { MONTHS, GOALS, buildYear, isMonthDormant } from "../data/mockLife.js";
+import { MONTHS, buildYear, isMonthDormant } from "../data/mockLife.js";
+import { listGoals } from "../data/store.js";
 
 // ── The spreadsheet gesture, reborn ────────────────────────────────────
 // The 2024 sheet's core act: on the day you moved a goal, you coloured its
@@ -23,7 +24,7 @@ function loadMarks() {
   }
 }
 
-const goalById = Object.fromEntries(GOALS.map((g) => [g.id, g]));
+// goalById is derived from goals state in the component; initialized empty.
 
 // Irregular blob (brand rule 5: a life is not a rectangle) — a rotated
 // ellipse whose tilt is stable per day+goal so marks don't jiggle.
@@ -150,16 +151,26 @@ function MonthBlock({ name, monthIdx, days, mode, marks, focus, pen, toggleDay, 
 
 export default function Year() {
   const year = useMemo(() => buildYear(), []);
+  const [goals, setGoals] = useState(null); // null = loading
   const [mode, setMode] = useState("mine");
   const [tip, setTip] = useState(null);
   const [penId, setPenId] = useState(null); // selected goal = your pen colour
   const [marks, setMarks] = useState(loadMarks);
 
   useEffect(() => {
+    listGoals().then(setGoals);
+  }, []);
+
+  useEffect(() => {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(MARKS_KEY, JSON.stringify(marks));
     }
   }, [marks]);
+
+  const goalById = useMemo(
+    () => Object.fromEntries((goals ?? []).map((g) => [g.id, g])),
+    [goals]
+  );
 
   const pen = penId ? goalById[penId] : null;
   const focus = pen; // focusing and holding the pen are the same gesture
@@ -189,6 +200,27 @@ export default function Year() {
     return t;
   }, [year]);
   const maxTotal = Math.max(...Object.values(totals));
+
+  if (goals === null) {
+    return (
+      <div style={{ minHeight: "100vh", background: PAPER.bg, color: PAPER.ink, fontFamily: FONT.sans, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: PAPER.dim, fontSize: 15 }}>Reading your vault…</p>
+      </div>
+    );
+  }
+
+  if (goals.length === 0) {
+    return (
+      <div style={{ minHeight: "100vh", background: PAPER.bg, color: PAPER.ink, fontFamily: FONT.sans, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}>
+          <p style={{ color: PAPER.dim }}>
+            Nothing to look back on yet — set your first goal on{" "}
+            <Link to="/" style={{ color: PAPER.ink }}>Life</Link>.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -247,7 +279,7 @@ export default function Year() {
         {/* Goal chips — each goal its own colour. In "my year" the chip is
             your pen: pick it, then tap the days you moved that goal. */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", margin: "20px 0 10px" }}>
-          {GOALS.map((g) => {
+          {goals.map((g) => {
             const v = CATS[g.cat];
             const isPen = penId === g.id;
             const dimmed = penId && !isPen;
