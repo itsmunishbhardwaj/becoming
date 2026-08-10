@@ -44,8 +44,9 @@ export function createVaultMiddleware({ vaultRoot }) {
         try {
           const md = await readFile(path.join(goalsDir, `${id}.md`), "utf8");
           return send(res, 200, md, "text/markdown");
-        } catch {
-          return send(res, 404, { error: "not found" });
+        } catch (err) {
+          if (err.code === "ENOENT") return send(res, 404, { error: "not found" });
+          throw err;
         }
       }
       if (m && req.method === "PUT") {
@@ -57,12 +58,12 @@ export function createVaultMiddleware({ vaultRoot }) {
         return send(res, 200, { ok: true });
       }
 
-      // GET /api/vault/logs?from=&to=
-      m = url.match(/^\/api\/vault\/logs\?from=([^&]+)&to=([^&]+)$/);
-      if (m && req.method === "GET") {
-        const from = decodeURIComponent(m[1]);
-        const to = decodeURIComponent(m[2]);
-        if (!DATE_RE.test(from) || !DATE_RE.test(to))
+      // GET /api/vault/logs?from=&to= (params accepted in any order)
+      if (req.method === "GET" && url.startsWith("/api/vault/logs?")) {
+        const params = new URL(`http://x${url}`).searchParams;
+        const from = params.get("from");
+        const to = params.get("to");
+        if (!from || !to || !DATE_RE.test(from) || !DATE_RE.test(to))
           return send(res, 400, { error: "bad range" });
         await mkdir(logsDir, { recursive: true });
         const files = await readdir(logsDir);
@@ -82,8 +83,9 @@ export function createVaultMiddleware({ vaultRoot }) {
         try {
           const md = await readFile(path.join(logsDir, `${date}.md`), "utf8");
           return send(res, 200, md, "text/markdown");
-        } catch {
-          return send(res, 404, { error: "not found" });
+        } catch (err) {
+          if (err.code === "ENOENT") return send(res, 404, { error: "not found" });
+          throw err;
         }
       }
       if (m && req.method === "PUT") {

@@ -96,3 +96,30 @@ describe("path escape guard", () => {
     expect(statusOut).toBe(400);
   });
 });
+
+describe("GET /api/vault/logs?from=&to= reversed param order", () => {
+  it("returns same dates as normal order", async () => {
+    await writeFile(path.join(dir, "logs", "2026-08-05.md"), "a");
+    await writeFile(path.join(dir, "logs", "2026-08-15.md"), "b");
+
+    const normalOrder = mockReqRes("GET", "/api/vault/logs?from=2026-08-01&to=2026-08-31");
+    await run(mw, normalOrder.req, normalOrder.res);
+    const normalResult = JSON.parse(normalOrder.body);
+
+    const reversedOrder = mockReqRes("GET", "/api/vault/logs?to=2026-08-31&from=2026-08-01");
+    await run(mw, reversedOrder.req, reversedOrder.res);
+    const reversedResult = JSON.parse(reversedOrder.body);
+
+    expect(reversedResult.dates).toEqual(normalResult.dates);
+    expect(reversedResult.dates).toEqual(["2026-08-05", "2026-08-15"]);
+  });
+});
+
+describe("GET /api/vault/goals/:id ENOENT", () => {
+  it("returns 404 for a nonexistent goal", async () => {
+    const r = mockReqRes("GET", "/api/vault/goals/nonexistent-goal");
+    await run(mw, r.req, r.res);
+    expect(r.status).toBe(404);
+    expect(JSON.parse(r.body)).toEqual({ error: "not found" });
+  });
+});
