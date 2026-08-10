@@ -25,20 +25,31 @@ SVG lives in the prototype (`Logo` component). Never close the circle. Never mak
 
 ## Palette (muted pastel on paper)
 
+Codified in `src/tokens.js` and realized in the Figma file
+**[Becoming — UI/UX](https://www.figma.com/design/97VazqojfNOspymPEF0uc1)**.
+Per-screen anatomy: `docs/ui-spec.md`.
+
 | Token | Hex | Use |
 |---|---|---|
-| paper | `#F5F2EA` | base background |
-| card | `#FBF9F3` | surfaces |
+| bg | `#FBFBF9` | base background — cool near-white |
+| card | `#FFFFFF` | surfaces, held apart by hairline + shadow |
 | line | `#E7E2D5` | hairlines |
+| panel | `#F4F2EA` | recessed panels |
 | ink | `#55505C` | text |
 | dim | `#97919F` | secondary |
-| faint | `#C9C3CE` | tertiary |
+| faint | `#C9C3CE` | tertiary, empty-day dots |
 | whisper | `#B9A87F` | drift only |
+| track | `#ECE8DD` | progress troughs |
+| miss | `#EDE9DE` | habit-strip misses — near-invisible on purpose |
 | AI | `#A8BEE8` | category |
 | Career | `#E9B3B7` | category |
 | Health | `#A9CEBB` | category |
 | Relationships | `#EBC3A0` | category |
 | Reading | `#C5B5E3` | category |
 | Creativity | `#E5D6A3` | category |
+| Finance | `#A7D8D5` | category |
+
+Note: the base was warmed to eggshell during design review and rejected —
+`#FBFBF9` won because it lets the pastels be the only colour on the page.
 
 Category color = identity, identical across orb, bar, habit strip, calendar dot.

@@ -1,45 +1,79 @@
 // Design tokens — single source of truth. Import everywhere; never redeclare.
+// Codified from the Figma file "Becoming — UI/UX" (97VazqojfNOspymPEF0uc1).
+// Rationale for every choice lives in docs/brand.md. Anatomy + exact usage
+// per screen lives in docs/ui-spec.md.
 
-// Pastel category palette. Color is identity — consistent across home + calendar.
+// ── Category palette ───────────────────────────────────────────────────
+// Color is IDENTITY. The same hue must appear on a goal's orb, its momentum
+// bar, its habit strip, its calendar blobs, and its pen chip. Never reassign.
 export const CATS = {
-  ai:            { name: "AI",            color: "#A9C4F5" }, // periwinkle
-  career:        { name: "Career",        color: "#F2AFB4" }, // dusty rose
-  health:        { name: "Health",        color: "#A8DAC0" }, // sage
-  relationships: { name: "Relationships", color: "#F5C6A0" }, // peach
-  reading:       { name: "Reading",       color: "#C9B8F0" }, // lavender
-  creativity:    { name: "Creativity",    color: "#F3E1A0" }, // butter
+  ai:            { name: "AI",            color: "#A8BEE8" }, // periwinkle
+  career:        { name: "Career",        color: "#E9B3B7" }, // dusty rose
+  health:        { name: "Health",        color: "#A9CEBB" }, // sage
+  relationships: { name: "Relationships", color: "#EBC3A0" }, // peach
+  reading:       { name: "Reading",       color: "#C5B5E3" }, // lavender
+  creativity:    { name: "Creativity",    color: "#E5D6A3" }, // butter
+  finance:       { name: "Finance",       color: "#A7D8D5" }, // seafoam
 };
 
-// Two surface themes. Home = calm night. Calendar = soft paper.
-export const NIGHT = {
-  bg: "#0E1220",
-  bgGradient: "radial-gradient(1200px 600px at 70% -10%, #1A2140 0%, #0E1220 55%)",
-  card: "rgba(255,255,255,0.035)",
-  cardBorder: "rgba(255,255,255,0.07)",
-  text: "#E8EAF2",
-  dim: "#8A90A8",
-  faint: "#565D75",
-};
-
+// ── Surface: ONE theme, end to end ─────────────────────────────────────
+// Theme-switching between screens raises arousal; coherence calms. Every
+// screen uses PAPER. No pure white, no pure black, no red anywhere.
 export const PAPER = {
-  bg: "#FBFAF6",
-  ink: "#4A4658",
-  dim: "#9A96A8",
-  faint: "#C7C3D2",
-  panel: "#F4F2FA",
-  panelBorder: "#E9E5F2",
+  bg: "#FBFBF9",        // base — cool near-white
+  card: "#FFFFFF",      // surfaces sit above bg on their hairline
+  line: "#E7E2D5",      // hairline borders
+  panel: "#F4F2EA",     // recessed panels (period chips, summaries)
+  ink: "#55505C",       // text — soft charcoal, never black
+  dim: "#97919F",       // secondary text
+  faint: "#C9C3CE",     // tertiary text, empty-day dots
+  whisper: "#B9A87F",   // DRIFT ONLY — warm sand. The closest thing to a
+                        // warning this app has. Never red.
+  track: "#ECE8DD",     // progress bar troughs
+  miss: "#EDE9DE",      // habit-strip misses — near-invisible on purpose
+  affirm: "#DCEAE2",    // confirm pill fill
+  affirmLine: "#C3DACD",
+  affirmInk: "#5F8672",
 };
+
+// @deprecated — the night theme is retired. brand.md rule 2: one paper
+// theme end to end. Home must migrate to PAPER (see docs/ui-spec.md §7).
+export const NIGHT = PAPER;
 
 export const FONT = {
-  serif: "'Fraunces', Georgia, serif", // identity statements, goal names
-  sans: "'Inter', system-ui, sans-serif", // data, UI
+  serif: "'Fraunces', Georgia, serif", // IDENTITY: goal names, headlines, ambitions
+  sans: "'Inter', system-ui, sans-serif", // DATA: numbers, labels, UI
 };
+
+// Type scale (px) — serif for who you are, sans for what you did.
+export const TYPE = {
+  h1: 28,        // serif — screen headline
+  goalName: 17.5, // serif — goal card title
+  goalTitle: 26, // serif — goal workspace title
+  ambition: 16,  // serif italic — the user's own words
+  body: 14,      // sans
+  meta: 12.5,    // sans — card metadata
+  small: 12,     // sans — headline counts, pills
+  kicker: 11,    // sans, uppercase, letterSpacing 1.6px
+};
+
+// Irregular radii — a life is not a rectangle (brand.md rule 5). Alternate
+// R1/R2 down a list so no two adjacent cards share a silhouette.
+export const RADIUS = {
+  r1: "22px 18px 24px 19px",
+  r2: "18px 23px 17px 22px",
+  screen: 28,
+  pill: 999,
+  blob: "58% 42% 55% 45% / 45% 55% 42% 58%",
+};
+
+export const SPACE = { xs: 4, sm: 8, md: 12, lg: 18, xl: 26, screenPad: 26 };
 
 // Goal lifecycle states (see docs/philosophy.md → Seasons)
 export const STATE = {
   ACTIVE: "active",
-  DRIFT: "drift", // unintentional neglect — surface gently
-  DORMANT: "dormant", // intentional pause — respect silently
+  DRIFT: "drift",       // unintentional neglect — surface gently, once, as a question
+  DORMANT: "dormant",   // intentional pause — respect silently
   COMPLETED: "completed",
   RETIRED: "retired",
 };
