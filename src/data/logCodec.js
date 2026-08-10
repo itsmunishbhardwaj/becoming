@@ -17,6 +17,19 @@ function parsePayload(verb, payload) {
   return out;
 }
 
+function derivePayload(e) {
+  if (e.verb === "wake" && e.time) return e.time;
+  if (e.verb === "session" && e.time && e.durationMin != null) {
+    return `${e.time} · ${e.durationMin}min`;
+  }
+  return e.payload ?? "";
+}
+
+export function serializeEvent(e) {
+  const payload = e.payload ?? derivePayload(e);
+  return `- ${e.verb} ${payload} → [[${e.goalId}]]`;
+}
+
 export function parseLog(src) {
   const { data, body } = parseFrontMatter(src);
   const events = [];
@@ -30,11 +43,6 @@ export function parseLog(src) {
 }
 
 export function serializeLog(date, events) {
-  const body =
-    "\n" +
-    events
-      .map((e) => `- ${e.verb} ${e.payload} → [[${e.goalId}]]`)
-      .join("\n") +
-    "\n";
+  const body = "\n" + events.map(serializeEvent).join("\n") + "\n";
   return serializeFrontMatter({ date }, body);
 }

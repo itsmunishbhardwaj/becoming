@@ -128,6 +128,20 @@ describe("appendLog", () => {
     await store.appendLog("2026-08-10", evt);
     const log = await store.readLog("2026-08-10");
     expect(log.events).toHaveLength(1);
+    expect(log.events[0]).toEqual(evt);
+  });
+
+  it("appendLog with payload-less event round-trips correctly", async () => {
+    await store.appendLog("2026-08-10", { verb: "wake", time: "07:00", goalId: "wake-6am" });
+    const log = await store.readLog("2026-08-10");
+    expect(log.events).toHaveLength(1);
+    expect(log.events[0].verb).toBe("wake");
+    expect(log.events[0].time).toBe("07:00");
+    const raw = await (await import("node:fs/promises")).readFile(
+      (await import("node:path")).join(dir, "logs", "2026-08-10.md"),
+      "utf8"
+    );
+    expect(raw).toContain("- wake 07:00 → [[wake-6am]]");
   });
 });
 

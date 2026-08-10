@@ -1,5 +1,5 @@
 import { parseGoal, serializeGoal } from "./goalCodec.js";
-import { parseLog, serializeLog } from "./logCodec.js";
+import { parseLog, serializeLog, serializeEvent } from "./logCodec.js";
 
 let baseUrl = "";  // browser default: same origin
 
@@ -56,10 +56,8 @@ export async function readLogsInRange({ from, to }) {
 
 export async function appendLog(date, event) {
   const existing = (await readLog(date)) || { date, events: [] };
-  const line = `- ${event.verb} ${event.payload} → [[${event.goalId}]]`;
-  const already = existing.events.some(
-    (e) => `- ${e.verb} ${e.payload} → [[${e.goalId}]]` === line
-  );
+  const line = serializeEvent(event);
+  const already = existing.events.some((e) => serializeEvent(e) === line);
   if (already) return;
   const merged = { date, events: [...existing.events, event] };
   const md = serializeLog(date, merged.events);
