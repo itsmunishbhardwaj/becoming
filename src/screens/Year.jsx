@@ -45,7 +45,7 @@ function Blob({ cx, cy, color, seed, big }) {
   );
 }
 
-function DayCell({ mode, demoCircles, markIds, focus, pen, onToggle, setTip, tipData }) {
+function DayCell({ mode, demoCircles, markIds, focus, pen, onToggle, setTip, tipData, goalById }) {
   const size = 15;
   const c = size / 2;
   const mine = mode === "mine";
@@ -108,7 +108,7 @@ function DayCell({ mode, demoCircles, markIds, focus, pen, onToggle, setTip, tip
   );
 }
 
-function MonthBlock({ name, monthIdx, days, mode, marks, focus, pen, toggleDay, setTip }) {
+function MonthBlock({ name, monthIdx, days, mode, marks, focus, pen, toggleDay, setTip, goalById }) {
   const dormant = mode === "example" && isMonthDormant(days, monthIdx);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -141,6 +141,7 @@ function MonthBlock({ name, monthIdx, days, mode, marks, focus, pen, toggleDay, 
               onToggle={() => toggleDay(key)}
               setTip={setTip}
               tipData={{ month: name, day: i + 1, circles, markIds }}
+              goalById={goalById}
             />
           );
         })}
@@ -376,6 +377,7 @@ export default function Year() {
               pen={pen}
               toggleDay={toggleDay}
               setTip={setTip}
+              goalById={goalById}
             />
           ))}
         </div>
