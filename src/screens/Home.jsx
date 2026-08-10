@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { PAPER, FONT, TYPE, RADIUS, SPACE, CATS } from "../tokens.js";
+import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
 import { listGoals } from "../data/store.js";
 import GoalCard from "../components/GoalCard.jsx";
 
