@@ -103,11 +103,17 @@ export default function Onboard() {
 
     const after = nextTurn(nextState);
     if (after.done) {
-      const goal = finalize(nextState);
-      await saveGoal(goal);
-      clearDraft();
-      nav("/");
-      return;
+      try {
+        const goal = finalize(nextState);
+        await saveGoal(goal);
+        clearDraft();
+        nav("/");
+        return;
+      } catch (e) {
+        setError("Could not save this goal — your draft is safe. Try again in a moment.");
+        saveDraft(nextState, nextTranscript);
+        return;
+      }
     }
     setTranscript((t) => [...t, { role: "assistant", text: promptFor(after.id, nextState.answers) }]);
   }
