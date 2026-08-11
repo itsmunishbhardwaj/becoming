@@ -6,3 +6,8 @@ dist
 .gstack/
 vault/logs/
 coverage/
+
+# LLM API keys — never commit real env files
+.env
+.env.*
+!.env.example
