@@ -52,7 +52,7 @@ describe("Goal workspace", () => {
     renderGoal();
     await waitFor(() => expect(screen.getByRole("heading", { name: /Wake at 6:00 AM/i })).toBeInTheDocument());
     expect(screen.getByText(/Own the morning\./)).toBeInTheDocument();
-    expect(screen.getByText(/round 2/i)).toBeInTheDocument();
+    expect(screen.getByText(/this stretch — round 2/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /adjust rounds/i })).toHaveAttribute("href", "/onboard?goalId=wake-6am&turn=roundsPreview");
     expect(screen.getByRole("link", { name: /see its year/i })).toHaveAttribute("href", "/year?pen=wake-6am");
     expect(screen.getByRole("link", { name: /life/i })).toHaveAttribute("href", "/");
