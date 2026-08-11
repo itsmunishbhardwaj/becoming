@@ -19,15 +19,27 @@ function rangeStart() {
   return addDaysLocalISO(todayLocalISO(), -13);
 }
 
+function prefersReducedMotion() {
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 export default function Home() {
   const [goals, setGoals] = useState(null); // null = loading
   const [logs, setLogs] = useState([]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [insights, setInsights] = useState([]);
+  const [showIntro, setShowIntro] = useState(() => !prefersReducedMotion());
   const [dismissedIds, setDismissedIds] = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem("becoming.insights.seen") || "[]")); }
     catch { return new Set(); }
   });
+
+  useEffect(() => {
+    if (!showIntro) return;
+    const t = setTimeout(() => setShowIntro(false), 2400);
+    return () => clearTimeout(t);
+  }, [showIntro]);
 
   useEffect(() => {
     Promise.all([
@@ -91,8 +103,38 @@ export default function Home() {
       <style>{`
         @keyframes breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
         .breathe { animation: breathe 7s ease-in-out infinite; }
-        @media (prefers-reduced-motion: reduce) { .breathe { animation: none; } }
+        @keyframes home-intro {
+          0%   { opacity: 0; transform: translateY(6px); }
+          38%  { opacity: 1; transform: translateY(0); }
+          68%  { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-4px); }
+        }
+        .home-intro-word { animation: home-intro 2.4s ease-in-out forwards; }
+        @media (prefers-reduced-motion: reduce) {
+          .breathe { animation: none; }
+          .home-intro-word { animation: none; opacity: 0; }
+        }
       `}</style>
+
+      {showIntro && (
+        <div
+          style={{
+            position: "fixed", inset: 0, background: PAPER.bg,
+            display: "grid", placeItems: "center", zIndex: 100,
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            className="home-intro-word"
+            style={{
+              fontFamily: FONT.serif, fontWeight: 400, fontSize: 56,
+              color: PAPER.ink, letterSpacing: "-0.01em",
+            }}
+          >
+            Becoming
+          </div>
+        </div>
+      )}
 
       <div style={{ maxWidth: 560, margin: "0 auto" }}>
         <header style={{ marginBottom: 20 }}>
