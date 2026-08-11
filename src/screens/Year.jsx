@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { CATS, PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
@@ -49,14 +49,16 @@ function markStyleFor(status, catColor) {
 
 // adherenceMaps: Record<goalId, Record<isoDate, status>>
 // dayMarks: built per DayCell from adherenceMaps + goals
-function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, onToggle, setTip }) {
+function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, penHasEvent, onToggle, onOpen, setTip }) {
   const size = 15;
   const c = size / 2;
   const clickable = !!pen;
 
-  // Per-goal marks for this day (filtered to goals that have a non-trivial status)
+  // Per-goal marks for this day. When a pen is held, only the pen's goal
+  // renders — every goal owns its own visual layer.
   const marks = useMemo(() => {
-    return goals
+    const visible = pen ? goals.filter((g) => g.id === pen.id) : goals;
+    return visible
       .map((g) => {
         const map = adherenceMaps[g.id] || {};
         const status = map[isoDate] || "none";
@@ -64,11 +66,14 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
         return { g, status, style };
       })
       .filter(({ style }) => style !== null);
-  }, [goals, adherenceMaps, isoDate]);
+  }, [goals, adherenceMaps, isoDate, pen]);
 
   const hasContent = marks.length > 0;
+  // Show tap dot when pen goal has no logged event on this day.
+  // Log presence — not adherence status — is truth.
+  const showTapDot = clickable ? !penHasEvent : !hasContent;
 
-  const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, marks };
+  const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, iso: isoDate, marks };
 
   return (
     <svg
@@ -76,11 +81,12 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
       height={size}
       viewBox={`0 0 ${size} ${size}`}
       onClick={clickable ? onToggle : undefined}
-      onMouseEnter={() => hasContent && setTip(tipData)}
+      onDoubleClick={(e) => { e.stopPropagation(); onOpen(); }}
+      onMouseEnter={() => setTip(tipData)}
       onMouseLeave={() => setTip(null)}
-      style={{ display: "block", cursor: clickable ? "pointer" : hasContent ? "pointer" : "default" }}
+      style={{ display: "block", cursor: "pointer" }}
     >
-      {!hasContent && (
+      {showTapDot && (
         <circle cx={c} cy={c} r={clickable ? 1.4 : 0.9} fill={PAPER.faint} opacity={clickable ? 0.8 : 0.5} />
       )}
 
@@ -107,7 +113,7 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
   );
 }
 
-function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, setTip }) {
+function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate, onDayTap, onDayOpen, setTip }) {
   const name = MONTHS[monthIdx];
   const count = daysInMonth(monthIdx);
 
@@ -141,10 +147,9 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, setT
               adherenceMaps={adherenceMaps}
               focus={focus}
               pen={pen}
-              onToggle={() => {
-                const penStatus = pen ? (adherenceMaps[pen.id] || {})[iso] || "none" : "none";
-                onDayTap({ dateISO: iso, status: penStatus });
-              }}
+              penHasEvent={Boolean(penEventByDate[iso])}
+              onToggle={() => onDayTap({ dateISO: iso })}
+              onOpen={() => onDayOpen(iso)}
               setTip={setTip}
             />
           );
@@ -155,6 +160,7 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, setT
 }
 
 export default function Year() {
+  const nav = useNavigate();
   const [params] = useSearchParams();
   const [goals, setGoals] = useState(null); // null = loading
   const [logs, setLogs] = useState([]);
@@ -202,37 +208,35 @@ export default function Year() {
     setLogs(ls);
   }, []);
 
-  const onDayTap = useCallback(async ({ dateISO, status }) => {
-    if (!pen) return;
-    const goal = pen;
+  // Pen goal's existing event per day — the single source of truth for
+  // whether a tap should unmark (delete) or mark (append). Independent of
+  // adherence status names so it survives future status renames.
+  const penEventByDate = useMemo(() => {
+    const map = {};
+    if (!pen) return map;
+    const verb = pen.type === "wake" ? "wake" : "session";
+    for (const l of logs) {
+      const evt = l.events.find((e) => e.goalId === pen.id && e.verb === verb);
+      if (evt) map[l.date] = evt;
+    }
+    return map;
+  }, [pen, logs]);
 
-    // Tapping a day that already has a hit/soft unmarks it
-    if (status === "hit" || status === "soft") {
-      const log = logs.find((l) => l.date === dateISO);
-      if (goal.type === "wake") {
-        const wakeEvt = log?.events.find((e) => e.goalId === goal.id && e.verb === "wake");
-        if (wakeEvt) {
-          await deleteLogEvent(dateISO, wakeEvt);
-          await refreshLogs();
-        }
-      } else if (goal.type === "cadence") {
-        const sessionEvt = log?.events.find((e) => e.goalId === goal.id && e.verb === "session");
-        if (sessionEvt) {
-          await deleteLogEvent(dateISO, sessionEvt);
-          await refreshLogs();
-        }
-      }
+  const onDayTap = useCallback(async ({ dateISO }) => {
+    if (!pen) return;
+    const existing = penEventByDate[dateISO];
+    if (existing) {
+      await deleteLogEvent(dateISO, existing);
+      await refreshLogs();
       return;
     }
-
-    // Empty day: write a default log event
     const event =
-      goal.type === "wake"
-        ? { verb: "wake", time: "07:00", goalId: goal.id }
-        : { verb: "session", durationMin: 10, goalId: goal.id };
+      pen.type === "wake"
+        ? { verb: "wake", time: "07:00", goalId: pen.id }
+        : { verb: "session", durationMin: 10, goalId: pen.id };
     await appendLog(dateISO, event);
     await refreshLogs();
-  }, [pen, logs, refreshLogs]);
+  }, [pen, penEventByDate, refreshLogs]);
 
   // Accumulation copy: days with a hit or soft mark
   const penDays = useMemo(() => {
@@ -390,13 +394,15 @@ export default function Year() {
               adherenceMaps={adherenceMaps}
               focus={focus}
               pen={pen}
+              penEventByDate={penEventByDate}
               onDayTap={onDayTap}
+              onDayOpen={(iso) => nav(`/day/${iso}`)}
               setTip={setTip}
             />
           ))}
         </div>
 
-        {tip && tip.marks.length > 0 && (
+        {tip && (
           <div
             style={{
               position: "fixed",
@@ -415,7 +421,7 @@ export default function Year() {
             }}
           >
             <span style={{ color: PAPER.dim, fontVariantNumeric: "tabular-nums" }}>
-              {tip.month} {tip.day}
+              {new Date(tip.iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "short" })} · {tip.month} {tip.day}
             </span>
             {tip.marks.map(({ g, status }) => {
               const color = status === "off" ? PAPER.whisper : CATS[g.cat]?.color ?? PAPER.faint;
