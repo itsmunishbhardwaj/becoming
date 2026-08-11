@@ -1,4 +1,4 @@
-import { CATS } from "../tokens.js";
+import { CATS, PAPER } from "../tokens.js";
 
 export default function MomentumBar({ cat, momentum, dormant }) {
   const color = CATS[cat].color;
@@ -7,7 +7,7 @@ export default function MomentumBar({ cat, momentum, dormant }) {
       style={{
         height: 4,
         borderRadius: 2,
-        background: "rgba(255,255,255,0.06)",
+        background: PAPER.trough,
         overflow: "hidden",
         marginTop: 14,
       }}
