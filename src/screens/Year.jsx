@@ -54,9 +54,11 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
   const c = size / 2;
   const clickable = !!pen;
 
-  // Per-goal marks for this day (filtered to goals that have a non-trivial status)
+  // Per-goal marks for this day. When a pen is held, only the pen's goal
+  // renders — every goal owns its own visual layer.
   const marks = useMemo(() => {
-    return goals
+    const visible = pen ? goals.filter((g) => g.id === pen.id) : goals;
+    return visible
       .map((g) => {
         const map = adherenceMaps[g.id] || {};
         const status = map[isoDate] || "none";
@@ -64,7 +66,7 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
         return { g, status, style };
       })
       .filter(({ style }) => style !== null);
-  }, [goals, adherenceMaps, isoDate]);
+  }, [goals, adherenceMaps, isoDate, pen]);
 
   const hasContent = marks.length > 0;
   // Pen goal has its own mark on this day? If not, keep the tappable dot visible
