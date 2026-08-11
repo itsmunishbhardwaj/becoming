@@ -24,7 +24,7 @@ export default function LogBlob({ onClick }) {
           borderRadius: RADIUS.blob,
           background: `linear-gradient(135deg, ${PAPER.card} 0%, ${PAPER.panel} 100%)`,
           border: `1px solid ${PAPER.line}`,
-          boxShadow: "0 6px 20px rgba(85,80,92,0.10)",
+          boxShadow: PAPER.shadow,
           color: PAPER.ink,
           fontSize: 27,
           fontFamily: FONT.sans,

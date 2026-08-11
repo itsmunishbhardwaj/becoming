@@ -34,10 +34,16 @@ export const PAPER = {
   affirm: "#DCEAE2",    // confirm pill fill
   affirmLine: "#C3DACD",
   affirmInk: "#5F8672",
+  // Neutral scrim + shadow tokens — the only "off-palette" values are here so components stay hex-free.
+  scrim: "rgba(0,0,0,0.12)",                        // sheet overlay dim, brand-neutral black-alpha
+  shadow: "0 6px 20px rgba(85,80,92,0.10)",         // shadow token; RGB derives from PAPER.ink
+  sheetShadow: "0 -10px 40px rgba(0,0,0,0.15)",    // top-facing sheet drop shadow
+  cardBorder: "#E7E2D5",                             // matches PAPER.line — added so NIGHT.cardBorder no longer resolves undefined
 };
 
 // @deprecated — the night theme is retired. brand.md rule 2: one paper
 // theme end to end. Home must migrate to PAPER (see docs/ui-spec.md §7).
+// TODO: delete after Phase 5
 export const NIGHT = PAPER;
 
 export const FONT = {
