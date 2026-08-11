@@ -82,7 +82,7 @@ export default function Goal() {
               {goal.name}
             </h1>
             <div style={{ fontSize: 13, color: PAPER.dim, marginTop: 4 }}>
-              {recentTop.length > 0 ? `last worked ${recentTop[0].date}` : "no logs yet"}
+              {recentEvents.length > 0 ? `${recentEvents.length} recent events · last worked ${recentTop[0].date}` : "no logs yet"}
             </div>
           </div>
         </header>
@@ -102,7 +102,7 @@ export default function Goal() {
             display: "inline-block",
           }}>
             <div style={{ fontSize: 10.5, letterSpacing: "1.3px", textTransform: "uppercase", color: PAPER.faint, fontWeight: 500 }}>
-              THIS STRETCH
+              THIS STRETCH — ROUND {cur.n}
             </div>
             <div style={{ fontSize: 12.5, color: PAPER.dim, marginTop: 4 }}>
               {formatTarget(goal, cur)} until {cur.endDate}
