@@ -45,6 +45,11 @@ describe("serializeEvent", () => {
     expect(serializeEvent({ verb: "session", time: "22:00", durationMin: 15, goalId: "cadence-reset" }))
       .toBe("- session 22:00 · 15min → [[cadence-reset]]");
   });
+
+  it("derives duration-only payload for session events with no time (calendar tap)", () => {
+    expect(serializeEvent({ verb: "session", durationMin: 10, goalId: "cadence-reset" }))
+      .toBe("- session 10min → [[cadence-reset]]");
+  });
 });
 
 describe("bare-duration session", () => {
