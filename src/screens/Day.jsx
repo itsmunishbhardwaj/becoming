@@ -12,6 +12,7 @@ function formatEvent(evt) {
     if (evt.durationMin != null) return `session ${evt.durationMin}min`;
     if (evt.time) return `session ${evt.time}`;
   }
+  if (evt.verb === "done") return "done";
   return evt.payload || evt.verb;
 }
 
@@ -23,7 +24,7 @@ function humanDate(iso) {
 function defaultEventFor(goal) {
   if (goal.type === "wake") return { verb: "wake", time: "07:00", goalId: goal.id };
   if (goal.type === "cadence") return { verb: "session", durationMin: 10, goalId: goal.id };
-  return null;
+  return { verb: "done", goalId: goal.id };
 }
 
 export default function Day() {

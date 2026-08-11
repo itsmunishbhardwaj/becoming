@@ -214,9 +214,9 @@ export default function Year() {
   const penEventByDate = useMemo(() => {
     const map = {};
     if (!pen) return map;
-    const verb = pen.type === "wake" ? "wake" : "session";
+    // Any event belonging to the pen goal counts as a mark, regardless of verb.
     for (const l of logs) {
-      const evt = l.events.find((e) => e.goalId === pen.id && e.verb === verb);
+      const evt = l.events.find((e) => e.goalId === pen.id);
       if (evt) map[l.date] = evt;
     }
     return map;
@@ -233,7 +233,9 @@ export default function Year() {
     const event =
       pen.type === "wake"
         ? { verb: "wake", time: "07:00", goalId: pen.id }
-        : { verb: "session", durationMin: 10, goalId: pen.id };
+        : pen.type === "cadence"
+          ? { verb: "session", durationMin: 10, goalId: pen.id }
+          : { verb: "done", goalId: pen.id };
     await appendLog(dateISO, event);
     await refreshLogs();
   }, [pen, penEventByDate, refreshLogs]);

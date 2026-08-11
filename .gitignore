@@ -11,3 +11,9 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# VSCode local-history plugin — never commit (may contain secret snapshots)
+.history/
+
+# Obsidian vault-local config (per-user)
+.obsidian/

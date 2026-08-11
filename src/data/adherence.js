@@ -53,6 +53,11 @@ export function momentum({ goal, logs, asOf }) {
     }
     return n === 0 ? 0 : sum / n;
   }
+  if (goal.type === "simple") {
+    let sum = 0;
+    for (const s of days) if (s === "hit") sum += 1;
+    return sum / 14;
+  }
   // cadence
   let sum = 0;
   for (const s of days) {

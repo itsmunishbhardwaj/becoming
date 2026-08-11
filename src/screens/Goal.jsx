@@ -12,7 +12,8 @@ function catColor(cat) {
 
 function formatTarget(goal, r) {
   if (goal.type === "wake") return `wake by ${r.targetValue}`;
-  return `every ${r.targetValue.intervalDays}d`;
+  if (goal.type === "cadence") return `every ${r.targetValue.intervalDays}d`;
+  return "one tap per day"; // simple
 }
 
 function formatEvent(evt) {
