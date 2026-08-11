@@ -46,3 +46,23 @@ describe("serializeEvent", () => {
       .toBe("- session 22:00 · 15min → [[cadence-reset]]");
   });
 });
+
+describe("bare-duration session", () => {
+  it("session round-trip preserves durationMin when no time is present", () => {
+    const src = `---
+date: 2026-08-11
+---
+
+- session 12min → [[cadence-reset]]
+`;
+    const { events } = parseLog(src);
+    expect(events[0]).toEqual({
+      verb: "session",
+      payload: "12min",
+      goalId: "cadence-reset",
+      durationMin: 12,
+    });
+    const back = parseLog(serializeLog("2026-08-11", events));
+    expect(back.events[0]).toEqual(events[0]);
+  });
+});

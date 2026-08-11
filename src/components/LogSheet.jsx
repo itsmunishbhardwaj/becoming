@@ -2,10 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { PAPER, FONT, TYPE, RADIUS, SPACE, CATS } from "../tokens.js";
 import { parseLogText } from "../lib/logParser.js";
 import { listGoals, appendLog } from "../data/store.js";
-
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
-}
+import { todayLocalISO } from "../lib/date.js";
 
 function catColor(cat) {
   return (CATS[cat] && CATS[cat].color) || PAPER.dim;
@@ -49,7 +46,7 @@ export default function LogSheet({ open, onClose, onSaved }) {
     setSaving(true);
     setError(null);
     try {
-      const date = todayISO();
+      const date = todayLocalISO();
       for (const { evt, goal } of rows) {
         if (!goal) continue;
         await appendLog(date, {

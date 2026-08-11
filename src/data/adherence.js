@@ -1,13 +1,10 @@
 import { getType } from "./goalTypes/index.js";
+import { todayLocalISO } from "../lib/date.js";
 
 function addDays(iso, n) {
   const d = new Date(iso + "T00:00:00Z");
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
-}
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 function pickRound(goal, date) {
@@ -45,7 +42,7 @@ export function dailyAdherence({ goal, logs, from, to }) {
 const WAKE_WEIGHT = { hit: 1, soft: 0.5, off: 0 };
 
 export function momentum({ goal, logs, asOf }) {
-  const end = asOf || today();
+  const end = asOf || todayLocalISO();
   const start = addDays(end, -13);
   const per = dailyAdherence({ goal, logs, from: start, to: end });
   const days = Object.values(per);

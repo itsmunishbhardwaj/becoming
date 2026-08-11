@@ -6,15 +6,14 @@ import { momentum } from "../data/adherence.js";
 import GoalCard from "../components/GoalCard.jsx";
 import LogBlob from "../components/LogBlob.jsx";
 import LogSheet from "../components/LogSheet.jsx";
+import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
 
 function rangeEnd() {
-  return new Date().toISOString().slice(0, 10);
+  return todayLocalISO();
 }
 
 function rangeStart() {
-  const d = new Date(rangeEnd() + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() - 13);
-  return d.toISOString().slice(0, 10);
+  return addDaysLocalISO(todayLocalISO(), -13);
 }
 
 export default function Home() {
@@ -38,7 +37,7 @@ export default function Home() {
   const enriched = goals
     ? goals.map((g) => ({
         ...g,
-        momentum: momentum({ goal: g, logs, asOf: new Date().toISOString().slice(0, 10) }),
+        momentum: momentum({ goal: g, logs, asOf: todayLocalISO() }),
         last: "—",
         lastDetail: "no logs yet",
         streak: null,
