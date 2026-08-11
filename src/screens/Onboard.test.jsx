@@ -10,9 +10,10 @@ vi.mock("../lib/llm.js", () => ({
 
 vi.mock("../data/store.js", () => ({
   saveGoal: vi.fn().mockResolvedValue(undefined),
+  getGoal: vi.fn(),
 }));
 
-import { saveGoal } from "../data/store.js";
+import { saveGoal, getGoal } from "../data/store.js";
 
 function renderOnboard() {
   return render(
@@ -25,6 +26,7 @@ function renderOnboard() {
 beforeEach(() => {
   localStorage.clear();
   saveGoal.mockClear();
+  getGoal.mockReset();
 });
 
 describe("Onboard first render", () => {
@@ -47,6 +49,28 @@ describe("Onboard send", () => {
     // Next prompt should be about type — but scripted path may auto-answer type from ambition
     // At minimum, the transcript now shows the user's ambition and an assistant reply.
     expect(screen.getAllByText(/wake at 6:00 am/i).length).toBeGreaterThan(0);
+  });
+});
+
+describe("Onboard edit mode", () => {
+  it("hydrates state from ?goalId and jumps to ?turn", async () => {
+    getGoal.mockResolvedValue({
+      id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", type: "wake",
+      state: "active", baseline: "08:30", target: "06:00", endDate: "2026-12-31",
+      createdAt: "2026-08-01", currentRound: 1,
+      rounds: [{ n: 1, targetValue: "08:00", startDate: "2026-08-01", endDate: "2026-09-01" }],
+      ambition: "Own the morning.",
+      howWeGetThere: "",
+      indicators: { right: ["a"], wrong: ["b"], stall: ["c"] },
+    });
+    render(
+      <MemoryRouter initialEntries={["/onboard?goalId=wake-6am&turn=roundsPreview"]}>
+        <Onboard />
+      </MemoryRouter>
+    );
+    await waitFor(() =>
+      expect(screen.getByText(/proposed rounds — accept, or ask to soften/i)).toBeInTheDocument()
+    );
   });
 });
 

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
 import {
-  initialState, applyInput, nextTurn, finalize, validate,
+  initialState, applyInput, nextTurn, finalize, validate, TURNS,
 } from "../onboard/turns.js";
 import { runTurn, scriptedTurn } from "../onboard/prompting.js";
 import { chat, isConfigured } from "../lib/llm.js";
-import { saveGoal } from "../data/store.js";
+import { saveGoal, getGoal } from "../data/store.js";
 
 const DRAFT_KEY = "becoming.onboard.draft";
 
@@ -55,6 +55,9 @@ const PLACEHOLDER = {
 
 export default function Onboard() {
   const nav = useNavigate();
+  const [params] = useSearchParams();
+  const editGoalId = params.get("goalId");
+  const jumpTurn = params.get("turn");
   const [state, setState] = useState(null);
   const [transcript, setTranscript] = useState([]);
   const [text, setText] = useState("");
@@ -63,17 +66,52 @@ export default function Onboard() {
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    const draft = loadDraft();
-    if (draft) {
-      setState(draft.state);
-      setTranscript(draft.transcript);
-    } else {
-      const s = initialState();
-      setState(s);
-      setTranscript([{ role: "assistant", text: promptFor("ambition", s.answers) }]);
+    async function boot() {
+      if (editGoalId) {
+        clearDraft();
+        const goal = await getGoal(editGoalId).catch(() => null);
+        if (!goal) {
+          const s = initialState();
+          setState(s);
+          setTranscript([{ role: "assistant", text: promptFor("ambition", s.answers) }]);
+          isConfigured().then(setLlmOn).catch(() => setLlmOn(false));
+          return;
+        }
+        const answers = {
+          ambition: goal.ambition,
+          type: goal.type,
+          baseline: goal.baseline,
+          target: goal.target,
+          endDate: goal.endDate,
+          roundsPreview: goal.rounds,
+          indicators: goal.indicators,
+        };
+        if (jumpTurn) {
+          const idx = TURNS.indexOf(jumpTurn);
+          if (idx >= 0) {
+            for (const t of TURNS.slice(idx)) delete answers[t];
+          }
+        }
+        const s = { sessionId: `edit-${goal.id}`, answers, name: goal.name, cat: goal.cat };
+        setState(s);
+        const target = jumpTurn || TURNS[Object.keys(answers).length];
+        setTranscript([{ role: "assistant", text: promptFor(target, answers) }]);
+        isConfigured().then(setLlmOn).catch(() => setLlmOn(false));
+        return;
+      }
+      const draft = loadDraft();
+      if (draft) {
+        setState(draft.state);
+        setTranscript(draft.transcript);
+      } else {
+        const s = initialState();
+        setState(s);
+        setTranscript([{ role: "assistant", text: promptFor("ambition", s.answers) }]);
+      }
+      isConfigured().then(setLlmOn).catch(() => setLlmOn(false));
     }
-    isConfigured().then(setLlmOn).catch(() => setLlmOn(false));
-  }, []);
+    boot();
+  }, [editGoalId, jumpTurn]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
