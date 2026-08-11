@@ -61,6 +61,24 @@ describe("Home auto-advances rounds", () => {
   });
 });
 
+describe("Home insights", () => {
+  it("renders an insight when a goal has drifted 7+ days", async () => {
+    listGoals.mockResolvedValue([{
+      id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", state: "active", type: "wake",
+      baseline: "08:30", target: "06:00", endDate: "2026-12-31", createdAt: "2026-01-01",
+      currentRound: 1,
+      rounds: [{ n: 1, targetValue: "08:00", startDate: "2026-01-01", endDate: "2026-12-31" }],
+      ambition: "", howWeGetThere: "",
+      indicators: { right: [], wrong: [], stall: [] },
+      headline: { n: 0, unit: "days marked" },
+    }]);
+    readLogsInRange.mockResolvedValue([]);
+    renderHome();
+    await waitFor(() => expect(screen.getByText(/a quiet one/i)).toBeInTheDocument());
+    expect(screen.getByText(/still on it/i)).toBeInTheDocument();
+  });
+});
+
 describe("Home populated state", () => {
   it("renders one GoalCard per goal", async () => {
     listGoals.mockResolvedValue([

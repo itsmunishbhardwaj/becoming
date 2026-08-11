@@ -4,7 +4,9 @@ import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
 import { listGoals, readLogsInRange, saveGoal } from "../data/store.js";
 import { advanceGoal } from "../data/rounds.js";
 import { momentum } from "../data/adherence.js";
+import { generateInsights } from "../data/insights.js";
 import GoalCard from "../components/GoalCard.jsx";
+import InsightCard from "../components/InsightCard.jsx";
 import LogBlob from "../components/LogBlob.jsx";
 import LogSheet from "../components/LogSheet.jsx";
 import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
@@ -21,6 +23,11 @@ export default function Home() {
   const [goals, setGoals] = useState(null); // null = loading
   const [logs, setLogs] = useState([]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [insights, setInsights] = useState([]);
+  const [dismissedIds, setDismissedIds] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("becoming.insights.seen") || "[]")); }
+    catch { return new Set(); }
+  });
 
   useEffect(() => {
     Promise.all([
@@ -37,9 +44,19 @@ export default function Home() {
         }
         setGoals(advanced);
         setLogs(l);
+        setInsights(generateInsights({ goals: advanced, logs: l, today }));
       })
       .catch(() => { setGoals([]); setLogs([]); });
   }, []);
+
+  const activeInsight = insights.find((q) => !dismissedIds.has(q.id));
+
+  function dismissInsight(id) {
+    const next = new Set(dismissedIds);
+    next.add(id);
+    setDismissedIds(next);
+    try { localStorage.setItem("becoming.insights.seen", JSON.stringify([...next])); } catch {}
+  }
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long", month: "long", day: "numeric",
@@ -97,6 +114,12 @@ export default function Home() {
             </p>
           )}
         </header>
+
+        {activeInsight && (
+          <div style={{ marginBottom: 20 }}>
+            <InsightCard question={activeInsight} onAnswer={(id) => dismissInsight(id)} />
+          </div>
+        )}
 
         {goals === null && (
           <p style={{ color: PAPER.faint, fontSize: TYPE.body }}>Reading your vault…</p>
