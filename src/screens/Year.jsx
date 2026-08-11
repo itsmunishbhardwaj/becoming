@@ -1,34 +1,28 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { CATS, PAPER, FONT } from "../tokens.js";
-import { MONTHS, buildYear, isMonthDormant } from "../data/mockLife.js";
-import { listGoals } from "../data/store.js";
+import { listGoals, readLogsInRange, appendLog } from "../data/store.js";
+import { dailyAdherence } from "../data/adherence.js";
 
 // ── The spreadsheet gesture, reborn ────────────────────────────────────
 // The 2024 sheet's core act: on the day you moved a goal, you coloured its
 // cell. Here that's one tap — pick a goal's colour, tap the day, the day is
 // blobbed. (docs/origin-spreadsheets.md oblig. 7: capture must be cheaper
 // than colouring a cell.)
-//
-// Two lenses:
-//   "mine"    — your real year. Starts empty, fills as you mark. Persisted.
-//   "example" — the synthetic demo year, kept as a preview of the end state.
-const MARKS_KEY = "becoming.marks.v1";
 
-function loadMarks() {
-  if (typeof localStorage === "undefined") return {};
-  try {
-    return JSON.parse(localStorage.getItem(MARKS_KEY) || "{}");
-  } catch {
-    return {};
-  }
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+const YEAR = new Date().getFullYear().toString();
+const YEAR_FROM = `${YEAR}-01-01`;
+const YEAR_TO   = `${YEAR}-12-31`;
+
+// Days per month for the current year (accounts for leap years)
+function daysInMonth(monthIdx) {
+  return new Date(parseInt(YEAR), monthIdx + 1, 0).getDate();
 }
 
-// goalById is derived from goals state in the component; initialized empty.
-
-// Irregular blob (brand rule 5: a life is not a rectangle) — a rotated
-// ellipse whose tilt is stable per day+goal so marks don't jiggle.
-function Blob({ cx, cy, color, seed, big }) {
+// Stable rotation for each ellipse per (day, index)
+function Blob({ cx, cy, color, seed, big, opacity }) {
   const tilt = ((seed * 137) % 360) - 180;
   const rx = big ? 5.4 : 4.6;
   const ry = big ? 4.2 : 3.4;
@@ -39,19 +33,42 @@ function Blob({ cx, cy, color, seed, big }) {
       rx={rx}
       ry={ry}
       fill={color}
-      opacity={0.78}
+      opacity={opacity ?? 0.78}
       transform={`rotate(${tilt} ${cx} ${cy})`}
     />
   );
 }
 
-function DayCell({ mode, demoCircles, markIds, focus, pen, onToggle, setTip, tipData, goalById }) {
+function markStyleFor(status, catColor) {
+  if (status === "none" || status === "clean") return null;
+  const base = { width: 5.6, height: 4.6, borderRadius: 999, display: "inline-block" };
+  if (status === "off") return { ...base, background: PAPER.whisper, opacity: 0.55 };
+  const op = status === "soft" ? 0.55 : 0.85;
+  return { ...base, background: catColor, opacity: op };
+}
+
+// adherenceMaps: Record<goalId, Record<isoDate, status>>
+// dayMarks: built per DayCell from adherenceMaps + goals
+function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, onToggle, setTip }) {
   const size = 15;
   const c = size / 2;
-  const mine = mode === "mine";
-  const marks = markIds.map((id) => goalById[id]).filter(Boolean);
-  const hasContent = mine ? marks.length > 0 : demoCircles.length > 0;
-  const clickable = mine && pen;
+  const clickable = !!pen;
+
+  // Per-goal marks for this day (filtered to goals that have a non-trivial status)
+  const marks = useMemo(() => {
+    return goals
+      .map((g) => {
+        const map = adherenceMaps[g.id] || {};
+        const status = map[isoDate] || "none";
+        const style = markStyleFor(status, CATS[g.cat]?.color ?? PAPER.faint);
+        return { g, status, style };
+      })
+      .filter(({ style }) => style !== null);
+  }, [goals, adherenceMaps, isoDate]);
+
+  const hasContent = marks.length > 0;
+
+  const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, marks };
 
   return (
     <svg
@@ -67,49 +84,33 @@ function DayCell({ mode, demoCircles, markIds, focus, pen, onToggle, setTip, tip
         <circle cx={c} cy={c} r={clickable ? 1.4 : 0.9} fill={PAPER.faint} opacity={clickable ? 0.8 : 0.5} />
       )}
 
-      {/* Example layer: translucent effort circles from the demo year */}
-      {!mine &&
-        demoCircles.map((circ, i) => {
-          const r = 2.2 + circ.effort * 4.2;
-          const ang = (i / Math.max(demoCircles.length, 1)) * Math.PI * 2 + i;
-          const off = demoCircles.length > 1 ? 1.8 : 0;
-          const faded = focus && circ.cat !== focus.cat;
-          return (
-            <circle
-              key={i}
+      {marks.map(({ g, status }, i) => {
+        const ang = (i / Math.max(marks.length, 1)) * Math.PI * 2 + i;
+        const off = marks.length > 1 ? 2 : 0;
+        const faded = focus && g.id !== focus.id;
+        const op = status === "off" ? 0.55 : status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
+        const color = status === "off" ? PAPER.whisper : CATS[g.cat]?.color ?? PAPER.faint;
+        return (
+          <g key={g.id} opacity={faded && status !== "off" ? 0.15 : 1}>
+            <Blob
               cx={c + Math.cos(ang) * off}
               cy={c + Math.sin(ang) * off}
-              r={r}
-              fill={CATS[circ.cat].color}
-              opacity={faded ? 0.1 : focus ? 0.8 : 0.62}
+              color={color}
+              seed={(dayIdx + 1) + i * 31}
+              big={marks.length === 1}
+              opacity={op}
             />
-          );
-        })}
-
-      {/* Your layer: solid little blobs, one per goal marked that day */}
-      {mine &&
-        marks.map((g, i) => {
-          const ang = (i / Math.max(marks.length, 1)) * Math.PI * 2 + i;
-          const off = marks.length > 1 ? 2 : 0;
-          const faded = focus && g.id !== focus.id;
-          return (
-            <g key={g.id} opacity={faded ? 0.15 : 1}>
-              <Blob
-                cx={c + Math.cos(ang) * off}
-                cy={c + Math.sin(ang) * off}
-                color={CATS[g.cat].color}
-                seed={tipData.day + i * 31}
-                big={marks.length === 1}
-              />
-            </g>
-          );
-        })}
+          </g>
+        );
+      })}
     </svg>
   );
 }
 
-function MonthBlock({ name, monthIdx, days, mode, marks, focus, pen, toggleDay, setTip, goalById }) {
-  const dormant = mode === "example" && isMonthDormant(days, monthIdx);
+function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, setTip }) {
+  const name = MONTHS[monthIdx];
+  const count = daysInMonth(monthIdx);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <div
@@ -117,31 +118,31 @@ function MonthBlock({ name, monthIdx, days, mode, marks, focus, pen, toggleDay, 
           fontSize: 11,
           letterSpacing: "0.1em",
           textTransform: "uppercase",
-          color: dormant ? PAPER.faint : PAPER.dim,
+          color: PAPER.dim,
           display: "flex",
           alignItems: "center",
           gap: 5,
         }}
       >
         {name}
-        {dormant && <span style={{ fontSize: 10 }}>🌙</span>}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
-        {days.map((circles, i) => {
-          const key = `${monthIdx}-${i + 1}`;
-          const markIds = marks[key] || [];
+        {Array.from({ length: count }, (_, i) => {
+          const mm = String(monthIdx + 1).padStart(2, "0");
+          const dd = String(i + 1).padStart(2, "0");
+          const iso = `${YEAR}-${mm}-${dd}`;
           return (
             <DayCell
-              key={i}
-              mode={mode}
-              demoCircles={circles}
-              markIds={markIds}
+              key={iso}
+              monthIdx={monthIdx}
+              dayIdx={i}
+              isoDate={iso}
+              goals={goals}
+              adherenceMaps={adherenceMaps}
               focus={focus}
               pen={pen}
-              onToggle={() => toggleDay(key)}
+              onToggle={() => onDayTap(iso)}
               setTip={setTip}
-              tipData={{ month: name, day: i + 1, circles, markIds }}
-              goalById={goalById}
             />
           );
         })}
@@ -151,22 +152,23 @@ function MonthBlock({ name, monthIdx, days, mode, marks, focus, pen, toggleDay, 
 }
 
 export default function Year() {
-  const year = useMemo(() => buildYear(), []);
   const [goals, setGoals] = useState(null); // null = loading
-  const [mode, setMode] = useState("mine");
+  const [logs, setLogs] = useState([]);
   const [tip, setTip] = useState(null);
-  const [penId, setPenId] = useState(null); // selected goal = your pen colour
-  const [marks, setMarks] = useState(loadMarks);
+  const [penId, setPenId] = useState(null);
 
-  useEffect(() => {
-    listGoals().then(setGoals);
+  const fetchData = useCallback(async () => {
+    const [gs, ls] = await Promise.all([
+      listGoals(),
+      readLogsInRange({ from: YEAR_FROM, to: YEAR_TO }),
+    ]);
+    setGoals(gs);
+    setLogs(ls);
   }, []);
 
   useEffect(() => {
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem(MARKS_KEY, JSON.stringify(marks));
-    }
-  }, [marks]);
+    fetchData();
+  }, [fetchData]);
 
   const goalById = useMemo(
     () => Object.fromEntries((goals ?? []).map((g) => [g.id, g])),
@@ -174,33 +176,54 @@ export default function Year() {
   );
 
   const pen = penId ? goalById[penId] : null;
-  const focus = pen; // focusing and holding the pen are the same gesture
+  const focus = pen;
 
-  const toggleDay = (key) => {
+  // Compute dailyAdherence for every goal over the full year
+  const adherenceMaps = useMemo(() => {
+    if (!goals) return {};
+    const out = {};
+    for (const g of goals) {
+      out[g.id] = dailyAdherence({ goal: g, logs, from: YEAR_FROM, to: YEAR_TO });
+    }
+    return out;
+  }, [goals, logs]);
+
+  const onDayTap = useCallback(async (isoDate) => {
     if (!pen) return;
-    setMarks((m) => {
-      const ids = m[key] || [];
-      const next = ids.includes(pen.id) ? ids.filter((x) => x !== pen.id) : [...ids, pen.id];
-      const copy = { ...m };
-      if (next.length === 0) delete copy[key];
-      else copy[key] = next;
-      return copy;
-    });
-  };
+    // Check if event already exists for this goal on this day
+    const map = adherenceMaps[pen.id] || {};
+    const status = map[isoDate];
+    // If hit/soft — event exists, no delete API in Phase 3, no-op
+    if (status === "hit" || status === "soft") return;
+    // Write a default log event
+    const event =
+      pen.type === "wake"
+        ? { verb: "wake", time: "07:00", goalId: pen.id }
+        : { verb: "session", durationMin: 10, goalId: pen.id };
+    await appendLog(isoDate, event);
+    // Re-fetch logs to update adherence marks
+    const ls = await readLogsInRange({ from: YEAR_FROM, to: YEAR_TO });
+    setLogs(ls);
+  }, [pen, adherenceMaps]);
 
-  // Accumulation only (brand rule 4): days marked, never days missed.
-  const daysMarked = Object.keys(marks).length;
-  const penDays = pen
-    ? Object.values(marks).filter((ids) => ids.includes(pen.id)).length
-    : 0;
+  // Accumulation copy: days with a hit or soft mark
+  const penDays = useMemo(() => {
+    if (!pen) return 0;
+    const map = adherenceMaps[pen.id] || {};
+    return Object.values(map).filter((s) => s === "hit" || s === "soft").length;
+  }, [pen, adherenceMaps]);
 
-  const totals = useMemo(() => {
-    const t = {};
-    Object.keys(CATS).forEach((k) => (t[k] = 0));
-    year.forEach((mo) => mo.forEach((day) => day.forEach((c) => (t[c.cat] += c.effort))));
-    return t;
-  }, [year]);
-  const maxTotal = Math.max(...Object.values(totals));
+  const totalMarkedDays = useMemo(() => {
+    if (!goals) return 0;
+    const days = new Set();
+    for (const g of goals) {
+      const map = adherenceMaps[g.id] || {};
+      Object.entries(map).forEach(([d, s]) => {
+        if (s === "hit" || s === "soft") days.add(d);
+      });
+    }
+    return days.size;
+  }, [goals, adherenceMaps]);
 
   if (goals === null) {
     return (
@@ -245,46 +268,20 @@ export default function Year() {
                 marginBottom: 8,
               }}
             >
-              2026 · a year in progress
+              {YEAR} · a year in progress
             </div>
             <h1 style={{ fontFamily: FONT.serif, fontWeight: 500, fontSize: 30, margin: 0, letterSpacing: "-0.01em" }}>
-              {mode === "mine" ? "Your year, day by day" : "Where a year can go"}
+              Your year, day by day
             </h1>
-          </div>
-          <div style={{ display: "flex", gap: 6, flexShrink: 0, paddingBottom: 4 }}>
-            {[
-              ["mine", "my year"],
-              ["example", "example"],
-            ].map(([m, label]) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                aria-pressed={mode === m}
-                style={{
-                  fontSize: 12,
-                  padding: "5px 12px",
-                  borderRadius: 999,
-                  border: `1px solid ${mode === m ? PAPER.panelBorder : "transparent"}`,
-                  background: mode === m ? "#FFFFFF" : "transparent",
-                  color: mode === m ? PAPER.ink : PAPER.dim,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                {label}
-              </button>
-            ))}
           </div>
         </header>
 
-        {/* Goal chips — each goal its own colour. In "my year" the chip is
-            your pen: pick it, then tap the days you moved that goal. */}
+        {/* Goal pen chips — pick a goal to hold its pen and tap days */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", margin: "20px 0 10px" }}>
           {goals.map((g) => {
-            const v = CATS[g.cat];
+            const v = CATS[g.cat] ?? { color: PAPER.faint };
             const isPen = penId === g.id;
             const dimmed = penId && !isPen;
-            const share = mode === "example" ? totals[g.cat] / maxTotal : 0.5;
             return (
               <button
                 key={g.id}
@@ -297,7 +294,7 @@ export default function Year() {
                   fontSize: 13,
                   color: dimmed ? PAPER.faint : PAPER.ink,
                   background: isPen ? "#FFFFFF" : "transparent",
-                  border: `1px solid ${isPen ? PAPER.panelBorder : "transparent"}`,
+                  border: `1px solid ${isPen ? PAPER.line : "transparent"}`,
                   borderRadius: 999,
                   padding: "4px 10px",
                   cursor: "pointer",
@@ -306,15 +303,15 @@ export default function Year() {
               >
                 <span
                   style={{
-                    width: 10 + share * 8,
-                    height: 10 + share * 8,
+                    width: 10,
+                    height: 10,
                     borderRadius: "46% 54% 52% 48%",
                     background: v.color,
                     opacity: dimmed ? 0.3 : 0.8,
                   }}
                 />
                 {g.name}
-                {mode === "mine" && isPen && penDays > 0 && (
+                {isPen && penDays > 0 && (
                   <span style={{ color: PAPER.dim, fontVariantNumeric: "tabular-nums" }}>· {penDays} days</span>
                 )}
               </button>
@@ -324,86 +321,54 @@ export default function Year() {
 
         {/* One quiet line of guidance / accumulation. Never a deficit. */}
         <div style={{ fontSize: 13, color: PAPER.dim, margin: "0 0 22px" }}>
-          {mode === "mine" ? (
-            pen ? (
-              <>
-                Tap the days you moved <em>{pen.name}</em> — tap again to unmark.
-              </>
-            ) : daysMarked === 0 ? (
-              <>Pick a goal's colour above, then tap the days you moved it. That's the whole ritual.</>
-            ) : (
-              <>
-                {daysMarked} day{daysMarked === 1 ? "" : "s"} marked this year.
-              </>
-            )
+          {pen ? (
+            <>Tap the days you moved <em>{pen.name}</em> — each tap writes a log entry.</>
+          ) : totalMarkedDays === 0 ? (
+            <>Pick a goal above, then tap the days you moved it. That's the whole ritual.</>
           ) : (
-            <>A synthetic year, so you can see what a filled one feels like. Tap a goal to see its year alone.</>
+            <>{totalMarkedDays} day{totalMarkedDays === 1 ? "" : "s"} marked this year.</>
           )}
         </div>
 
-        {/* The focused goal's ambition — its own voice, above its year */}
+        {/* The focused goal's ambition */}
         {focus && (
           <div
             style={{
               margin: "-6px 0 22px",
               padding: "12px 16px",
               background: "#FFFFFF",
-              border: `1px solid ${PAPER.panelBorder}`,
+              border: `1px solid ${PAPER.line}`,
               borderRadius: 16,
               fontSize: 13.5,
               lineHeight: 1.55,
               color: PAPER.ink,
             }}
           >
-            <span style={{ fontFamily: FONT.serif, fontStyle: "italic" }}>“{focus.ambition}”</span>
+            <span style={{ fontFamily: FONT.serif, fontStyle: "italic" }}>"{focus.ambition}"</span>
             {focus.period && (
               <span style={{ color: PAPER.dim }}>
-                {" "}— {focus.period.label.toLowerCase()}: {focus.period.target}
+                {" "}— {focus.period.label?.toLowerCase()}: {focus.period.target}
               </span>
             )}
           </div>
         )}
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "26px 22px" }}>
-          {MONTHS.map((name, i) => (
+          {MONTHS.map((_, i) => (
             <MonthBlock
-              key={name}
-              name={name}
+              key={i}
               monthIdx={i}
-              days={year[i]}
-              mode={mode}
-              marks={mode === "mine" ? marks : {}}
+              goals={goals}
+              adherenceMaps={adherenceMaps}
               focus={focus}
               pen={pen}
-              toggleDay={toggleDay}
+              onDayTap={onDayTap}
               setTip={setTip}
-              goalById={goalById}
             />
           ))}
         </div>
 
-        {mode === "example" && (
-          <div
-            style={{
-              marginTop: 40,
-              padding: "18px 20px",
-              background: PAPER.panel,
-              border: `1px solid ${PAPER.panelBorder}`,
-              borderRadius: 16,
-              fontSize: 14,
-              lineHeight: 1.6,
-              color: PAPER.ink,
-            }}
-          >
-            <span style={{ color: PAPER.dim }}>The shape of this year: </span>
-            career runs steady throughout, peaking in spring.{" "}
-            <span style={{ color: "#7FA0D8" }}>AI</span> burned bright Jan–Mar, then went quiet 🌙 — a pause,
-            not a collapse. <span style={{ color: "#B79FD8" }}>Reading</span> faded after May. Health held its
-            rhythm all year.
-          </div>
-        )}
-
-        {tip && (mode === "mine" ? tip.markIds.length > 0 : tip.circles.length > 0) && (
+        {tip && tip.marks.length > 0 && (
           <div
             style={{
               position: "fixed",
@@ -424,37 +389,22 @@ export default function Year() {
             <span style={{ color: PAPER.dim, fontVariantNumeric: "tabular-nums" }}>
               {tip.month} {tip.day}
             </span>
-            {mode === "mine"
-              ? tip.markIds.map((id) => {
-                  const g = goalById[id];
-                  if (!g) return null;
-                  return (
-                    <span key={id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span
-                        style={{
-                          width: 11,
-                          height: 9,
-                          borderRadius: "46% 54% 52% 48%",
-                          background: CATS[g.cat].color,
-                        }}
-                      />
-                      {g.name}
-                    </span>
-                  );
-                })
-              : tip.circles.map((c, i) => (
-                  <span key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span
-                      style={{
-                        width: 8 + c.effort * 8,
-                        height: 8 + c.effort * 8,
-                        borderRadius: "50%",
-                        background: CATS[c.cat].color,
-                      }}
-                    />
-                    {CATS[c.cat].name}
-                  </span>
-                ))}
+            {tip.marks.map(({ g, status }) => {
+              const color = status === "off" ? PAPER.whisper : CATS[g.cat]?.color ?? PAPER.faint;
+              return (
+                <span key={g.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span
+                    style={{
+                      width: 11,
+                      height: 9,
+                      borderRadius: "46% 54% 52% 48%",
+                      background: color,
+                    }}
+                  />
+                  {g.name}
+                </span>
+              );
+            })}
           </div>
         )}
 
