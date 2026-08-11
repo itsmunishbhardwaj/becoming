@@ -1,17 +1,34 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
-import { listGoals } from "../data/store.js";
+import { listGoals, readLogsInRange } from "../data/store.js";
+import { momentum } from "../data/adherence.js";
 import GoalCard from "../components/GoalCard.jsx";
 import LogBlob from "../components/LogBlob.jsx";
 import LogSheet from "../components/LogSheet.jsx";
 
+function rangeEnd() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function rangeStart() {
+  const d = new Date(rangeEnd() + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() - 13);
+  return d.toISOString().slice(0, 10);
+}
+
 export default function Home() {
   const [goals, setGoals] = useState(null); // null = loading
+  const [logs, setLogs] = useState([]);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
-    listGoals().then(setGoals).catch(() => setGoals([]));
+    Promise.all([
+      listGoals(),
+      readLogsInRange({ from: rangeStart(), to: rangeEnd() }),
+    ])
+      .then(([g, l]) => { setGoals(g); setLogs(l); })
+      .catch(() => { setGoals([]); setLogs([]); });
   }, []);
 
   const today = new Date().toLocaleDateString("en-US", {
@@ -21,7 +38,7 @@ export default function Home() {
   const enriched = goals
     ? goals.map((g) => ({
         ...g,
-        momentum: 0,
+        momentum: momentum({ goal: g, logs, asOf: new Date().toISOString().slice(0, 10) }),
         last: "—",
         lastDetail: "no logs yet",
         streak: null,
@@ -101,7 +118,11 @@ export default function Home() {
           <LogSheet
             open={sheetOpen}
             onClose={() => setSheetOpen(false)}
-            onSaved={() => listGoals().then(setGoals)}
+            onSaved={async () => {
+              const [g, l] = await Promise.all([listGoals(), readLogsInRange({ from: rangeStart(), to: rangeEnd() })]);
+              setGoals(g);
+              setLogs(l);
+            }}
           />
         </>
       )}

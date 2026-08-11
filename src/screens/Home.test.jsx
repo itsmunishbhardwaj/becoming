@@ -5,8 +5,9 @@ import Home from "./Home.jsx";
 
 vi.mock("../data/store.js", () => ({
   listGoals: vi.fn(),
+  readLogsInRange: vi.fn().mockResolvedValue([]),
 }));
-import { listGoals } from "../data/store.js";
+import { listGoals, readLogsInRange } from "../data/store.js";
 
 function renderHome() {
   return render(
@@ -18,6 +19,8 @@ function renderHome() {
 
 beforeEach(() => {
   listGoals.mockReset();
+  readLogsInRange.mockReset();
+  readLogsInRange.mockResolvedValue([]);
 });
 
 describe("Home empty state", () => {
