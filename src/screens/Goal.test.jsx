@@ -63,4 +63,20 @@ describe("Goal workspace", () => {
     renderGoal("missing");
     await waitFor(() => expect(screen.getByText(/couldn't find/i)).toBeInTheDocument());
   });
+
+  it("passes real momentum to Orb based on logs", async () => {
+    getGoal.mockResolvedValue({
+      ...WAKE_GOAL,
+      currentRound: 1,
+      rounds: [{ n: 1, targetValue: "08:00", startDate: "2026-08-01", endDate: "2026-08-31" }],
+    });
+    readLogsInRange.mockResolvedValue([
+      { date: "2026-08-10", events: [{ verb: "wake", time: "07:55", goalId: "wake-6am" }] },
+      { date: "2026-08-09", events: [{ verb: "wake", time: "08:00", goalId: "wake-6am" }] },
+      { date: "2026-08-08", events: [{ verb: "wake", time: "07:50", goalId: "wake-6am" }] },
+    ]);
+    renderGoal();
+    const orbWrap = await screen.findByTestId("goal-orb-wrap");
+    expect(Number(orbWrap.dataset.momentum)).toBeGreaterThan(0);
+  });
 });
