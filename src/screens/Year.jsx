@@ -67,6 +67,11 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
   }, [goals, adherenceMaps, isoDate]);
 
   const hasContent = marks.length > 0;
+  // Pen goal has its own mark on this day? If not, keep the tappable dot visible
+  // even when other goals are marked here — every goal owns every date.
+  const penStatus = pen ? ((adherenceMaps[pen.id] || {})[isoDate] || "none") : null;
+  const penHasMark = penStatus === "hit" || penStatus === "soft" || penStatus === "off";
+  const showTapDot = clickable ? !penHasMark : !hasContent;
 
   const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, marks };
 
@@ -80,7 +85,7 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
       onMouseLeave={() => setTip(null)}
       style={{ display: "block", cursor: clickable ? "pointer" : hasContent ? "pointer" : "default" }}
     >
-      {!hasContent && (
+      {showTapDot && (
         <circle cx={c} cy={c} r={clickable ? 1.4 : 0.9} fill={PAPER.faint} opacity={clickable ? 0.8 : 0.5} />
       )}
 
