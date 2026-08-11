@@ -133,7 +133,12 @@ export default function Home() {
               {enriched.map((g) => <GoalCard key={g.id} goal={g} />)}
             </div>
             <div style={{ marginTop: SPACE.xl, textAlign: "center" }}>
-              <Link to="/onboard" style={ctaStyle}>+ New goal</Link>
+              <Link to="/create" style={ctaStyle}>+ New goal</Link>
+              <div style={{ marginTop: 8 }}>
+                <Link to="/onboard" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>
+                  or walk it out with the Balboa breakdown →
+                </Link>
+              </div>
             </div>
           </>
         )}
@@ -209,7 +214,12 @@ function EmptyHome() {
       <p style={{ color: PAPER.dim, fontSize: TYPE.body, margin: "0 0 24px" }}>
         No goals yet. Start with one.
       </p>
-      <Link to="/onboard" style={ctaStyle}>+ Set your first goal</Link>
+      <Link to="/create" style={ctaStyle}>+ Set your first goal</Link>
+      <div style={{ marginTop: 10 }}>
+        <Link to="/onboard" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>
+          or walk it out with the Balboa breakdown →
+        </Link>
+      </div>
     </div>
   );
 }
