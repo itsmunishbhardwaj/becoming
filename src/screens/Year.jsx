@@ -216,8 +216,8 @@ export default function Year() {
     if (!pen) return;
     const goal = pen;
 
-    // Tapping a day that already has a hit/soft unmarks it
-    if (status === "hit" || status === "soft") {
+    // Tapping a day that already has any logged mark unmarks it
+    if (status === "hit" || status === "soft" || status === "off") {
       const log = logs.find((l) => l.date === dateISO);
       if (goal.type === "wake") {
         const wakeEvt = log?.events.find((e) => e.goalId === goal.id && e.verb === "wake");
