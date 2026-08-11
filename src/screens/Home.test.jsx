@@ -6,8 +6,9 @@ import Home from "./Home.jsx";
 vi.mock("../data/store.js", () => ({
   listGoals: vi.fn(),
   readLogsInRange: vi.fn().mockResolvedValue([]),
+  saveGoal: vi.fn().mockResolvedValue(undefined),
 }));
-import { listGoals, readLogsInRange } from "../data/store.js";
+import { listGoals, readLogsInRange, saveGoal } from "../data/store.js";
 
 function renderHome() {
   return render(
@@ -20,7 +21,9 @@ function renderHome() {
 beforeEach(() => {
   listGoals.mockReset();
   readLogsInRange.mockReset();
+  saveGoal.mockReset();
   readLogsInRange.mockResolvedValue([]);
+  saveGoal.mockResolvedValue(undefined);
 });
 
 describe("Home empty state", () => {
@@ -32,6 +35,29 @@ describe("Home empty state", () => {
     );
     expect(screen.getByText(/no goals yet/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /who are you becoming/i })).toBeInTheDocument();
+  });
+});
+
+describe("Home auto-advances rounds", () => {
+  it("bumps currentRound + saves when today is past round window", async () => {
+    // A goal where round 1 ends 2026-08-01 but currentRound is stuck at 1
+    listGoals.mockResolvedValue([{
+      id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", state: "active", type: "wake",
+      baseline: "08:30", target: "06:00", endDate: "2026-12-31", createdAt: "2026-01-01",
+      currentRound: 1,
+      rounds: [
+        { n: 1, targetValue: "08:00", startDate: "2026-01-01", endDate: "2026-01-31" },
+        { n: 2, targetValue: "07:30", startDate: "2026-02-01", endDate: "2026-12-31" },
+      ],
+      ambition: "", howWeGetThere: "",
+      indicators: { right: [], wrong: [], stall: [] },
+      headline: { n: 0, unit: "days marked" },
+    }]);
+    readLogsInRange.mockResolvedValue([]);
+    renderHome();
+    await waitFor(() => expect(saveGoal).toHaveBeenCalledTimes(1));
+    const saved = saveGoal.mock.calls[0][0];
+    expect(saved.currentRound).toBe(2);
   });
 });
 

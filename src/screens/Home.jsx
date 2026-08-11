@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
-import { listGoals, readLogsInRange } from "../data/store.js";
+import { listGoals, readLogsInRange, saveGoal } from "../data/store.js";
+import { advanceGoal } from "../data/rounds.js";
 import { momentum } from "../data/adherence.js";
 import GoalCard from "../components/GoalCard.jsx";
 import LogBlob from "../components/LogBlob.jsx";
@@ -26,7 +27,17 @@ export default function Home() {
       listGoals(),
       readLogsInRange({ from: rangeStart(), to: rangeEnd() }),
     ])
-      .then(([g, l]) => { setGoals(g); setLogs(l); })
+      .then(([g, l]) => {
+        const today = todayLocalISO();
+        const advanced = [];
+        for (const goal of g) {
+          const { goal: next, changed } = advanceGoal(goal, today);
+          if (changed) { saveGoal(next).catch(() => {}); }
+          advanced.push(next);
+        }
+        setGoals(advanced);
+        setLogs(l);
+      })
       .catch(() => { setGoals([]); setLogs([]); });
   }, []);
 
