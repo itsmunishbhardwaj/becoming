@@ -57,7 +57,8 @@ export function momentum({ goal, logs, asOf }) {
   let sum = 0;
   for (const s of days) {
     if (s === "hit" || s === "clean") sum += 1;
-    // "off" and "none" contribute 0
+    if (s === "bonus") sum += 0.5; // showed up, just not on a scheduled day
+    // "none" contributes 0
   }
   return sum / 14;
 }

@@ -38,12 +38,12 @@ describe("dailyAdherence — wake", () => {
 });
 
 describe("dailyAdherence — cadence", () => {
-  it("marks hit/clean/off/none per green-day rule", () => {
+  it("marks hit/clean/bonus/none per green-day rule", () => {
     // startDate 2026-08-10 (day 0). intervalDays=2 → green days: 10, 12, 14, ...
     const logs = [
       { date: "2026-08-10", events: [{ verb: "session", durationMin: 12, goalId: "cadence-reset" }] }, // green + session → hit
       { date: "2026-08-11", events: [] }, // non-green + no session → clean
-      { date: "2026-08-13", events: [{ verb: "session", durationMin: 8,  goalId: "cadence-reset" }] }, // non-green + session → off
+      { date: "2026-08-13", events: [{ verb: "session", durationMin: 8,  goalId: "cadence-reset" }] }, // non-green + session → bonus
       // 2026-08-12 (green) with no session → none
     ];
     const out = dailyAdherence({ goal: CADENCE_GOAL, logs, from: "2026-08-10", to: "2026-08-13" });
@@ -51,7 +51,7 @@ describe("dailyAdherence — cadence", () => {
       "2026-08-10": "hit",
       "2026-08-11": "clean",
       "2026-08-12": "none",
-      "2026-08-13": "off",
+      "2026-08-13": "bonus",
     });
   });
 });
@@ -90,15 +90,14 @@ describe("momentum — cadence", () => {
     expect(m).toBeCloseTo(1, 3);
   });
 
-  it("subtracts for off-plan sessions", () => {
-    // One session on a non-green day inside window → that day counts 0 not clean.
+  it("counts bonus sessions at half weight", () => {
+    // One session on a non-green day inside window → "bonus" = 0.5 contribution.
     const logs = [
       { date: "2026-08-11", events: [{ verb: "session", durationMin: 5, goalId: "cadence-reset" }] },
     ];
     const m = momentum({ goal: CADENCE_GOAL, logs, asOf: "2026-08-11" });
-    // Window: 2026-07-29 .. 2026-08-11 (14 days ending on asOf).
-    // Only 2026-08-11 is inside round 1. All other days are before round start → status "none".
-    // "none" contributes 0. So numerator = 0. Denominator = 14. Result 0.
-    expect(m).toBe(0);
+    // Window: 2026-07-29 .. 2026-08-11 (14 days). Only 2026-08-11 is in round 1 → "bonus".
+    // bonus contributes 0.5. Denominator 14. Result = 0.5/14.
+    expect(m).toBeCloseTo(0.5 / 14, 5);
   });
 });
