@@ -42,6 +42,7 @@ export function createLlmMiddleware({ env = process.env } = {}) {
             model: overrideModel || model,
             messages,
             temperature: temperature ?? 0.7,
+            stream: false,
           }),
         });
         if (!upstream.ok) {
