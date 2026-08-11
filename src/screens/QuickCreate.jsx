@@ -17,11 +17,6 @@ export default function QuickCreate() {
   const nav = useNavigate();
   const [name, setName] = useState("");
   const [cat, setCat] = useState("health");
-  const [type, setType] = useState("wake");
-  const [baselineTime, setBaselineTime] = useState("08:30");
-  const [targetTime, setTargetTime] = useState("06:30");
-  const [baselineDays, setBaselineDays] = useState(1);
-  const [targetDays, setTargetDays] = useState(7);
   const [endDate, setEndDate] = useState(endOfYearISO());
   const [ambition, setAmbition] = useState("");
   const [error, setError] = useState(null);
@@ -33,25 +28,17 @@ export default function QuickCreate() {
     if (!name.trim()) return setError("Give the goal a name.");
     if (!endDate) return setError("Pick an end date.");
 
-    const baseline = type === "wake" ? baselineTime : { intervalDays: Number(baselineDays) };
-    const target = type === "wake" ? targetTime : { intervalDays: Number(targetDays) };
     const startDate = todayLocalISO();
-
-    let rounds;
-    try {
-      rounds = getType(type).buildRounds(baseline, target, startDate, endDate);
-    } catch (err) {
-      return setError(`Could not build rounds: ${err.message}`);
-    }
+    const rounds = getType("simple").buildRounds(null, null, startDate, endDate);
 
     const goal = {
       id: slugify(name),
       name: name.trim(),
       cat,
-      type,
+      type: "simple",
       state: "active",
-      baseline,
-      target,
+      baseline: null,
+      target: null,
       endDate,
       currentRound: 1,
       createdAt: startDate,
@@ -80,7 +67,7 @@ export default function QuickCreate() {
           <div style={kickerStyle}>QUICK CREATE</div>
           <h1 style={h1Style}>Name it. Track it.</h1>
           <p style={{ color: PAPER.dim, fontSize: 13.5, margin: "8px 0 0", lineHeight: 1.5 }}>
-            Skip the Balboa breakdown. For when you already know what you're doing.
+            Every day is a tap. That's it.
           </p>
         </header>
 
@@ -89,7 +76,7 @@ export default function QuickCreate() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Wake at 6:00 AM"
+              placeholder="Read every day"
               style={inputStyle}
               autoFocus
             />
@@ -102,33 +89,6 @@ export default function QuickCreate() {
               ))}
             </select>
           </Field>
-
-          <Field label="Type">
-            <div style={{ display: "flex", gap: 8 }}>
-              <TypePill selected={type === "wake"} onClick={() => setType("wake")}>Wake time</TypePill>
-              <TypePill selected={type === "cadence"} onClick={() => setType("cadence")}>Cadence</TypePill>
-            </div>
-          </Field>
-
-          {type === "wake" ? (
-            <div style={{ display: "flex", gap: 12 }}>
-              <Field label="Wake now" style={{ flex: 1 }}>
-                <input type="time" value={baselineTime} onChange={(e) => setBaselineTime(e.target.value)} style={inputStyle} />
-              </Field>
-              <Field label="Wake goal" style={{ flex: 1 }}>
-                <input type="time" value={targetTime} onChange={(e) => setTargetTime(e.target.value)} style={inputStyle} />
-              </Field>
-            </div>
-          ) : (
-            <div style={{ display: "flex", gap: 12 }}>
-              <Field label="Every N days now" style={{ flex: 1 }}>
-                <input type="number" min={1} value={baselineDays} onChange={(e) => setBaselineDays(e.target.value)} style={inputStyle} />
-              </Field>
-              <Field label="Every N days goal" style={{ flex: 1 }}>
-                <input type="number" min={1} value={targetDays} onChange={(e) => setTargetDays(e.target.value)} style={inputStyle} />
-              </Field>
-            </div>
-          )}
 
           <Field label="End date">
             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={inputStyle} />
@@ -164,27 +124,6 @@ function Field({ label, children, style }) {
       <span style={fieldLabelStyle}>{label}</span>
       {children}
     </label>
-  );
-}
-
-function TypePill({ selected, onClick, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        padding: "10px 18px",
-        borderRadius: RADIUS.pill,
-        border: `1px solid ${selected ? PAPER.ink : PAPER.line}`,
-        background: selected ? PAPER.ink : PAPER.card,
-        color: selected ? PAPER.bg : PAPER.ink,
-        fontSize: 13,
-        fontFamily: FONT.sans,
-        cursor: "pointer",
-      }}
-    >
-      {children}
-    </button>
   );
 }
 

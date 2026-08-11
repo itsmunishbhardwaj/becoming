@@ -1,9 +1,10 @@
 import { parseFrontMatter, serializeFrontMatter } from "../lib/md.js";
 
-const LINE_RE = /^-\s+(\w+)\s+(.+?)\s+→\s+\[\[([^\]]+)\]\]\s*$/;
+// Payload is optional so payload-less verbs (`- done → [[goal]]`) parse.
+const LINE_RE = /^-\s+(\w+)(?:\s+(.+?))?\s*→\s+\[\[([^\]]+)\]\]\s*$/;
 
 function parsePayload(verb, payload) {
-  const out = { verb, payload, goalId: null };
+  const out = { verb, payload: payload || "", goalId: null };
   if (verb === "wake") {
     const m = payload.match(/^(\d{1,2}:\d{2})$/);
     if (m) out.time = m[1];
@@ -31,7 +32,9 @@ function derivePayload(e) {
 
 export function serializeEvent(e) {
   const payload = e.payload ?? derivePayload(e);
-  return `- ${e.verb} ${payload} → [[${e.goalId}]]`;
+  return payload
+    ? `- ${e.verb} ${payload} → [[${e.goalId}]]`
+    : `- ${e.verb} → [[${e.goalId}]]`;
 }
 
 export function parseLog(src) {

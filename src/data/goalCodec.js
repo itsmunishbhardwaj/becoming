@@ -20,11 +20,13 @@ function parseTargetCell(cell, type) {
     const m = v.match(/^every\s+(\d+)d$/i);
     return m ? { intervalDays: Number(m[1]) } : { intervalDays: 0 };
   }
+  if (type === "simple") return null;
   return v;
 }
 
 function serializeTargetCell(val, type) {
   if (type === "cadence") return `every ${val.intervalDays}d`;
+  if (type === "simple") return "—";
   return String(val);
 }
 

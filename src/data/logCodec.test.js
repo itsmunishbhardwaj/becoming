@@ -52,6 +52,27 @@ describe("serializeEvent", () => {
   });
 });
 
+describe("payload-less events (simple goals)", () => {
+  it("parses `- done → [[goal]]`", () => {
+    const src = `---
+date: 2026-08-11
+---
+
+- done → [[read-every-day]]
+`;
+    const { events } = parseLog(src);
+    expect(events[0]).toEqual({ verb: "done", payload: "", goalId: "read-every-day" });
+  });
+
+  it("round-trips a done event without leading double-space", () => {
+    const line = serializeEvent({ verb: "done", goalId: "read-every-day" });
+    expect(line).toBe("- done → [[read-every-day]]");
+    const { events } = parseLog(`---\ndate: 2026-08-11\n---\n\n${line}\n`);
+    expect(events[0].verb).toBe("done");
+    expect(events[0].goalId).toBe("read-every-day");
+  });
+});
+
 describe("bare-duration session", () => {
   it("session round-trip preserves durationMin when no time is present", () => {
     const src = `---

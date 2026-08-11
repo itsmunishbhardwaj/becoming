@@ -235,6 +235,7 @@ function renderTargetLabel(g) {
   if (!r) return "";
   if (g.type === "wake") return `wake by ${r.targetValue} until ${r.endDate}`;
   if (g.type === "cadence") return `every ${r.targetValue && r.targetValue.intervalDays}d until ${r.endDate}`;
+  if (g.type === "simple") return `until ${r.endDate}`;
   return "";
 }
 
