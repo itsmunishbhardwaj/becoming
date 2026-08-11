@@ -21,8 +21,10 @@ function parsePayload(verb, payload) {
 
 function derivePayload(e) {
   if (e.verb === "wake" && e.time) return e.time;
-  if (e.verb === "session" && e.time && e.durationMin != null) {
-    return `${e.time} · ${e.durationMin}min`;
+  if (e.verb === "session") {
+    if (e.time && e.durationMin != null) return `${e.time} · ${e.durationMin}min`;
+    if (e.durationMin != null) return `${e.durationMin}min`;
+    if (e.time) return e.time;
   }
   return e.payload ?? "";
 }

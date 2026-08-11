@@ -43,7 +43,7 @@ function markStyleFor(status, catColor) {
   if (status === "none" || status === "clean") return null;
   const base = { width: 5.6, height: 4.6, borderRadius: 999, display: "inline-block" };
   if (status === "off") return { ...base, background: PAPER.whisper, opacity: 0.55 };
-  if (status === "bonus") return { ...base, background: catColor, opacity: 0.35 }; // off-schedule session
+  if (status === "bonus") return { ...base, background: catColor, opacity: 0.85 };
   const op = status === "soft" ? 0.55 : 0.85;
   return { ...base, background: catColor, opacity: op };
 }
@@ -55,7 +55,6 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
   const c = size / 2;
   const clickable = !!pen;
 
-  // Per-goal marks for this day (filtered to goals that have a non-trivial status)
   const marks = useMemo(() => {
     return goals
       .map((g) => {
@@ -67,13 +66,7 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
       .filter(({ style }) => style !== null);
   }, [goals, adherenceMaps, isoDate]);
 
-  // Scheduled but unfilled: pen goal has status "none" = green day with no session yet
-  const penStatus = pen ? ((adherenceMaps[pen.id] || {})[isoDate] || "none") : null;
-  const showScheduleRing = penStatus === "none";
-  const penColor = pen ? (CATS[pen.cat]?.color ?? PAPER.faint) : null;
-
-  const hasContent = marks.length > 0 || showScheduleRing;
-
+  const hasContent = marks.length > 0;
   const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, marks };
 
   return (
@@ -90,21 +83,15 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
         <circle cx={c} cy={c} r={clickable ? 1.4 : 0.9} fill={PAPER.faint} opacity={clickable ? 0.8 : 0.5} />
       )}
 
-      {/* Schedule ring: unfilled green day for the held pen goal */}
-      {showScheduleRing && (
-        <circle cx={c} cy={c} r={3.5} fill="none" stroke={penColor} strokeWidth={1} opacity={0.3} />
-      )}
-
       {marks.map(({ g, status }, i) => {
         const ang = (i / Math.max(marks.length, 1)) * Math.PI * 2 + i;
         const off = marks.length > 1 ? 2 : 0;
         const faded = focus && g.id !== focus.id;
-        const isBonus = status === "bonus";
         const isOff = status === "off";
-        const op = isOff ? 0.55 : isBonus ? (faded ? 0.12 : 0.35) : status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
+        const op = isOff ? 0.55 : status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
         const color = isOff ? PAPER.whisper : CATS[g.cat]?.color ?? PAPER.faint;
         return (
-          <g key={g.id} opacity={faded && !isOff && !isBonus ? 0.15 : 1}>
+          <g key={g.id} opacity={faded && !isOff ? 0.15 : 1}>
             <Blob
               cx={c + Math.cos(ang) * off}
               cy={c + Math.sin(ang) * off}
