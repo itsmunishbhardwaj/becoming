@@ -49,7 +49,7 @@ function markStyleFor(status, catColor) {
 
 // adherenceMaps: Record<goalId, Record<isoDate, status>>
 // dayMarks: built per DayCell from adherenceMaps + goals
-function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, onToggle, onOpen, setTip }) {
+function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, penHasEvent, onToggle, onOpen, setTip }) {
   const size = 15;
   const c = size / 2;
   const clickable = !!pen;
@@ -69,11 +69,9 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
   }, [goals, adherenceMaps, isoDate, pen]);
 
   const hasContent = marks.length > 0;
-  // Pen goal has its own mark on this day? If not, keep the tappable dot visible
-  // even when other goals are marked here — every goal owns every date.
-  const penStatus = pen ? ((adherenceMaps[pen.id] || {})[isoDate] || "none") : null;
-  const penHasMark = penStatus === "hit" || penStatus === "soft" || penStatus === "off";
-  const showTapDot = clickable ? !penHasMark : !hasContent;
+  // Show tap dot when pen goal has no logged event on this day.
+  // Log presence — not adherence status — is truth.
+  const showTapDot = clickable ? !penHasEvent : !hasContent;
 
   const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, iso: isoDate, marks };
 
@@ -115,7 +113,7 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
   );
 }
 
-function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, onDayOpen, setTip }) {
+function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate, onDayTap, onDayOpen, setTip }) {
   const name = MONTHS[monthIdx];
   const count = daysInMonth(monthIdx);
 
@@ -149,10 +147,8 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, onDa
               adherenceMaps={adherenceMaps}
               focus={focus}
               pen={pen}
-              onToggle={() => {
-                const penStatus = pen ? (adherenceMaps[pen.id] || {})[iso] || "none" : "none";
-                onDayTap({ dateISO: iso, status: penStatus });
-              }}
+              penHasEvent={Boolean(penEventByDate[iso])}
+              onToggle={() => onDayTap({ dateISO: iso })}
               onOpen={() => onDayOpen(iso)}
               setTip={setTip}
             />
@@ -212,37 +208,35 @@ export default function Year() {
     setLogs(ls);
   }, []);
 
-  const onDayTap = useCallback(async ({ dateISO, status }) => {
-    if (!pen) return;
-    const goal = pen;
+  // Pen goal's existing event per day — the single source of truth for
+  // whether a tap should unmark (delete) or mark (append). Independent of
+  // adherence status names so it survives future status renames.
+  const penEventByDate = useMemo(() => {
+    const map = {};
+    if (!pen) return map;
+    const verb = pen.type === "wake" ? "wake" : "session";
+    for (const l of logs) {
+      const evt = l.events.find((e) => e.goalId === pen.id && e.verb === verb);
+      if (evt) map[l.date] = evt;
+    }
+    return map;
+  }, [pen, logs]);
 
-    // Tapping a day that already has any logged mark unmarks it
-    if (status === "hit" || status === "soft" || status === "off") {
-      const log = logs.find((l) => l.date === dateISO);
-      if (goal.type === "wake") {
-        const wakeEvt = log?.events.find((e) => e.goalId === goal.id && e.verb === "wake");
-        if (wakeEvt) {
-          await deleteLogEvent(dateISO, wakeEvt);
-          await refreshLogs();
-        }
-      } else if (goal.type === "cadence") {
-        const sessionEvt = log?.events.find((e) => e.goalId === goal.id && e.verb === "session");
-        if (sessionEvt) {
-          await deleteLogEvent(dateISO, sessionEvt);
-          await refreshLogs();
-        }
-      }
+  const onDayTap = useCallback(async ({ dateISO }) => {
+    if (!pen) return;
+    const existing = penEventByDate[dateISO];
+    if (existing) {
+      await deleteLogEvent(dateISO, existing);
+      await refreshLogs();
       return;
     }
-
-    // Empty day: write a default log event
     const event =
-      goal.type === "wake"
-        ? { verb: "wake", time: "07:00", goalId: goal.id }
-        : { verb: "session", durationMin: 10, goalId: goal.id };
+      pen.type === "wake"
+        ? { verb: "wake", time: "07:00", goalId: pen.id }
+        : { verb: "session", durationMin: 10, goalId: pen.id };
     await appendLog(dateISO, event);
     await refreshLogs();
-  }, [pen, logs, refreshLogs]);
+  }, [pen, penEventByDate, refreshLogs]);
 
   // Accumulation copy: days with a hit or soft mark
   const penDays = useMemo(() => {
@@ -400,6 +394,7 @@ export default function Year() {
               adherenceMaps={adherenceMaps}
               focus={focus}
               pen={pen}
+              penEventByDate={penEventByDate}
               onDayTap={onDayTap}
               onDayOpen={(iso) => nav(`/day/${iso}`)}
               setTip={setTip}
