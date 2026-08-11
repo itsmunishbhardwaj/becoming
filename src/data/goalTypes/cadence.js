@@ -35,6 +35,6 @@ export function adherenceForDay({ date, currentRound, events }) {
   const hasSession = events.some((e) => e.verb === "session");
   if (isGreen && hasSession) return "hit";
   if (!isGreen && !hasSession) return "clean";
-  if (!isGreen && hasSession) return "bonus"; // session on unscheduled day — positive but off-schedule
+  if (!isGreen && hasSession) return "off";
   return "none"; // green with no session — no penalty
 }

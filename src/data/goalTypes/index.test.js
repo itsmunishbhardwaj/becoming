@@ -79,11 +79,11 @@ describe("cadence.adherenceForDay", () => {
     })).toBe("clean");
   });
 
-  it("bonus on non-green day with session (showed up off-schedule)", () => {
+  it("off plan on non-green day with session (never red)", () => {
     expect(cad.adherenceForDay({
       date: "2026-08-11", currentRound: round,
       events: [{ verb: "session", time: "22:00", durationMin: 15, goalId: "cadence-reset" }],
-    })).toBe("bonus");
+    })).toBe("off");
   });
 
   it("none on green day with no session (no penalty)", () => {
