@@ -38,7 +38,7 @@ export function buildRounds(baseline, target, startDate, endDate) {
   return rounds;
 }
 
-export function adherenceForDay({ currentRound, events }) {
+export function adherenceForDay({ date, currentRound, events }) { // date unused for wake; kept for interface uniformity with cadence
   const wake = events.find((e) => e.verb === "wake" && e.time);
   if (!wake) return "none";
   const delta = toMin(wake.time) - toMin(currentRound.targetValue);

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { NIGHT, CATS, STATE } from "../tokens.js";
+import { PAPER, CATS, STATE } from "../tokens.js";
 import Orb from "./Orb.jsx";
 import MomentumBar from "./MomentumBar.jsx";
 
@@ -21,12 +21,12 @@ export default function GoalCard({ goal }) {
         display: "block",
         width: "100%",
         textAlign: "left",
-        background: NIGHT.card,
-        border: `1px solid ${NIGHT.cardBorder}`,
+        background: PAPER.card,
+        border: `1px solid ${PAPER.cardBorder}`,
         borderRadius: 20,
         padding: "20px 22px",
         cursor: "pointer",
-        color: NIGHT.text,
+        color: PAPER.ink,
         opacity: dormant ? 0.72 : 1,
         textDecoration: "none",
       }}
@@ -53,7 +53,7 @@ export default function GoalCard({ goal }) {
               {goal.name}
             </span>
             {dormant ? (
-              <span style={{ fontSize: 12, color: NIGHT.dim, whiteSpace: "nowrap", flexShrink: 0 }}>
+              <span style={{ fontSize: 12, color: PAPER.dim, whiteSpace: "nowrap", flexShrink: 0 }}>
                 🌙 Resting since {goal.last}
               </span>
             ) : completed ? (
@@ -75,16 +75,16 @@ export default function GoalCard({ goal }) {
               </span>
             )}
           </div>
-          <div style={{ fontSize: 13, color: NIGHT.dim, marginTop: 4 }}>
+          <div style={{ fontSize: 13, color: PAPER.dim, marginTop: 4 }}>
             {dormant ? (
-              <em style={{ color: NIGHT.faint }}>“{goal.dormantNote}”</em>
+              <em style={{ color: PAPER.faint }}>“{goal.dormantNote}”</em>
             ) : completed ? (
-              <em style={{ color: NIGHT.faint }}>“{goal.retro}”</em>
+              <em style={{ color: PAPER.faint }}>“{goal.retro}”</em>
             ) : (
               <>
                 {goal.last} · {goal.lastDetail}
-                {goal.streak && <span style={{ color: NIGHT.faint }}> · {goal.streak}</span>}
-                {drift && <span style={{ color: NIGHT.whisper }}> · quiet lately</span>}
+                {goal.streak && <span style={{ color: PAPER.faint }}> · {goal.streak}</span>}
+                {drift && <span style={{ color: PAPER.whisper }}> · quiet lately</span>}
               </>
             )}
           </div>

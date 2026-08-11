@@ -152,9 +152,17 @@ export default function Home() {
             open={sheetOpen}
             onClose={() => setSheetOpen(false)}
             onSaved={async () => {
-              const [g, l] = await Promise.all([listGoals(), readLogsInRange({ from: rangeStart(), to: rangeEnd() })]);
+              const [gRaw, l] = await Promise.all([listGoals(), readLogsInRange({ from: rangeStart(), to: rangeEnd() })]);
+              const today = todayLocalISO();
+              const g = [];
+              for (const goal of gRaw) {
+                const { goal: next, changed } = advanceGoal(goal, today);
+                if (changed) saveGoal(next).catch(() => {});
+                g.push(next);
+              }
               setGoals(g);
               setLogs(l);
+              setInsights(generateInsights({ goals: g, logs: l, today }));
             }}
           />
         </>

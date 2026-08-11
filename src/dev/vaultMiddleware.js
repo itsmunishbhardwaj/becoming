@@ -96,6 +96,26 @@ export function createVaultMiddleware({ vaultRoot }) {
         await writeFile(path.join(logsDir, `${date}.md`), body, "utf8");
         return send(res, 200, { ok: true });
       }
+      if (m && req.method === "DELETE") {
+        const date = decodeURIComponent(m[1]);
+        if (!DATE_RE.test(date)) return send(res, 400, { error: "bad date" });
+        const file = path.join(logsDir, `${date}.md`);
+        let src;
+        try {
+          src = await readFile(file, "utf8");
+        } catch (err) {
+          if (err.code === "ENOENT") return send(res, 404, { error: "not found" });
+          throw err;
+        }
+        const body = await readBody(req);
+        const { line } = JSON.parse(body || "{}");
+        if (typeof line !== "string") return send(res, 400, { error: "line required" });
+        const lines = src.split("\n");
+        const filtered = lines.filter((l) => l !== line);
+        const next = filtered.join("\n");
+        if (next !== src) await writeFile(file, next, "utf8");
+        return send(res, 200, { ok: true });
+      }
 
       return send(res, 404, { error: "no route" });
     } catch (err) {

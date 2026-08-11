@@ -30,15 +30,17 @@ export const PAPER = {
   whisper: "#B9A87F",   // DRIFT ONLY — warm sand. The closest thing to a
                         // warning this app has. Never red.
   track: "#ECE8DD",     // progress bar troughs
+  trough: "rgba(0,0,0,0.06)",    // momentum bar trough — dark-alpha on paper bg
   miss: "#EDE9DE",      // habit-strip misses — near-invisible on purpose
   affirm: "#DCEAE2",    // confirm pill fill
   affirmLine: "#C3DACD",
   affirmInk: "#5F8672",
+  // Neutral scrim + shadow tokens — the only "off-palette" values are here so components stay hex-free.
+  scrim: "rgba(0,0,0,0.12)",                        // sheet overlay dim, brand-neutral black-alpha
+  shadow: "0 6px 20px rgba(85,80,92,0.10)",         // shadow token; RGB derives from PAPER.ink
+  sheetShadow: "0 -10px 40px rgba(0,0,0,0.15)",    // top-facing sheet drop shadow
+  cardBorder: "#E7E2D5",                             // matches PAPER.line — added so NIGHT.cardBorder no longer resolves undefined
 };
-
-// @deprecated — the night theme is retired. brand.md rule 2: one paper
-// theme end to end. Home must migrate to PAPER (see docs/ui-spec.md §7).
-export const NIGHT = PAPER;
 
 export const FONT = {
   serif: "'Fraunces', Georgia, serif", // IDENTITY: goal names, headlines, ambitions

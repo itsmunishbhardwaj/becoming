@@ -123,3 +123,32 @@ describe("GET /api/vault/goals/:id ENOENT", () => {
     expect(JSON.parse(r.body)).toEqual({ error: "not found" });
   });
 });
+
+describe("DELETE /api/vault/logs/:date", () => {
+  it("removes exactly one matching line from the file", async () => {
+    const initial = `---\ndate: 2026-08-11\n---\n\n- wake 07:12 → [[wake-6am]]\n- session 22:00 · 15min → [[cadence-reset]]\n`;
+    await writeFile(path.join(dir, "logs", "2026-08-11.md"), initial);
+    const r = mockReqRes("DELETE", "/api/vault/logs/2026-08-11", JSON.stringify({ line: "- wake 07:12 → [[wake-6am]]" }));
+    await run(mw, r.req, r.res);
+    expect(r.status).toBe(200);
+    const after = await readFile(path.join(dir, "logs", "2026-08-11.md"), "utf8");
+    expect(after).not.toContain("wake 07:12");
+    expect(after).toContain("session 22:00");
+  });
+
+  it("returns 404 when the file does not exist", async () => {
+    const r = mockReqRes("DELETE", "/api/vault/logs/2026-08-11", JSON.stringify({ line: "- wake 07:12 → [[wake-6am]]" }));
+    await run(mw, r.req, r.res);
+    expect(r.status).toBe(404);
+  });
+
+  it("is idempotent when the line is missing", async () => {
+    const initial = `---\ndate: 2026-08-11\n---\n\n- session 22:00 · 15min → [[cadence-reset]]\n`;
+    await writeFile(path.join(dir, "logs", "2026-08-11.md"), initial);
+    const r = mockReqRes("DELETE", "/api/vault/logs/2026-08-11", JSON.stringify({ line: "- wake 07:12 → [[wake-6am]]" }));
+    await run(mw, r.req, r.res);
+    expect(r.status).toBe(200);
+    const after = await readFile(path.join(dir, "logs", "2026-08-11.md"), "utf8");
+    expect(after).toContain("session 22:00");
+  });
+});

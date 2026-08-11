@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS, CATS } from "../tokens.js";
 import { getGoal, readLogsInRange } from "../data/store.js";
+import { momentum } from "../data/adherence.js";
 import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
 import Orb from "../components/Orb.jsx";
 
@@ -58,6 +59,7 @@ export default function Goal() {
 
   const cur = goal.rounds[Math.max(0, goal.currentRound - 1)];
   const catHue = catColor(goal.cat);
+  const goalMomentum = momentum({ goal, logs, asOf: todayLocalISO() });
 
   const recentEvents = [];
   for (const log of logs) {
@@ -74,8 +76,12 @@ export default function Goal() {
         <Link to="/" style={backLinkStyle}>← Life</Link>
 
         <header style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 8 }}>
-          <div style={{ width: 48, height: 48, display: "grid", placeItems: "center" }}>
-            <Orb cat={goal.cat} momentum={0.5} still={goal.state !== "active" && goal.state !== "drift"} />
+          <div
+            data-testid="goal-orb-wrap"
+            data-momentum={goalMomentum.toFixed(2)}
+            style={{ width: 48, height: 48, display: "grid", placeItems: "center" }}
+          >
+            <Orb cat={goal.cat} momentum={goalMomentum} still={goal.state !== "active" && goal.state !== "drift"} />
           </div>
           <div style={{ flex: 1 }}>
             <h1 style={{ fontFamily: FONT.serif, fontWeight: 400, fontSize: TYPE.goalTitle, margin: 0, color: PAPER.ink }}>

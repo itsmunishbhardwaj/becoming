@@ -89,7 +89,7 @@ export default function LogSheet({ open, onClose, onSaved }) {
         onClick={onClose}
         style={{
           position: "fixed", inset: 0,
-          background: "rgba(0,0,0,0.12)", zIndex: 40,
+          background: PAPER.scrim, zIndex: 40,
         }}
       >
         <div
@@ -100,7 +100,7 @@ export default function LogSheet({ open, onClose, onSaved }) {
             background: PAPER.bg, color: PAPER.ink,
             borderTopLeftRadius: 26, borderTopRightRadius: 22,
             padding: "22px 24px 30px",
-            boxShadow: "0 -10px 40px rgba(0,0,0,0.15)",
+            boxShadow: PAPER.sheetShadow,
             fontFamily: FONT.sans,
             maxHeight: "85vh", overflowY: "auto",
           }}
@@ -118,7 +118,7 @@ export default function LogSheet({ open, onClose, onSaved }) {
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="log your day — just write"
+            placeholder="woke 07:12 · session 22:00 · 15min"
             rows={4}
             style={{
               width: "100%", boxSizing: "border-box",

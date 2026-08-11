@@ -1,4 +1,4 @@
-import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
+import { PAPER, FONT, RADIUS } from "../tokens.js";
 
 // ui-spec §2 exception: these two hex values are the InsightCard gradient
 // defined in the Figma spec. No PAPER token covers them; a future token
