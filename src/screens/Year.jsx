@@ -24,8 +24,8 @@ function daysInMonth(monthIdx) {
 // Stable rotation for each ellipse per (day, index)
 function Blob({ cx, cy, color, seed, big, opacity }) {
   const tilt = ((seed * 137) % 360) - 180;
-  const rx = big ? 5.4 : 4.6;
-  const ry = big ? 4.2 : 3.4;
+  const rx = big ? 9.5 : 7.5;
+  const ry = big ? 7.2 : 5.6;
   return (
     <ellipse
       cx={cx}
@@ -50,7 +50,7 @@ function markStyleFor(status, catColor) {
 // adherenceMaps: Record<goalId, Record<isoDate, status>>
 // dayMarks: built per DayCell from adherenceMaps + goals
 function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, penHasEvent, onToggle, onOpen, setTip }) {
-  const size = 15;
+  const size = 26;
   const c = size / 2;
   const clickable = !!pen;
 
@@ -87,7 +87,7 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
       style={{ display: "block", cursor: "pointer" }}
     >
       {showTapDot && (
-        <circle cx={c} cy={c} r={clickable ? 1.4 : 0.9} fill={PAPER.faint} opacity={clickable ? 0.8 : 0.5} />
+        <circle cx={c} cy={c} r={clickable ? 2.2 : 1.4} fill={PAPER.faint} opacity={clickable ? 0.8 : 0.5} />
       )}
 
       {marks.map(({ g, status }, i) => {
@@ -121,18 +121,19 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <div
         style={{
-          fontSize: 11,
-          letterSpacing: "0.1em",
+          fontSize: 14,
+          letterSpacing: "0.14em",
           textTransform: "uppercase",
           color: PAPER.dim,
           display: "flex",
           alignItems: "center",
           gap: 5,
+          marginBottom: 4,
         }}
       >
         {name}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
+      <div className="year-days">
         {Array.from({ length: count }, (_, i) => {
           const mm = String(monthIdx + 1).padStart(2, "0");
           const dd = String(i + 1).padStart(2, "0");
@@ -287,24 +288,45 @@ export default function Year() {
         background: PAPER.bg,
         color: PAPER.ink,
         fontFamily: FONT.sans,
-        padding: "0 24px 60px",
+        padding: "0 clamp(20px, 4vw, 56px) 80px",
       }}
     >
-      <div style={{ maxWidth: 720, margin: "0 auto" }}>
-        <header style={{ padding: "48px 0 8px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
+      <style>{`
+        .year-shell {
+          max-width: 720px;
+          margin: 0 auto;
+        }
+        @media (min-width: 900px)  { .year-shell { max-width: 1080px; } }
+        @media (min-width: 1200px) { .year-shell { max-width: 1400px; } }
+        /* One quarter per row = 3 columns × 4 rows */
+        .year-months {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: clamp(32px, 5vw, 56px) clamp(24px, 4vw, 44px);
+          margin-top: clamp(28px, 3vw, 44px);
+        }
+        .year-days {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: clamp(4px, 0.5vw, 8px);
+          justify-items: center;
+        }
+      `}</style>
+      <div className="year-shell">
+        <header style={{ padding: "56px 0 8px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
           <div>
             <div
               style={{
-                fontSize: 12,
+                fontSize: 14,
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
                 color: PAPER.dim,
-                marginBottom: 8,
+                marginBottom: 12,
               }}
             >
               {YEAR} · a year in progress
             </div>
-            <h1 style={{ fontFamily: FONT.serif, fontWeight: 500, fontSize: 30, margin: 0, letterSpacing: "-0.01em" }}>
+            <h1 style={{ fontFamily: FONT.serif, fontWeight: 500, fontSize: "clamp(32px, 4.5vw, 56px)", margin: 0, letterSpacing: "-0.01em", lineHeight: 1.05 }}>
               Your year, day by day
             </h1>
           </div>
@@ -387,7 +409,7 @@ export default function Year() {
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "26px 22px" }}>
+        <div className="year-months">
           {MONTHS.map((_, i) => (
             <MonthBlock
               key={i}
