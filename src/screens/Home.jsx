@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
 import { listGoals } from "../data/store.js";
 import GoalCard from "../components/GoalCard.jsx";
+import LogBlob from "../components/LogBlob.jsx";
+import LogSheet from "../components/LogSheet.jsx";
 
 export default function Home() {
   const [goals, setGoals] = useState(null); // null = loading
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
     listGoals().then(setGoals).catch(() => setGoals([]));
@@ -91,6 +94,17 @@ export default function Home() {
           </Link>
         </footer>
       </div>
+
+      {goals && goals.length > 0 && (
+        <>
+          <LogBlob onClick={() => setSheetOpen(true)} />
+          <LogSheet
+            open={sheetOpen}
+            onClose={() => setSheetOpen(false)}
+            onSaved={() => listGoals().then(setGoals)}
+          />
+        </>
+      )}
     </div>
   );
 }
