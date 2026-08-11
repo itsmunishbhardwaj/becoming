@@ -73,7 +73,7 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
   const penHasMark = penStatus === "hit" || penStatus === "soft" || penStatus === "off";
   const showTapDot = clickable ? !penHasMark : !hasContent;
 
-  const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, marks };
+  const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, iso: isoDate, marks };
 
   return (
     <svg
@@ -81,7 +81,7 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
       height={size}
       viewBox={`0 0 ${size} ${size}`}
       onClick={clickable ? onToggle : undefined}
-      onMouseEnter={() => hasContent && setTip(tipData)}
+      onMouseEnter={() => setTip(tipData)}
       onMouseLeave={() => setTip(null)}
       style={{ display: "block", cursor: clickable ? "pointer" : hasContent ? "pointer" : "default" }}
     >
@@ -401,7 +401,7 @@ export default function Year() {
           ))}
         </div>
 
-        {tip && tip.marks.length > 0 && (
+        {tip && (
           <div
             style={{
               position: "fixed",
@@ -420,7 +420,7 @@ export default function Year() {
             }}
           >
             <span style={{ color: PAPER.dim, fontVariantNumeric: "tabular-nums" }}>
-              {tip.month} {tip.day}
+              {new Date(tip.iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "short" })} · {tip.month} {tip.day}
             </span>
             {tip.marks.map(({ g, status }) => {
               const color = status === "off" ? PAPER.whisper : CATS[g.cat]?.color ?? PAPER.faint;
