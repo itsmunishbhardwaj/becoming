@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { CATS, PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
@@ -152,10 +152,11 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, setT
 }
 
 export default function Year() {
+  const [params] = useSearchParams();
   const [goals, setGoals] = useState(null); // null = loading
   const [logs, setLogs] = useState([]);
   const [tip, setTip] = useState(null);
-  const [penId, setPenId] = useState(null);
+  const [penId, setPenId] = useState(() => params.get("pen") || null);
 
   const fetchData = useCallback(async () => {
     const [gs, ls] = await Promise.all([
@@ -169,6 +170,11 @@ export default function Year() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (!goals || goals.length === 0) return;
+    if (penId && !goals.some((g) => g.id === penId)) setPenId(null);
+  }, [goals]);
 
   const goalById = useMemo(
     () => Object.fromEntries((goals ?? []).map((g) => [g.id, g])),

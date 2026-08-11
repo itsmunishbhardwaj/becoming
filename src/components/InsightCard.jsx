@@ -1,77 +1,58 @@
-import { useState } from "react";
-import { NIGHT } from "../tokens.js";
-import { QUESTIONS } from "../data/mockLife.js";
+import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
+
+// ui-spec §2 exception: these two hex values are the InsightCard gradient
+// defined in the Figma spec. No PAPER token covers them; a future token
+// addition can migrate cleanly. Do not use them elsewhere.
+const INSIGHT_GRADIENT = {
+  from: "#EFEAF6", // soft lavender — spec §2
+  to: "#EDF1EA",   // soft sage   — spec §2
+};
 
 // AI Chief of Staff. Patterns framed as QUESTIONS, never declarations.
 // Confirm → joins pattern graph. Reject → discarded. (docs/philosophy.md)
 //
-// Both answers are styled identically — rejecting the AI, or resting a
-// drifting goal, must cost nothing (docs/brand.md rule 7; origin doc:
-// drift becomes one gentle question, never a standing 0%).
+// Both pills styled identically — rejecting the AI, or resting a drifting
+// goal, must cost nothing visually. (docs/brand.md rule 7)
 const pillStyle = {
-  background: "rgba(255,255,255,0.05)",
-  border: `1px solid ${NIGHT.cardBorder}`,
-  color: NIGHT.text,
+  background: PAPER.card,
+  border: `1px solid ${PAPER.line}`,
+  borderRadius: 999,
+  padding: "8px 15px",
+  fontSize: 12.5,
+  fontFamily: FONT.sans,
+  color: PAPER.ink,
+  cursor: "pointer",
 };
 
-export default function InsightCard() {
-  const [idx, setIdx] = useState(0);
-  const [answered, setAnswered] = useState(null);
-  const q = QUESTIONS[idx];
-  const hasNext = idx < QUESTIONS.length - 1;
-  if (!q) return null;
-
+export default function InsightCard({ question, onAnswer }) {
+  if (!question) return null;
   return (
-    <div
-      style={{
-        background: "linear-gradient(135deg, rgba(169,196,245,0.12), rgba(201,184,240,0.10))",
-        border: "1px solid rgba(201,184,240,0.24)",
-        borderRadius: 20,
-        padding: "18px 22px",
-      }}
-    >
-      <div
-        style={{
-          fontSize: 11,
-          letterSpacing: "0.14em",
-          textTransform: "uppercase",
-          color: NIGHT.dim,
-          marginBottom: 8,
-        }}
-      >
-        {q.kicker}
+    <div style={{
+      background: `linear-gradient(135deg, ${INSIGHT_GRADIENT.from} 0%, ${INSIGHT_GRADIENT.to} 100%)`,
+      border: `1px solid ${PAPER.line}`,
+      borderRadius: RADIUS.r2,
+      padding: "17px 20px",
+      fontFamily: FONT.sans,
+    }}>
+      <div style={{
+        fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase",
+        color: PAPER.dim, fontWeight: 500, marginBottom: 8,
+      }}>
+        {question.kicker.toUpperCase()}
       </div>
-      {answered === null ? (
-        <>
-          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: NIGHT.text }}>{q.text}</p>
-          <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-            <button onClick={() => setAnswered("yes")} className="pill" style={pillStyle}>
-              {q.yes.label}
-            </button>
-            <button onClick={() => setAnswered("no")} className="pill" style={pillStyle}>
-              {q.no.label}
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <p style={{ margin: 0, fontSize: 14, color: NIGHT.dim, lineHeight: 1.5 }}>
-            {answered === "yes" ? q.yes.response : q.no.response}
-          </p>
-          {hasNext && (
-            <button
-              onClick={() => {
-                setIdx(idx + 1);
-                setAnswered(null);
-              }}
-              className="pill"
-              style={{ ...pillStyle, marginTop: 12, color: NIGHT.dim }}
-            >
-              One more question →
-            </button>
-          )}
-        </>
-      )}
+      <p style={{
+        fontSize: 14.5, lineHeight: 1.6, color: PAPER.ink, margin: "0 0 12px",
+      }}>
+        {question.text}
+      </p>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={() => onAnswer(question.id, "yes")} style={pillStyle}>
+          {question.yes.label}
+        </button>
+        <button onClick={() => onAnswer(question.id, "no")} style={pillStyle}>
+          {question.no.label}
+        </button>
+      </div>
     </div>
   );
 }

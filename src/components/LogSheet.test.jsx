@@ -7,6 +7,11 @@ vi.mock("../data/store.js", () => ({
   appendLog: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("../lib/llm.js", () => ({
+  isConfigured: vi.fn().mockResolvedValue(false),
+  chat: vi.fn(),
+}));
+
 import { listGoals, appendLog } from "../data/store.js";
 
 beforeEach(() => {
@@ -34,7 +39,7 @@ describe("LogSheet parse preview", () => {
       expect(screen.getAllByText(/session 22:00/i).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/→\s*wake-6am/i).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/→\s*cadence-reset/i).length).toBeGreaterThan(0);
-    });
+    }, { timeout: 1000 });
   });
 
   it("marks a session as skipped when no cadence goal is active", async () => {
@@ -42,7 +47,7 @@ describe("LogSheet parse preview", () => {
     render(<LogSheet open onClose={() => {}} onSaved={() => {}} />);
     const ta = await screen.findByRole("textbox");
     fireEvent.change(ta, { target: { value: "session 22:00 · 15min" } });
-    await waitFor(() => expect(screen.getByText(/no matching goal/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/no matching goal/i)).toBeInTheDocument(), { timeout: 1000 });
   });
 });
 
@@ -54,7 +59,7 @@ describe("LogSheet save", () => {
     render(<LogSheet open onClose={onClose} onSaved={onSaved} />);
     const ta = await screen.findByRole("textbox");
     fireEvent.change(ta, { target: { value: "woke 07:00\nrandom note\nsession 12 min" } });
-    await waitFor(() => expect(screen.getByRole("button", { name: /looks right — save/i })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: /looks right — save/i })).not.toBeDisabled(), { timeout: 1000 });
     fireEvent.click(screen.getByRole("button", { name: /looks right — save/i }));
     await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1));
     // Two writes: wake + session. "random note" skipped by parser.

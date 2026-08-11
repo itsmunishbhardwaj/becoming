@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { PAPER, FONT, TYPE, RADIUS, SPACE, CATS } from "../tokens.js";
-import { parseLogText } from "../lib/logParser.js";
+import { parseLogSmart } from "../lib/logParserLLM.js";
+import { chat, isConfigured } from "../lib/llm.js";
 import { listGoals, appendLog } from "../data/store.js";
 import { todayLocalISO } from "../lib/date.js";
 
@@ -36,7 +37,16 @@ export default function LogSheet({ open, onClose, onSaved }) {
     setError(null);
   }, [open]);
 
-  const parsed = useMemo(() => parseLogText(text), [text]);
+  const [parsed, setParsed] = useState([]);
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      parseLogSmart({ text, goals, llmChat: chat, isConfigured })
+        .then(setParsed)
+        .catch(() => setParsed([]));
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [text, goals]);
+
   const rows = parsed.map((evt) => {
     const goal = routeEvent(evt, goals);
     return { evt, goal };
