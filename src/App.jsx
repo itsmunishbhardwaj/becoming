@@ -3,6 +3,7 @@ import Home from "./screens/Home.jsx";
 import Year from "./screens/Year.jsx";
 import Onboard from "./screens/Onboard.jsx";
 import QuickCreate from "./screens/QuickCreate.jsx";
+import Day from "./screens/Day.jsx";
 import Goal from "./screens/Goal.jsx";
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/year" element={<Year />} />
         <Route path="/onboard" element={<Onboard />} />
         <Route path="/create" element={<QuickCreate />} />
+        <Route path="/day/:date" element={<Day />} />
         <Route path="/goal/:id" element={<Goal />} />
       </Routes>
     </BrowserRouter>

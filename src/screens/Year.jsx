@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { CATS, PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
@@ -49,7 +49,7 @@ function markStyleFor(status, catColor) {
 
 // adherenceMaps: Record<goalId, Record<isoDate, status>>
 // dayMarks: built per DayCell from adherenceMaps + goals
-function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, onToggle, setTip }) {
+function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, onToggle, onOpen, setTip }) {
   const size = 15;
   const c = size / 2;
   const clickable = !!pen;
@@ -81,9 +81,10 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
       height={size}
       viewBox={`0 0 ${size} ${size}`}
       onClick={clickable ? onToggle : undefined}
+      onDoubleClick={(e) => { e.stopPropagation(); onOpen(); }}
       onMouseEnter={() => setTip(tipData)}
       onMouseLeave={() => setTip(null)}
-      style={{ display: "block", cursor: clickable ? "pointer" : hasContent ? "pointer" : "default" }}
+      style={{ display: "block", cursor: "pointer" }}
     >
       {showTapDot && (
         <circle cx={c} cy={c} r={clickable ? 1.4 : 0.9} fill={PAPER.faint} opacity={clickable ? 0.8 : 0.5} />
@@ -112,7 +113,7 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
   );
 }
 
-function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, setTip }) {
+function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, onDayOpen, setTip }) {
   const name = MONTHS[monthIdx];
   const count = daysInMonth(monthIdx);
 
@@ -150,6 +151,7 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, setT
                 const penStatus = pen ? (adherenceMaps[pen.id] || {})[iso] || "none" : "none";
                 onDayTap({ dateISO: iso, status: penStatus });
               }}
+              onOpen={() => onDayOpen(iso)}
               setTip={setTip}
             />
           );
@@ -160,6 +162,7 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, setT
 }
 
 export default function Year() {
+  const nav = useNavigate();
   const [params] = useSearchParams();
   const [goals, setGoals] = useState(null); // null = loading
   const [logs, setLogs] = useState([]);
@@ -396,6 +399,7 @@ export default function Year() {
               focus={focus}
               pen={pen}
               onDayTap={onDayTap}
+              onDayOpen={(iso) => nav(`/day/${iso}`)}
               setTip={setTip}
             />
           ))}
