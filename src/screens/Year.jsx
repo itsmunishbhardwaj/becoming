@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CATS, PAPER, FONT } from "../tokens.js";
-import { listGoals, readLogsInRange, appendLog } from "../data/store.js";
+import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
 
 // ── The spreadsheet gesture, reborn ────────────────────────────────────
@@ -141,7 +141,10 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, setT
               adherenceMaps={adherenceMaps}
               focus={focus}
               pen={pen}
-              onToggle={() => onDayTap(iso)}
+              onToggle={() => {
+                const penStatus = pen ? (adherenceMaps[pen.id] || {})[iso] || "none" : "none";
+                onDayTap({ dateISO: iso, status: penStatus });
+              }}
               setTip={setTip}
             />
           );
@@ -194,23 +197,42 @@ export default function Year() {
     return out;
   }, [goals, logs]);
 
-  const onDayTap = useCallback(async (isoDate) => {
-    if (!pen) return;
-    // Check if event already exists for this goal on this day
-    const map = adherenceMaps[pen.id] || {};
-    const status = map[isoDate];
-    // If hit/soft — event exists, no delete API in Phase 3, no-op
-    if (status === "hit" || status === "soft") return;
-    // Write a default log event
-    const event =
-      pen.type === "wake"
-        ? { verb: "wake", time: "07:00", goalId: pen.id }
-        : { verb: "session", durationMin: 10, goalId: pen.id };
-    await appendLog(isoDate, event);
-    // Re-fetch logs to update adherence marks
+  const refreshLogs = useCallback(async () => {
     const ls = await readLogsInRange({ from: YEAR_FROM, to: YEAR_TO });
     setLogs(ls);
-  }, [pen, adherenceMaps]);
+  }, []);
+
+  const onDayTap = useCallback(async ({ dateISO, status }) => {
+    if (!pen) return;
+    const goal = pen;
+
+    // Tapping a day that already has a hit/soft unmarks it
+    if (status === "hit" || status === "soft") {
+      const log = logs.find((l) => l.date === dateISO);
+      if (goal.type === "wake") {
+        const wakeEvt = log?.events.find((e) => e.goalId === goal.id && e.verb === "wake");
+        if (wakeEvt) {
+          await deleteLogEvent(dateISO, wakeEvt);
+          await refreshLogs();
+        }
+      } else if (goal.type === "cadence") {
+        const sessionEvt = log?.events.find((e) => e.goalId === goal.id && e.verb === "session");
+        if (sessionEvt) {
+          await deleteLogEvent(dateISO, sessionEvt);
+          await refreshLogs();
+        }
+      }
+      return;
+    }
+
+    // Empty day: write a default log event
+    const event =
+      goal.type === "wake"
+        ? { verb: "wake", time: "07:00", goalId: goal.id }
+        : { verb: "session", durationMin: 10, goalId: goal.id };
+    await appendLog(dateISO, event);
+    await refreshLogs();
+  }, [pen, logs, refreshLogs]);
 
   // Accumulation copy: days with a hit or soft mark
   const penDays = useMemo(() => {

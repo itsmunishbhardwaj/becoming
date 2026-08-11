@@ -54,6 +54,17 @@ export async function readLogsInRange({ from, to }) {
   return results.filter(Boolean);
 }
 
+export async function deleteLogEvent(date, event) {
+  const line = serializeEvent(event);
+  const r = await req(`/api/vault/logs/${encodeURIComponent(date)}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ line }),
+  });
+  if (r.status === 404) return; // idempotent — nothing to delete
+  if (!r.ok) throw new Error(`deleteLogEvent ${date}: ${r.status}`);
+}
+
 export async function appendLog(date, event) {
   const existing = (await readLog(date)) || { date, events: [] };
   const line = serializeEvent(event);

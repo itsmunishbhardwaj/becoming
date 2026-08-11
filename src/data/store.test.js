@@ -145,6 +145,34 @@ describe("appendLog", () => {
   });
 });
 
+describe("deleteLogEvent", () => {
+  it("removes the matching event and leaves others intact", async () => {
+    await store.appendLog("2026-08-11", {
+      verb: "wake", time: "07:12", goalId: "wake-6am",
+    });
+    await store.appendLog("2026-08-11", {
+      verb: "session", time: "22:00", durationMin: 15, goalId: "cadence-reset",
+    });
+    await store.deleteLogEvent("2026-08-11", {
+      verb: "wake", time: "07:12", goalId: "wake-6am",
+    });
+    const log = await store.readLog("2026-08-11");
+    expect(log.events).toHaveLength(1);
+    expect(log.events[0].verb).toBe("session");
+  });
+
+  it("is idempotent when event is missing", async () => {
+    await store.appendLog("2026-08-11", {
+      verb: "session", time: "22:00", durationMin: 15, goalId: "cadence-reset",
+    });
+    await store.deleteLogEvent("2026-08-11", {
+      verb: "wake", time: "07:12", goalId: "wake-6am",
+    });
+    const log = await store.readLog("2026-08-11");
+    expect(log.events).toHaveLength(1);
+  });
+});
+
 describe("readLogsInRange", () => {
   it("returns logs in ISO order, filtered by range", async () => {
     await store.appendLog("2026-08-10", {
