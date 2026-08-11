@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
+import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
 import {
   initialState, applyInput, nextTurn, finalize, validate, TURNS,
 } from "../onboard/turns.js";
@@ -94,7 +94,8 @@ export default function Onboard() {
         }
         const s = { sessionId: `edit-${goal.id}`, answers, name: goal.name, cat: goal.cat };
         setState(s);
-        const target = jumpTurn || TURNS[Object.keys(answers).length];
+        const validJump = jumpTurn && TURNS.includes(jumpTurn) ? jumpTurn : null;
+        const target = validJump || TURNS[Object.keys(answers).length];
         setTranscript([{ role: "assistant", text: promptFor(target, answers) }]);
         isConfigured().then(setLlmOn).catch(() => setLlmOn(false));
         return;

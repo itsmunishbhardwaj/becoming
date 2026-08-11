@@ -118,7 +118,7 @@ export default function LogSheet({ open, onClose, onSaved }) {
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="log your day — just write"
+            placeholder="woke 07:12 · session 22:00 · 15min"
             rows={4}
             style={{
               width: "100%", boxSizing: "border-box",
