@@ -1,14 +1,33 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
-import { listGoals } from "../data/store.js";
+import { listGoals, readLogsInRange } from "../data/store.js";
+import { momentum } from "../data/adherence.js";
 import GoalCard from "../components/GoalCard.jsx";
+import LogBlob from "../components/LogBlob.jsx";
+import LogSheet from "../components/LogSheet.jsx";
+import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
+
+function rangeEnd() {
+  return todayLocalISO();
+}
+
+function rangeStart() {
+  return addDaysLocalISO(todayLocalISO(), -13);
+}
 
 export default function Home() {
   const [goals, setGoals] = useState(null); // null = loading
+  const [logs, setLogs] = useState([]);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
-    listGoals().then(setGoals).catch(() => setGoals([]));
+    Promise.all([
+      listGoals(),
+      readLogsInRange({ from: rangeStart(), to: rangeEnd() }),
+    ])
+      .then(([g, l]) => { setGoals(g); setLogs(l); })
+      .catch(() => { setGoals([]); setLogs([]); });
   }, []);
 
   const today = new Date().toLocaleDateString("en-US", {
@@ -18,7 +37,7 @@ export default function Home() {
   const enriched = goals
     ? goals.map((g) => ({
         ...g,
-        momentum: 0,
+        momentum: momentum({ goal: g, logs, asOf: todayLocalISO() }),
         last: "—",
         lastDetail: "no logs yet",
         streak: null,
@@ -91,6 +110,21 @@ export default function Home() {
           </Link>
         </footer>
       </div>
+
+      {goals && goals.length > 0 && (
+        <>
+          <LogBlob onClick={() => setSheetOpen(true)} />
+          <LogSheet
+            open={sheetOpen}
+            onClose={() => setSheetOpen(false)}
+            onSaved={async () => {
+              const [g, l] = await Promise.all([listGoals(), readLogsInRange({ from: rangeStart(), to: rangeEnd() })]);
+              setGoals(g);
+              setLogs(l);
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

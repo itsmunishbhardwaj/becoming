@@ -8,10 +8,12 @@ function parsePayload(verb, payload) {
     const m = payload.match(/^(\d{1,2}:\d{2})$/);
     if (m) out.time = m[1];
   } else if (verb === "session") {
-    const m = payload.match(/^(\d{1,2}:\d{2})\s*·\s*(\d+)\s*min$/);
-    if (m) {
+    let m;
+    if ((m = payload.match(/^(\d{1,2}:\d{2})\s*·\s*(\d+)\s*min$/))) {
       out.time = m[1];
       out.durationMin = Number(m[2]);
+    } else if ((m = payload.match(/^(\d+)\s*min$/))) {
+      out.durationMin = Number(m[1]);
     }
   }
   return out;
