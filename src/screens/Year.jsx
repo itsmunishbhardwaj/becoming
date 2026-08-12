@@ -77,14 +77,12 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
 
   return (
     <svg
-      width={size}
-      height={size}
       viewBox={`0 0 ${size} ${size}`}
       onClick={clickable ? onToggle : undefined}
       onDoubleClick={(e) => { e.stopPropagation(); onOpen(); }}
       onMouseEnter={() => setTip(tipData)}
       onMouseLeave={() => setTip(null)}
-      style={{ display: "block", cursor: "pointer" }}
+      style={{ display: "block", width: "100%", height: "auto", maxWidth: `${size}px`, cursor: "pointer" }}
     >
       {showTapDot && (
         <circle cx={c} cy={c} r={clickable ? 2.2 : 1.4} fill={PAPER.faint} opacity={clickable ? 0.8 : 0.5} />
@@ -301,15 +299,16 @@ export default function Year() {
         /* One quarter per row = 3 columns × 4 rows */
         .year-months {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: clamp(32px, 5vw, 56px) clamp(24px, 4vw, 44px);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: clamp(28px, 5vw, 56px) clamp(10px, 3vw, 44px);
           margin-top: clamp(28px, 3vw, 44px);
         }
         .year-days {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
-          gap: clamp(4px, 0.5vw, 8px);
+          gap: clamp(2px, 0.4vw, 6px);
           justify-items: center;
+          min-width: 0;
         }
       `}</style>
       <div className="year-shell">
