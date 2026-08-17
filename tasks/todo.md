@@ -150,13 +150,15 @@ If a change makes any of those slower or less obvious → revert it.
 
 ## 6. Checklist for Fable
 
-- [ ] M1 — Foundation
-- [ ] M2 — Home (Life view)
-- [ ] M3 — Natural language capture
-- [ ] M4 — Goal page
-- [ ] M5 — Calendar / zoom
-- [ ] M6 — AI Chief of Staff
-- [ ] M7 — Semantic search
-- [ ] M8 — Polish pass
+- [x] M1 — Foundation *(delivered on a different stack: Vite + React 18 + iCloud vault, no Clerk/Neon/Drizzle)*
+- [x] M2 — Home (Life view) — `src/screens/Home.jsx`; goal cards, momentum orbs, drift indicators
+- [~] M3 — Natural language capture — `LogSheet.jsx` + `logParserLLM.js` do LLM extraction; single-goal routing, not the full multi-goal Zod fan-out
+- [~] M4 — Goal page — `src/screens/Goal.jsx` exists (routed navigation, not the shared-element morph the spec calls for)
+- [~] M5 — Calendar / zoom — `Year.jsx` with 365 cells + weekday header + per-goal blobs; still route-based, no continuous zoom transform yet
+- [ ] M6 — AI Chief of Staff — `insights.js` scaffolded, no nightly cron
+- [ ] M7 — Semantic search — not started
+- [~] M8 — Polish pass — design tokens locked (`src/tokens.js`), watercolor palette, orb unification; no Framer Motion / Lighthouse audit
+
+Legend: `[x]` done · `[~]` partial · `[ ]` not started. Live roadmap for what's next lives in `docs/roadmap-live.md`.
 
 Ship each milestone as its own PR to `main`. No milestone is "done" until the "Done when" criterion is demonstrated with a screen recording in the PR description.
