@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS, CATS } from "../tokens.js";
-import { saveGoal } from "../data/store.js";
+import { saveGoal, listGoals } from "../data/store.js";
 import { getType } from "../data/goalTypes/index.js";
 import { todayLocalISO } from "../lib/date.js";
+import { PALETTE, autoPickColor } from "../lib/goalColor.js";
 
 function slugify(s) {
   return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "goal";
@@ -21,6 +22,12 @@ export default function QuickCreate() {
   const [ambition, setAmbition] = useState("");
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [colorMode, setColorMode] = useState("auto"); // "auto" | hex string
+  const [existingGoals, setExistingGoals] = useState([]);
+
+  useEffect(() => {
+    listGoals().then(setExistingGoals).catch(() => setExistingGoals([]));
+  }, []);
 
   async function onCreate(e) {
     e.preventDefault();
@@ -30,11 +37,13 @@ export default function QuickCreate() {
 
     const startDate = todayLocalISO();
     const rounds = getType("simple").buildRounds(null, null, startDate, endDate);
+    const color = colorMode === "auto" ? autoPickColor(existingGoals, cat) : colorMode;
 
     const goal = {
       id: slugify(name),
       name: name.trim(),
       cat,
+      color,
       type: "simple",
       state: "active",
       baseline: null,
@@ -88,6 +97,34 @@ export default function QuickCreate() {
                 <option key={k} value={k}>{v.name}</option>
               ))}
             </select>
+          </Field>
+
+          <Field label="Color">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
+              <button
+                type="button"
+                onClick={() => setColorMode("auto")}
+                aria-pressed={colorMode === "auto"}
+                style={autoChipStyle(colorMode === "auto")}
+                title="Pick a color automatically"
+              >
+                Auto
+              </button>
+              {PALETTE.map((p) => {
+                const selected = colorMode === p.color;
+                return (
+                  <button
+                    key={p.color}
+                    type="button"
+                    onClick={() => setColorMode(p.color)}
+                    aria-label={p.name}
+                    aria-pressed={selected}
+                    title={p.name}
+                    style={swatchStyle(p.color, selected)}
+                  />
+                );
+              })}
+            </div>
           </Field>
 
           <Field label="End date">
@@ -172,3 +209,29 @@ const secondaryLink = {
   fontSize: 12.5,
   textDecoration: "none",
 };
+function swatchStyle(color, selected) {
+  return {
+    width: 40,
+    height: 40,
+    borderRadius: "50%",
+    background: `radial-gradient(circle at 35% 30%, ${color}, ${color}99 70%)`,
+    boxShadow: selected
+      ? `0 0 0 2px ${PAPER.ink}, 0 0 12px ${color}80`
+      : `0 0 10px ${color}55`,
+    border: "none",
+    cursor: "pointer",
+    padding: 0,
+  };
+}
+function autoChipStyle(selected) {
+  return {
+    padding: "6px 12px",
+    borderRadius: RADIUS.pill,
+    border: `1px solid ${selected ? PAPER.ink : PAPER.line}`,
+    background: selected ? PAPER.ink : PAPER.card,
+    color: selected ? PAPER.bg : PAPER.ink,
+    fontSize: 12.5,
+    fontFamily: FONT.sans,
+    cursor: "pointer",
+  };
+}

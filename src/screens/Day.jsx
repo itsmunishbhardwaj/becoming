@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { PAPER, FONT, TYPE, RADIUS, CATS } from "../tokens.js";
+import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
 import { listGoals, readLog, appendLog, deleteLogEvent } from "../data/store.js";
+import { goalColor } from "../lib/goalColor.js";
 
 const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -110,7 +111,7 @@ export default function Day() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
               {events.map((evt, i) => {
                 const g = goalById[evt.goalId];
-                const color = g ? CATS[g.cat]?.color ?? PAPER.faint : PAPER.faint;
+                const color = goalColor(g);
                 return (
                   <div key={i} style={eventRow}>
                     <span style={{ width: 9, height: 9, borderRadius: 999, background: color, flexShrink: 0 }} />
@@ -149,7 +150,7 @@ export default function Day() {
                     <span
                       style={{
                         width: 9, height: 9, borderRadius: 999,
-                        background: CATS[g.cat]?.color ?? PAPER.faint,
+                        background: goalColor(g),
                       }}
                     />
                     {g.name}
