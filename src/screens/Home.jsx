@@ -97,7 +97,7 @@ export default function Home() {
         background: PAPER.bg,
         color: PAPER.ink,
         fontFamily: FONT.sans,
-        padding: "36px 26px 96px",
+        padding: "clamp(28px, 4vw, 56px) clamp(20px, 4vw, 64px) 96px",
       }}
     >
       <style>{`
@@ -114,6 +114,10 @@ export default function Home() {
           .breathe { animation: none; }
           .home-intro-word { animation: none; opacity: 0; }
         }
+        .home-shell { max-width: 1400px; margin: 0 auto; }
+        .home-goals-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+        @media (min-width: 720px)  { .home-goals-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
+        @media (min-width: 1200px) { .home-goals-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
       `}</style>
 
       {showIntro && (
@@ -136,7 +140,7 @@ export default function Home() {
         </div>
       )}
 
-      <div style={{ maxWidth: 560, margin: "0 auto" }}>
+      <div className="home-shell">
         <header style={{ marginBottom: 20 }}>
           <div style={{
             fontSize: 11.5, letterSpacing: "1.8px", textTransform: "uppercase",
@@ -171,7 +175,7 @@ export default function Home() {
 
         {goals && goals.length > 0 && (
           <>
-            <div style={{ display: "grid", gap: SPACE.md }}>
+            <div className="home-goals-grid">
               {enriched.map((g) => <GoalCard key={g.id} goal={g} />)}
             </div>
             <div style={{ marginTop: SPACE.xl, textAlign: "center" }}>

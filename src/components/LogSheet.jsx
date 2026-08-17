@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
-import { PAPER, FONT, TYPE, RADIUS, SPACE, CATS } from "../tokens.js";
+import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
 import { parseLogSmart } from "../lib/logParserLLM.js";
 import { chat, isConfigured } from "../lib/llm.js";
 import { listGoals, appendLog } from "../data/store.js";
 import { todayLocalISO } from "../lib/date.js";
-
-function catColor(cat) {
-  return (CATS[cat] && CATS[cat].color) || PAPER.dim;
-}
+import { goalColor } from "../lib/goalColor.js";
 
 function routeEvent(evt, goals) {
   const wanted = evt.verb === "wake" ? "wake" : evt.verb === "session" ? "cadence" : null;
@@ -144,7 +141,7 @@ export default function LogSheet({ open, onClose, onSaved }) {
                   }}>
                     <span style={{
                       width: 10, height: 10, borderRadius: 999,
-                      background: goal ? catColor(goal.cat) : PAPER.faint,
+                      background: goalColor(goal),
                       display: "inline-block", flexShrink: 0,
                     }} />
                     <span style={{ fontSize: 13.5, color: PAPER.ink, flex: 1 }}>

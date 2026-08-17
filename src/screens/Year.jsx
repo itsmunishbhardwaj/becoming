@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { CATS, PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
+import { goalColor } from "../lib/goalColor.js";
 
 // ── The spreadsheet gesture, reborn ────────────────────────────────────
 // The 2024 sheet's core act: on the day you moved a goal, you coloured its
@@ -11,6 +12,11 @@ import { dailyAdherence } from "../data/adherence.js";
 // than colouring a cell.)
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DAY_LETTERS = ["S","M","T","W","T","F","S"];
+
+function dayLetterFor(iso) {
+  return DAY_LETTERS[new Date(iso + "T00:00:00").getDay()];
+}
 
 const YEAR = new Date().getFullYear().toString();
 const YEAR_FROM = `${YEAR}-01-01`;
@@ -24,8 +30,8 @@ function daysInMonth(monthIdx) {
 // Stable rotation for each ellipse per (day, index)
 function Blob({ cx, cy, color, seed, big, opacity }) {
   const tilt = ((seed * 137) % 360) - 180;
-  const rx = big ? 5.4 : 4.6;
-  const ry = big ? 4.2 : 3.4;
+  const rx = big ? 9.5 : 7.5;
+  const ry = big ? 7.2 : 5.6;
   return (
     <ellipse
       cx={cx}
@@ -50,7 +56,7 @@ function markStyleFor(status, catColor) {
 // adherenceMaps: Record<goalId, Record<isoDate, status>>
 // dayMarks: built per DayCell from adherenceMaps + goals
 function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, penHasEvent, onToggle, onOpen, setTip }) {
-  const size = 15;
+  const size = 26;
   const c = size / 2;
   const clickable = !!pen;
 
@@ -62,32 +68,37 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
       .map((g) => {
         const map = adherenceMaps[g.id] || {};
         const status = map[isoDate] || "none";
-        const style = markStyleFor(status, CATS[g.cat]?.color ?? PAPER.faint);
+        const style = markStyleFor(status, goalColor(g));
         return { g, status, style };
       })
       .filter(({ style }) => style !== null);
   }, [goals, adherenceMaps, isoDate, pen]);
 
   const hasContent = marks.length > 0;
-  // Show tap dot when pen goal has no logged event on this day.
-  // Log presence — not adherence status — is truth.
-  const showTapDot = clickable ? !penHasEvent : !hasContent;
+  // Text is the tap affordance. Blob wins when the viewed goal has an event.
+  const showText = !hasContent;
 
   const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, iso: isoDate, marks };
 
   return (
     <svg
-      width={size}
-      height={size}
       viewBox={`0 0 ${size} ${size}`}
       onClick={clickable ? onToggle : undefined}
       onDoubleClick={(e) => { e.stopPropagation(); onOpen(); }}
       onMouseEnter={() => setTip(tipData)}
       onMouseLeave={() => setTip(null)}
-      style={{ display: "block", cursor: "pointer" }}
+      style={{ display: "block", width: "100%", height: "auto", maxWidth: `${size}px`, cursor: "pointer" }}
     >
-      {showTapDot && (
-        <circle cx={c} cy={c} r={clickable ? 1.4 : 0.9} fill={PAPER.faint} opacity={clickable ? 0.8 : 0.5} />
+      {showText && (
+        <text
+          x={c} y={16} textAnchor="middle"
+          fontFamily="Inter, system-ui, sans-serif"
+          fontSize="9" fontWeight="400"
+          fill={PAPER.ink} opacity="0.4"
+          style={{ fontVariantNumeric: "tabular-nums" }}
+        >
+          {dayIdx + 1}
+        </text>
       )}
 
       {marks.map(({ g, status }, i) => {
@@ -95,7 +106,7 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
         const off = marks.length > 1 ? 2 : 0;
         const faded = focus && g.id !== focus.id;
         const op = status === "off" ? 0.55 : status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
-        const color = status === "off" ? PAPER.whisper : CATS[g.cat]?.color ?? PAPER.faint;
+        const color = status === "off" ? PAPER.whisper : goalColor(g);
         return (
           <g key={g.id} opacity={faded && status !== "off" ? 0.15 : 1}>
             <Blob
@@ -116,23 +127,33 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
 function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate, onDayTap, onDayOpen, setTip }) {
   const name = MONTHS[monthIdx];
   const count = daysInMonth(monthIdx);
+  const leadOffset = new Date(parseInt(YEAR), monthIdx, 1).getDay();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <div
         style={{
-          fontSize: 11,
-          letterSpacing: "0.1em",
+          fontSize: 14,
+          letterSpacing: "0.14em",
           textTransform: "uppercase",
           color: PAPER.dim,
           display: "flex",
           alignItems: "center",
           gap: 5,
+          marginBottom: 4,
         }}
       >
         {name}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
+      <div className="year-dow">
+        {DAY_LETTERS.map((l, i) => (
+          <span key={i} className="year-dow-cell">{l}</span>
+        ))}
+      </div>
+      <div className="year-days">
+        {Array.from({ length: leadOffset }, (_, i) => (
+          <span key={`lead-${i}`} aria-hidden="true" />
+        ))}
         {Array.from({ length: count }, (_, i) => {
           const mm = String(monthIdx + 1).padStart(2, "0");
           const dd = String(i + 1).padStart(2, "0");
@@ -287,24 +308,63 @@ export default function Year() {
         background: PAPER.bg,
         color: PAPER.ink,
         fontFamily: FONT.sans,
-        padding: "0 24px 60px",
+        padding: "0 clamp(20px, 4vw, 56px) 80px",
       }}
     >
-      <div style={{ maxWidth: 720, margin: "0 auto" }}>
-        <header style={{ padding: "48px 0 8px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
+      <style>{`
+        .year-shell {
+          max-width: 720px;
+          margin: 0 auto;
+        }
+        @media (min-width: 900px)  { .year-shell { max-width: 1080px; } }
+        @media (min-width: 1200px) { .year-shell { max-width: 1400px; } }
+        /* One quarter per row = 3 columns × 4 rows */
+        .year-months {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: clamp(28px, 5vw, 56px) clamp(10px, 3vw, 44px);
+          margin-top: clamp(28px, 3vw, 44px);
+        }
+        .year-days {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: clamp(2px, 0.4vw, 6px);
+          justify-items: center;
+          min-width: 0;
+        }
+        .year-dow {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: clamp(2px, 0.4vw, 6px);
+          justify-items: center;
+          min-width: 0;
+          margin-bottom: 2px;
+        }
+        .year-dow-cell {
+          font-family: 'Inter', system-ui, sans-serif;
+          font-size: 10px;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          color: ${PAPER.ink};
+          opacity: 0.32;
+          line-height: 1;
+        }
+      `}</style>
+      <div className="year-shell">
+        <header style={{ padding: "56px 0 8px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
           <div>
             <div
               style={{
-                fontSize: 12,
+                fontSize: 14,
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
                 color: PAPER.dim,
-                marginBottom: 8,
+                marginBottom: 12,
               }}
             >
               {YEAR} · a year in progress
             </div>
-            <h1 style={{ fontFamily: FONT.serif, fontWeight: 500, fontSize: 30, margin: 0, letterSpacing: "-0.01em" }}>
+            <h1 style={{ fontFamily: FONT.serif, fontWeight: 500, fontSize: "clamp(32px, 4.5vw, 56px)", margin: 0, letterSpacing: "-0.01em", lineHeight: 1.05 }}>
               Your year, day by day
             </h1>
           </div>
@@ -313,7 +373,7 @@ export default function Year() {
         {/* Goal pen chips — pick a goal to hold its pen and tap days */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", margin: "20px 0 10px" }}>
           {goals.map((g) => {
-            const v = CATS[g.cat] ?? { color: PAPER.faint };
+            const v = { color: goalColor(g), name: CATS[g.cat]?.name ?? g.cat };
             const isPen = penId === g.id;
             const dimmed = penId && !isPen;
             return (
@@ -387,7 +447,7 @@ export default function Year() {
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "26px 22px" }}>
+        <div className="year-months">
           {MONTHS.map((_, i) => (
             <MonthBlock
               key={i}
@@ -426,7 +486,7 @@ export default function Year() {
               {new Date(tip.iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "short" })} · {tip.month} {tip.day}
             </span>
             {tip.marks.map(({ g, status }) => {
-              const color = status === "off" ? PAPER.whisper : CATS[g.cat]?.color ?? PAPER.faint;
+              const color = status === "off" ? PAPER.whisper : goalColor(g);
               return (
                 <span key={g.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span

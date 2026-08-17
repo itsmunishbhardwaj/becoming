@@ -1,7 +1,7 @@
 import { CATS, PAPER } from "../tokens.js";
 
-export default function MomentumBar({ cat, momentum, dormant }) {
-  const color = CATS[cat].color;
+export default function MomentumBar({ cat, momentum, dormant, color: colorProp }) {
+  const color = colorProp || CATS[cat]?.color;
   return (
     <div
       style={{

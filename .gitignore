@@ -17,3 +17,8 @@ coverage/
 
 # Obsidian vault-local config (per-user)
 .obsidian/
+
+# Vault lives outside the repo (set VAULT_ROOT in .env)
+# In-repo vault/ is a dev fallback only — never commit user data.
+vault/
+

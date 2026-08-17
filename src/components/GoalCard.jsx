@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { PAPER, CATS, STATE } from "../tokens.js";
+import { PAPER, STATE } from "../tokens.js";
 import Orb from "./Orb.jsx";
 import MomentumBar from "./MomentumBar.jsx";
+import { goalColor } from "../lib/goalColor.js";
 
 // Accumulation framing everywhere (docs/origin-spreadsheets.md, oblig. 5):
 // the big number is what was EARNED; the target is quiet context. Never
@@ -11,7 +12,7 @@ export default function GoalCard({ goal }) {
   const drift = goal.state === STATE.DRIFT;
   const completed = goal.state === STATE.COMPLETED;
   const still = dormant || completed;
-  const color = CATS[goal.cat].color;
+  const color = goalColor(goal);
 
   return (
     <Link
@@ -32,7 +33,7 @@ export default function GoalCard({ goal }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <Orb cat={goal.cat} momentum={goal.momentum} dormant={still} />
+        <Orb cat={goal.cat} color={color} momentum={goal.momentum} dormant={still} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
@@ -91,7 +92,7 @@ export default function GoalCard({ goal }) {
         </div>
       </div>
 
-      {!still && <MomentumBar cat={goal.cat} momentum={goal.momentum} dormant={dormant} />}
+      {!still && <MomentumBar cat={goal.cat} color={color} momentum={goal.momentum} dormant={dormant} />}
 
     </Link>
   );

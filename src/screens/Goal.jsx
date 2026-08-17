@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { PAPER, FONT, TYPE, RADIUS, CATS } from "../tokens.js";
-import { getGoal, readLogsInRange } from "../data/store.js";
+import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
+import { getGoal, readLogsInRange, saveGoal } from "../data/store.js";
 import { momentum } from "../data/adherence.js";
 import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
 import Orb from "../components/Orb.jsx";
-
-function catColor(cat) {
-  return (CATS[cat] && CATS[cat].color) || PAPER.dim;
-}
+import { goalColor, PALETTE } from "../lib/goalColor.js";
 
 function formatTarget(goal, r) {
   if (goal.type === "wake") return `wake by ${r.targetValue}`;
@@ -29,6 +26,25 @@ export default function Goal() {
   const { id } = useParams();
   const [goal, setGoal] = useState(undefined); // undefined = loading; null = missing
   const [logs, setLogs] = useState([]);
+  const [editingColor, setEditingColor] = useState(false);
+  const [savingColor, setSavingColor] = useState(false);
+
+  async function pickColor(color) {
+    if (!goal || savingColor) return;
+    const next = { ...goal, color };
+    setSavingColor(true);
+    setGoal(next);
+    try {
+      await saveGoal(next);
+    } catch (err) {
+      setGoal(goal);
+      // eslint-disable-next-line no-console
+      console.error("saveGoal failed", err);
+    } finally {
+      setSavingColor(false);
+      setEditingColor(false);
+    }
+  }
 
   useEffect(() => {
     let alive = true;
@@ -59,7 +75,7 @@ export default function Goal() {
   }
 
   const cur = goal.rounds[Math.max(0, goal.currentRound - 1)];
-  const catHue = catColor(goal.cat);
+  const catHue = goalColor(goal, PAPER.dim);
   const goalMomentum = momentum({ goal, logs, asOf: todayLocalISO() });
 
   const recentEvents = [];
@@ -77,13 +93,21 @@ export default function Goal() {
         <Link to="/" style={backLinkStyle}>← Life</Link>
 
         <header style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 8 }}>
-          <div
+          <button
+            type="button"
             data-testid="goal-orb-wrap"
             data-momentum={goalMomentum.toFixed(2)}
-            style={{ width: 48, height: 48, display: "grid", placeItems: "center" }}
+            onClick={() => setEditingColor((v) => !v)}
+            title="Change color"
+            aria-label="Change goal color"
+            style={{
+              width: 60, height: 60, display: "grid", placeItems: "center",
+              background: "transparent", border: "none", padding: 0, cursor: "pointer",
+              borderRadius: 999,
+            }}
           >
-            <Orb cat={goal.cat} momentum={goalMomentum} still={goal.state !== "active" && goal.state !== "drift"} />
-          </div>
+            <Orb cat={goal.cat} color={catHue} momentum={goalMomentum} still={goal.state !== "active" && goal.state !== "drift"} />
+          </button>
           <div style={{ flex: 1 }}>
             <h1 style={{ fontFamily: FONT.serif, fontWeight: 400, fontSize: TYPE.goalTitle, margin: 0, color: PAPER.ink }}>
               {goal.name}
@@ -93,6 +117,51 @@ export default function Goal() {
             </div>
           </div>
         </header>
+
+        {editingColor && (
+          <div
+            style={{
+              marginTop: 14,
+              padding: "12px 14px",
+              background: PAPER.card,
+              border: `1px solid ${PAPER.line}`,
+              borderRadius: RADIUS.r1,
+            }}
+          >
+            <div style={{
+              fontSize: 10.5, letterSpacing: "1.4px", textTransform: "uppercase",
+              color: PAPER.faint, fontWeight: 500, marginBottom: 10,
+            }}>
+              COLOR {savingColor && "· saving…"}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
+              {PALETTE.map((p) => {
+                const selected = catHue === p.color;
+                return (
+                  <button
+                    key={p.color}
+                    type="button"
+                    onClick={() => pickColor(p.color)}
+                    disabled={savingColor}
+                    aria-label={p.name}
+                    aria-pressed={selected}
+                    title={p.name}
+                    style={{
+                      width: 40, height: 40, borderRadius: "50%",
+                      background: `radial-gradient(circle at 35% 30%, ${p.color}, ${p.color}99 70%)`,
+                      boxShadow: selected
+                        ? `0 0 0 2px ${PAPER.ink}, 0 0 12px ${p.color}80`
+                        : `0 0 10px ${p.color}55`,
+                      border: "none",
+                      cursor: savingColor ? "default" : "pointer",
+                      padding: 0,
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <blockquote style={{
           fontFamily: FONT.serif, fontStyle: "italic",
