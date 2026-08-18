@@ -256,19 +256,19 @@ Longer-term this becomes the Google-Maps continuous zoom (roadmap risk item). Th
 - Pass-through: `DayCell` gains `isToday` and `showHalo` props. Year computes `todayISO` once, forwards to the matching cell.
 
 ### Tasks
-- [ ] **1. Shared cell** — extract `DayCell` and `Blob` from `Year.jsx` into `src/components/DayCell.jsx` and `src/components/Blob.jsx`. Add `scale` prop on `Blob`. Add `isToday`, `showHalo` props on `DayCell` (halo renders as first SVG child). No behavior change on Year.
-- [ ] **2. Today button** — add pill button to Year header. Wire scroll-into-view + halo toggle. Refs map: `Record<iso, HTMLElement>` populated by DayCell via `ref` callback prop.
-- [ ] **3. Month screen** — `src/screens/Month.jsx` + route `/month/:yyyymm` in `App.jsx`. Reuse `DayCell`, `Blob`, pen chip row (extract into `src/components/PenChips.jsx` if it stays clean). Add prev/next + keyboard + swipe.
-- [ ] **4. Week screen** — `src/screens/Week.jsx` + route `/week/:yyyymmdd`. Anchor = Sunday of visible week. Same nav idioms. Larger cells, `scale=2` on blobs.
-- [ ] **5. Cross-linking**
+- [x] **1. Shared cell** — extract `DayCell` and `Blob` from `Year.jsx` into `src/components/DayCell.jsx` and `src/components/Blob.jsx`. Add `scale` prop on `Blob`. Add `isToday`, `showHalo` props on `DayCell` (halo renders as first SVG child). No behavior change on Year.
+- [x] **2. Today button** — add pill button to Year header. Wire scroll-into-view + halo toggle. Refs map: `Record<iso, HTMLElement>` populated by DayCell via `ref` callback prop.
+- [x] **3. Month screen** — `src/screens/Month.jsx` + route `/month/:yyyymm` in `App.jsx`. Reuse `DayCell`, `Blob`, pen chip row (extract into `src/components/PenChips.jsx` if it stays clean). Add prev/next + keyboard + swipe.
+- [x] **4. Week screen** — `src/screens/Week.jsx` + route `/week/:yyyymmdd`. Anchor = Sunday of visible week. Same nav idioms. Larger cells, `scale=2` on blobs.
+- [x] **5. Cross-linking**
   - Year: click month name → `/month/:yyyymm`
   - Month: click "Week N" mini-label (or a small "week" pill on each row) → `/week/:sundayISO`
   - Week: click day → `/day/:iso` (single-click, since cells are large enough; double-click reserved for future zoom morph)
-- [ ] **6. Tests**
+- [x] **6. Tests**
   - Unit: swipe detection helper (pure function, threshold + velocity)
   - Snapshot / render: `DayCell` with `isToday && showHalo` includes the circle as first child
   - Boundary: Month prev from Jan crosses year; Week prev crosses months
-- [ ] **7. Verify** — dev server, walk each level: Year → Today → halo appears + scroll; Year → click month → Month view swipes work; Month → click week → Week view swipes work; back navigation returns to correct zoom.
+- [x] **7. Verify** — dev server, walk each level: Year → Today → halo appears + scroll; Year → click month → Month view swipes work; Month → click week → Week view swipes work; back navigation returns to correct zoom.
 
 ### Pinch-to-zoom navigation (mobile)
 Native multi-touch pinch bridges zoom levels. Complements the swipe (siblings) + button (explicit) nav already spec'd.
@@ -295,9 +295,9 @@ Native multi-touch pinch bridges zoom levels. Complements the swipe (siblings) +
 - **Extract**: put pinch logic in `src/lib/pinchGesture.js` (pure functions: `centroidOf(pts)`, `distanceOf(pts)`, `classifyPinch({ratio, elapsed})`) + a `usePinchZoom` hook in `src/hooks/usePinchZoom.js`. Unit tests for the pure helpers.
 
 ### Task additions (append to Tasks list above)
-- [ ] **8. Pinch gesture lib + hook** — `src/lib/pinchGesture.js`, `src/hooks/usePinchZoom.js`, unit tests
-- [ ] **9. Wire pinch** into `Year.jsx`, `Month.jsx`, `Week.jsx`. Each screen owns its zoom-in/out target derivation from centroid.
-- [ ] **10. Verify on device** — real iPhone via local network. Golden path: Year → pinch out on August cell → lands on `/month/2026-08` → pinch out on second row → lands on `/week/2026-08-09`. Reverse pinches back up.
+- [x] **8. Pinch gesture lib + hook** — `src/lib/pinchGesture.js`, `src/hooks/usePinchZoom.js`, unit tests
+- [x] **9. Wire pinch** into `Year.jsx`, `Month.jsx`, `Week.jsx`. Each screen owns its zoom-in/out target derivation from centroid.
+- [ ] **10. Verify on device** — real iPhone via local network. Golden path: Year → pinch out on August cell → lands on `/month/2026-08` → pinch out on second row → lands on `/week/2026-08-09`. Reverse pinches back up. *(requires physical device — open `http://192.168.1.19:5173` on iPhone)*
 
 ### Deferred (v2 / roadmap risk item)
 - Continuous Google-Maps zoom morph between levels. This ticket ships them as separate routes so the mental model + data is proven first. Pinch above is a discrete threshold-triggered route change, not the continuous transform morph — that's the v2 target.
