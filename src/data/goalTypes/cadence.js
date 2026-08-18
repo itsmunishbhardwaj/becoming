@@ -29,12 +29,18 @@ export function buildRounds(baseline, target, startDate, endDate) {
   return rounds;
 }
 
-export function adherenceForDay({ date, currentRound, events }) {
+export function isScheduledDay({ date, currentRound }) {
   const dayIdx = daysBetween(currentRound.startDate, date);
-  const isGreen = dayIdx >= 0 && dayIdx % currentRound.targetValue.intervalDays === 0;
+  return dayIdx >= 0 && dayIdx % currentRound.targetValue.intervalDays === 0;
+}
+
+export function adherenceForDay({ date, currentRound, events }) {
+  const isGreen = isScheduledDay({ date, currentRound });
   const hasSession = events.some((e) => e.verb === "session");
-  if (isGreen && hasSession) return "hit";
-  if (!isGreen && !hasSession) return "clean";
-  if (!isGreen && hasSession) return "off";
-  return "none"; // green with no session — no penalty
+  // Green days are the plan itself — render as a full blob whether or not a
+  // session was logged. The schedule is fixed; taps can add/remove sessions
+  // but never erase the scheduled blob.
+  if (isGreen) return "hit";
+  if (hasSession) return "off";
+  return "clean";
 }

@@ -86,9 +86,9 @@ describe("cadence.adherenceForDay", () => {
     })).toBe("off");
   });
 
-  it("none on green day with no session (no penalty)", () => {
+  it("green day with no session still marks as hit (schedule is immovable)", () => {
     expect(cad.adherenceForDay({
       date: "2026-08-12", currentRound: round, events: [],
-    })).toBe("none");
+    })).toBe("hit");
   });
 });

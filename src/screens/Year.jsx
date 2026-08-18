@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { CATS, PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
+import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
 import { goalColor } from "../lib/goalColor.js";
 
 // ── The spreadsheet gesture, reborn ────────────────────────────────────
@@ -48,7 +49,6 @@ function Blob({ cx, cy, color, seed, big, opacity }) {
 function markStyleFor(status, catColor) {
   if (status === "none" || status === "clean") return null;
   const base = { width: 5.6, height: 4.6, borderRadius: 999, display: "inline-block" };
-  if (status === "off") return { ...base, background: PAPER.whisper, opacity: 0.55 };
   const op = status === "soft" ? 0.55 : 0.85;
   return { ...base, background: catColor, opacity: op };
 }
@@ -105,8 +105,8 @@ function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, 
         const ang = (i / Math.max(marks.length, 1)) * Math.PI * 2 + i;
         const off = marks.length > 1 ? 2 : 0;
         const faded = focus && g.id !== focus.id;
-        const op = status === "off" ? 0.55 : status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
-        const color = status === "off" ? PAPER.whisper : goalColor(g);
+        const op = status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
+        const color = goalColor(g);
         return (
           <g key={g.id} opacity={faded && status !== "off" ? 0.15 : 1}>
             <Blob
@@ -245,6 +245,11 @@ export default function Year() {
 
   const onDayTap = useCallback(async ({ dateISO }) => {
     if (!pen) return;
+    // Scheduled cadence days are the plan itself — immovable. Tap is a no-op.
+    if (pen.type === "cadence") {
+      const round = pen.rounds.find((r) => dateISO >= r.startDate && dateISO <= r.endDate);
+      if (round && cadenceIsScheduledDay({ date: dateISO, currentRound: round })) return;
+    }
     const existing = penEventByDate[dateISO];
     if (existing) {
       await deleteLogEvent(dateISO, existing);

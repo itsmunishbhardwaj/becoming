@@ -31,9 +31,13 @@ export function dailyAdherence({ goal, logs, from, to }) {
   while (cur <= to) {
     const round = pickRound(goal, cur);
     const events = eventsForGoalOnDay(logs, goal.id, cur);
-    out[cur] = round
-      ? t.adherenceForDay({ date: cur, currentRound: round, events })
-      : "none";
+    if (round) {
+      out[cur] = t.adherenceForDay({ date: cur, currentRound: round, events });
+    } else {
+      // Outside any round window (e.g. before goal existed). An explicit log
+      // still counts as a mark — respect the user's action, don't hide it.
+      out[cur] = events.length > 0 ? "hit" : "none";
+    }
     cur = addDays(cur, 1);
   }
   return out;
