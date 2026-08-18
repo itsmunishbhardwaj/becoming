@@ -1,0 +1,313 @@
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { Link, useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { PAPER, FONT, TYPE } from "../tokens.js";
+import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
+import { dailyAdherence } from "../data/adherence.js";
+import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
+import { todayLocalISO } from "../lib/date.js";
+import { classifySwipe } from "../lib/swipe.js";
+import DayCell from "../components/DayCell.jsx";
+import PenChips from "../components/PenChips.jsx";
+
+const MONTH_NAMES = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
+];
+const DAY_LETTERS = ["S","M","T","W","T","F","S"];
+
+const YM_RE = /^(\d{4})-(\d{2})$/;
+
+function parseYm(param) {
+  const m = param?.match(YM_RE);
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  if (mo < 1 || mo > 12) return null;
+  return { year: y, monthIdx: mo - 1 };
+}
+
+function fmtYm(year, monthIdx) {
+  return `${year}-${String(monthIdx + 1).padStart(2, "0")}`;
+}
+
+function stepMonth({ year, monthIdx }, delta) {
+  let m = monthIdx + delta;
+  let y = year;
+  while (m < 0)  { m += 12; y -= 1; }
+  while (m > 11) { m -= 12; y += 1; }
+  return { year: y, monthIdx: m };
+}
+
+function daysIn(year, monthIdx) {
+  return new Date(year, monthIdx + 1, 0).getDate();
+}
+
+function isoAt(year, monthIdx, dayIdx) {
+  return `${year}-${String(monthIdx + 1).padStart(2, "0")}-${String(dayIdx + 1).padStart(2, "0")}`;
+}
+
+export default function Month() {
+  const nav = useNavigate();
+  const { yyyymm } = useParams();
+  const [params, setParams] = useSearchParams();
+  const parsed = parseYm(yyyymm);
+
+  const [goals, setGoals] = useState(null);
+  const [logs, setLogs] = useState([]);
+  const [penId, setPenId] = useState(() => params.get("pen") || null);
+  const [transition, setTransition] = useState(null); // "next" | "prev" | null
+
+  const rangeFrom = parsed ? isoAt(parsed.year, parsed.monthIdx, 0) : null;
+  const rangeTo   = parsed ? isoAt(parsed.year, parsed.monthIdx, daysIn(parsed.year, parsed.monthIdx) - 1) : null;
+
+  useEffect(() => {
+    if (!parsed) return;
+    let alive = true;
+    Promise.all([listGoals(), readLogsInRange({ from: rangeFrom, to: rangeTo })])
+      .then(([g, l]) => {
+        if (!alive) return;
+        setGoals(g);
+        setLogs(l);
+      })
+      .catch(() => { if (alive) { setGoals([]); setLogs([]); } });
+    return () => { alive = false; };
+  }, [yyyymm]);
+
+  const goalById = useMemo(
+    () => Object.fromEntries((goals ?? []).map((g) => [g.id, g])),
+    [goals]
+  );
+  const pen = penId ? goalById[penId] : null;
+  const focus = pen;
+
+  const adherenceMaps = useMemo(() => {
+    if (!goals || !parsed) return {};
+    const out = {};
+    for (const g of goals) {
+      out[g.id] = dailyAdherence({ goal: g, logs, from: rangeFrom, to: rangeTo });
+    }
+    return out;
+  }, [goals, logs, rangeFrom, rangeTo]);
+
+  const penEventByDate = useMemo(() => {
+    const map = {};
+    if (!pen) return map;
+    for (const l of logs) {
+      const evt = l.events.find((e) => e.goalId === pen.id);
+      if (evt) map[l.date] = evt;
+    }
+    return map;
+  }, [pen, logs]);
+
+  const refreshLogs = useCallback(async () => {
+    const ls = await readLogsInRange({ from: rangeFrom, to: rangeTo });
+    setLogs(ls);
+  }, [rangeFrom, rangeTo]);
+
+  const onDayTap = useCallback(async ({ dateISO }) => {
+    if (!pen) return;
+    if (pen.type === "cadence") {
+      const round = pen.rounds.find((r) => dateISO >= r.startDate && dateISO <= r.endDate);
+      if (round && cadenceIsScheduledDay({ date: dateISO, currentRound: round })) return;
+    }
+    const existing = penEventByDate[dateISO];
+    if (existing) {
+      await deleteLogEvent(dateISO, existing);
+      await refreshLogs();
+      return;
+    }
+    const event =
+      pen.type === "wake"
+        ? { verb: "wake", time: "07:00", goalId: pen.id }
+        : pen.type === "cadence"
+          ? { verb: "session", durationMin: 10, goalId: pen.id }
+          : { verb: "done", goalId: pen.id };
+    await appendLog(dateISO, event);
+    await refreshLogs();
+  }, [pen, penEventByDate, refreshLogs]);
+
+  const goPrev = useCallback(() => {
+    if (!parsed) return;
+    const next = stepMonth(parsed, -1);
+    setTransition("prev");
+    setTimeout(() => setTransition(null), 220);
+    const q = params.toString();
+    nav(`/month/${fmtYm(next.year, next.monthIdx)}${q ? `?${q}` : ""}`);
+  }, [parsed, params, nav]);
+
+  const goNext = useCallback(() => {
+    if (!parsed) return;
+    const next = stepMonth(parsed, 1);
+    setTransition("next");
+    setTimeout(() => setTransition(null), 220);
+    const q = params.toString();
+    nav(`/month/${fmtYm(next.year, next.monthIdx)}${q ? `?${q}` : ""}`);
+  }, [parsed, params, nav]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [goPrev, goNext]);
+
+  const swipeRef = useRef(null);
+  const onPointerDown = (e) => {
+    if (e.pointerType !== "touch") return;
+    swipeRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+  };
+  const onPointerUp = (e) => {
+    const s = swipeRef.current;
+    swipeRef.current = null;
+    if (!s || e.pointerType !== "touch") return;
+    const cls = classifySwipe({
+      dx: e.clientX - s.x,
+      dy: e.clientY - s.y,
+      dtMs: Date.now() - s.t,
+    });
+    if (cls === "next") goNext();
+    if (cls === "prev") goPrev();
+  };
+
+  const todayISO = todayLocalISO();
+
+  if (!parsed) {
+    return (
+      <div style={pageStyle}>
+        <div style={containerStyle}>
+          <Link to="/year" style={backLink}>← Year</Link>
+          <p style={{ color: PAPER.dim, marginTop: 20 }}>Bad month.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { year, monthIdx } = parsed;
+  const monthName = MONTH_NAMES[monthIdx];
+  const dayCount = daysIn(year, monthIdx);
+  const leadOffset = new Date(year, monthIdx, 1).getDay();
+
+  return (
+    <div style={pageStyle} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+      <style>{`
+        .month-shell { max-width: 720px; margin: 0 auto; }
+        @media (min-width: 900px)  { .month-shell { max-width: 960px; } }
+        @media (min-width: 1200px) { .month-shell { max-width: 1120px; } }
+        .month-days {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: clamp(6px, 1vw, 14px);
+          justify-items: center;
+        }
+        .month-dow {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: clamp(6px, 1vw, 14px);
+          justify-items: center;
+          margin-bottom: 6px;
+        }
+        .month-dow-cell {
+          font-family: 'Inter', system-ui, sans-serif;
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.08em;
+          color: ${PAPER.ink};
+          opacity: 0.32;
+        }
+        .month-cell { width: 100%; max-width: clamp(44px, 8vw, 64px); }
+        @keyframes month-slide-in-next  { from { opacity: 0; transform: translateX(24px); }  to { opacity: 1; transform: translateX(0); } }
+        @keyframes month-slide-in-prev  { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: translateX(0); } }
+        .month-slide-next { animation: month-slide-in-next 180ms ease-out; }
+        .month-slide-prev { animation: month-slide-in-prev 180ms ease-out; }
+        @media (prefers-reduced-motion: reduce) {
+          .month-slide-next, .month-slide-prev { animation: none; }
+        }
+      `}</style>
+      <div className="month-shell">
+        <div style={{ padding: "40px 0 8px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <Link to="/year" style={backLink}>← Year</Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button type="button" onClick={goPrev} aria-label="Previous month" style={navBtn}>‹</button>
+            <button type="button" onClick={goNext} aria-label="Next month" style={navBtn}>›</button>
+          </div>
+        </div>
+
+        <header style={{ marginTop: 6, marginBottom: 12 }}>
+          <div style={kicker}>{year}</div>
+          <h1 style={h1Style} className={transition ? `month-slide-${transition}` : ""}>
+            {monthName}
+          </h1>
+        </header>
+
+        {goals && goals.length > 0 && (
+          <PenChips goals={goals} penId={penId} onPick={setPenId} />
+        )}
+
+        <div className="month-dow">
+          {DAY_LETTERS.map((l, i) => (
+            <span key={i} className="month-dow-cell">{l}</span>
+          ))}
+        </div>
+        <div className={`month-days ${transition ? `month-slide-${transition}` : ""}`}>
+          {Array.from({ length: leadOffset }, (_, i) => (
+            <span key={`lead-${i}`} aria-hidden="true" />
+          ))}
+          {Array.from({ length: dayCount }, (_, i) => {
+            const iso = isoAt(year, monthIdx, i);
+            return (
+              <div key={iso} className="month-cell">
+                <DayCell
+                  monthIdx={monthIdx}
+                  monthName={monthName}
+                  dayIdx={i}
+                  isoDate={iso}
+                  goals={goals ?? []}
+                  adherenceMaps={adherenceMaps}
+                  focus={focus}
+                  pen={pen}
+                  onToggle={() => onDayTap({ dateISO: iso })}
+                  onOpen={() => nav(`/day/${iso}`)}
+                  isToday={iso === todayISO}
+                  showHalo={false}
+                  blobScale={1.6}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        <footer style={{ marginTop: 40, textAlign: "center", fontSize: 13 }}>
+          <Link to="/" style={{ color: PAPER.faint, textDecoration: "none" }}>
+            ← back to Life
+          </Link>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+const pageStyle = {
+  minHeight: "100vh",
+  background: PAPER.bg,
+  color: PAPER.ink,
+  fontFamily: FONT.sans,
+  padding: "clamp(20px, 3vw, 40px) clamp(20px, 4vw, 64px) 80px",
+  touchAction: "pan-y",
+};
+const containerStyle = { maxWidth: 720, margin: "0 auto" };
+const backLink = { color: PAPER.dim, fontSize: 13, textDecoration: "none" };
+const kicker = { fontSize: 11.5, letterSpacing: "1.8px", textTransform: "uppercase", color: PAPER.faint, fontWeight: 500 };
+const h1Style = {
+  fontFamily: FONT.serif, fontWeight: 500, fontSize: "clamp(36px, 5.5vw, 64px)",
+  lineHeight: 1.05, margin: "6px 0 0", color: PAPER.ink, letterSpacing: "-0.01em",
+};
+const navBtn = {
+  width: 36, height: 36, borderRadius: 999,
+  border: `1px solid ${PAPER.line}`, background: "transparent",
+  color: PAPER.ink, fontSize: 18, cursor: "pointer",
+  display: "grid", placeItems: "center",
+  fontFamily: "inherit",
+};

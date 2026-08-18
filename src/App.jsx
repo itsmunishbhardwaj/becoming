@@ -5,6 +5,8 @@ import Onboard from "./screens/Onboard.jsx";
 import QuickCreate from "./screens/QuickCreate.jsx";
 import Day from "./screens/Day.jsx";
 import Goal from "./screens/Goal.jsx";
+import Month from "./screens/Month.jsx";
+import Week from "./screens/Week.jsx";
 
 export default function App() {
   return (
@@ -16,6 +18,8 @@ export default function App() {
         <Route path="/create" element={<QuickCreate />} />
         <Route path="/day/:date" element={<Day />} />
         <Route path="/goal/:id" element={<Goal />} />
+        <Route path="/month/:yyyymm" element={<Month />} />
+        <Route path="/week/:yyyymmdd" element={<Week />} />
       </Routes>
     </BrowserRouter>
   );

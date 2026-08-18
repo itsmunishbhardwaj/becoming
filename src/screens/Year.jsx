@@ -7,6 +7,7 @@ import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/caden
 import { goalColor } from "../lib/goalColor.js";
 import { todayLocalISO } from "../lib/date.js";
 import DayCell from "../components/DayCell.jsx";
+import PenChips from "../components/PenChips.jsx";
 
 // ── The spreadsheet gesture, reborn ────────────────────────────────────
 // The 2024 sheet's core act: on the day you moved a goal, you coloured its
@@ -30,14 +31,16 @@ function daysInMonth(monthIdx) {
   return new Date(parseInt(YEAR), monthIdx + 1, 0).getDate();
 }
 
-function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate, onDayTap, onDayOpen, setTip, todayISO, showHalo, registerCell }) {
+function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate, onDayTap, onDayOpen, setTip, todayISO, showHalo, registerCell, onMonthOpen }) {
   const name = MONTHS[monthIdx];
   const count = daysInMonth(monthIdx);
   const leadOffset = new Date(parseInt(YEAR), monthIdx, 1).getDay();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <div
+      <button
+        type="button"
+        onClick={() => onMonthOpen(monthIdx)}
         style={{
           fontSize: 14,
           letterSpacing: "0.14em",
@@ -47,10 +50,16 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate
           alignItems: "center",
           gap: 5,
           marginBottom: 4,
+          background: "transparent",
+          border: "none",
+          padding: 0,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          textAlign: "left",
         }}
       >
         {name}
-      </div>
+      </button>
       <div className="year-dow">
         {DAY_LETTERS.map((l, i) => (
           <span key={i} className="year-dow-cell">{l}</span>
@@ -258,6 +267,7 @@ export default function Year() {
           justify-items: center;
           min-width: 0;
         }
+        .year-days > svg { max-width: 26px; }
         .year-dow {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
@@ -314,48 +324,12 @@ export default function Year() {
           </button>
         </header>
 
-        {/* Goal pen chips — pick a goal to hold its pen and tap days */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", margin: "20px 0 10px" }}>
-          {goals.map((g) => {
-            const v = { color: goalColor(g), name: CATS[g.cat]?.name ?? g.cat };
-            const isPen = penId === g.id;
-            const dimmed = penId && !isPen;
-            return (
-              <button
-                key={g.id}
-                onClick={() => setPenId(isPen ? null : g.id)}
-                aria-pressed={isPen}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 7,
-                  fontSize: 13,
-                  color: dimmed ? PAPER.faint : PAPER.ink,
-                  background: isPen ? PAPER.card : "transparent",
-                  border: `1px solid ${isPen ? PAPER.line : "transparent"}`,
-                  borderRadius: 999,
-                  padding: "4px 10px",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                <span
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "46% 54% 52% 48%",
-                    background: v.color,
-                    opacity: dimmed ? 0.3 : 0.8,
-                  }}
-                />
-                {g.name}
-                {isPen && penDays > 0 && (
-                  <span style={{ color: PAPER.dim, fontVariantNumeric: "tabular-nums" }}>· {penDays} days</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        <PenChips
+          goals={goals}
+          penId={penId}
+          onPick={setPenId}
+          penDayCount={() => penDays}
+        />
 
         {/* One quiet line of guidance / accumulation. Never a deficit. */}
         <div style={{ fontSize: 13, color: PAPER.dim, margin: "0 0 22px" }}>
@@ -407,6 +381,10 @@ export default function Year() {
               todayISO={todayISO}
               showHalo={todayMarked}
               registerCell={registerCell}
+              onMonthOpen={(mi) => {
+                const q = penId ? `?pen=${penId}` : "";
+                nav(`/month/${YEAR}-${String(mi + 1).padStart(2, "0")}${q}`);
+              }}
             />
           ))}
         </div>

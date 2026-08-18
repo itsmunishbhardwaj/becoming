@@ -33,6 +33,7 @@ export default function DayCell({
   showHalo = false,
   blobScale = 1,
   cellRef,
+  hideDayNumber = false,
 }) {
   const size = 26;
   const c = size / 2;
@@ -51,7 +52,7 @@ export default function DayCell({
   }, [goals, adherenceMaps, isoDate, pen]);
 
   const hasContent = marks.length > 0;
-  const showText = !hasContent;
+  const showText = !hasContent && !hideDayNumber;
 
   const tipData = { month: monthName, day: dayIdx + 1, iso: isoDate, marks };
 
@@ -66,9 +67,9 @@ export default function DayCell({
       onMouseEnter={() => setTip?.(tipData)}
       onMouseLeave={() => setTip?.(null)}
       style={{
-        display: "block", width: "100%", height: "auto", maxWidth: `${size}px`,
+        display: "block", width: "100%", height: "auto",
         cursor: "pointer",
-        overflow: haloOn ? "visible" : undefined,
+        overflow: (haloOn || blobScale > 1) ? "visible" : undefined,
       }}
     >
       {haloOn && (
