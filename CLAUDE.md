@@ -70,3 +70,48 @@ npm run dev
 ## Where to go next
 
 See `docs/roadmap.md`. Highest-risk item = the Google-Maps zoom transition. Prototype that before building more CRUD.
+
+---
+
+## Git Workflow (enforced — do not bypass)
+
+**Model: GitHub Flow.** One `main` branch. All work on short-lived feature branches. No staging branch.
+
+### Rules (enforced by branch protection + CI)
+
+- **Never push directly to `main`.** Branch protection blocks it — even for admins.
+- **Every change → feature branch → PR → CI green → merge.**
+- **CI must pass before merge**: `bun run test` (154+ tests) + `bun run build`. Defined in `.github/workflows/ci.yml`, job name `Test & Build`.
+- **No `--no-verify`, no `--force` to main, no amending published commits.**
+
+### Branch naming
+
+```
+feat/<short-slug>       new feature
+fix/<short-slug>        bug fix
+chore/<short-slug>      tooling, deps, docs
+```
+
+### PR titles (Conventional Commits)
+
+```
+feat: add X
+fix: resolve Y
+chore: upgrade Z
+docs: update W
+refactor: simplify V
+```
+
+### Flow
+
+```
+git checkout -b feat/my-thing
+# ...work, commit...
+git push -u origin feat/my-thing
+gh pr create --title "feat: my thing" --body "..."
+# CI runs automatically → green → merge via GitHub UI
+```
+
+### Why no staging branch
+
+A staging *branch* creates merge hell with no quality benefit. Quality comes from CI (automated) and Vercel preview URLs (visual). Every PR already gets a Vercel preview — that IS staging. Once CI passes + you've eyeballed the preview → merge to main → Vercel deploys production.
