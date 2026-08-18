@@ -1,10 +1,14 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { CATS, PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
 import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
 import { goalColor } from "../lib/goalColor.js";
+import { todayLocalISO } from "../lib/date.js";
+import { centroidOf, distanceOf, classifyPinch } from "../lib/pinchGesture.js";
+import DayCell from "../components/DayCell.jsx";
+import PenChips from "../components/PenChips.jsx";
 
 // ── The spreadsheet gesture, reborn ────────────────────────────────────
 // The 2024 sheet's core act: on the day you moved a goal, you coloured its
@@ -28,110 +32,16 @@ function daysInMonth(monthIdx) {
   return new Date(parseInt(YEAR), monthIdx + 1, 0).getDate();
 }
 
-// Stable rotation for each ellipse per (day, index)
-function Blob({ cx, cy, color, seed, big, opacity }) {
-  const tilt = ((seed * 137) % 360) - 180;
-  const rx = big ? 9.5 : 7.5;
-  const ry = big ? 7.2 : 5.6;
-  return (
-    <ellipse
-      cx={cx}
-      cy={cy}
-      rx={rx}
-      ry={ry}
-      fill={color}
-      opacity={opacity ?? 0.78}
-      transform={`rotate(${tilt} ${cx} ${cy})`}
-    />
-  );
-}
-
-function markStyleFor(status, catColor) {
-  if (status === "none" || status === "clean") return null;
-  const base = { width: 5.6, height: 4.6, borderRadius: 999, display: "inline-block" };
-  const op = status === "soft" ? 0.55 : 0.85;
-  return { ...base, background: catColor, opacity: op };
-}
-
-// adherenceMaps: Record<goalId, Record<isoDate, status>>
-// dayMarks: built per DayCell from adherenceMaps + goals
-function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, penHasEvent, onToggle, onOpen, setTip }) {
-  const size = 26;
-  const c = size / 2;
-  const clickable = !!pen;
-
-  // Per-goal marks for this day. When a pen is held, only the pen's goal
-  // renders — every goal owns its own visual layer.
-  const marks = useMemo(() => {
-    const visible = pen ? goals.filter((g) => g.id === pen.id) : goals;
-    return visible
-      .map((g) => {
-        const map = adherenceMaps[g.id] || {};
-        const status = map[isoDate] || "none";
-        const style = markStyleFor(status, goalColor(g));
-        return { g, status, style };
-      })
-      .filter(({ style }) => style !== null);
-  }, [goals, adherenceMaps, isoDate, pen]);
-
-  const hasContent = marks.length > 0;
-  // Text is the tap affordance. Blob wins when the viewed goal has an event.
-  const showText = !hasContent;
-
-  const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, iso: isoDate, marks };
-
-  return (
-    <svg
-      viewBox={`0 0 ${size} ${size}`}
-      onClick={clickable ? onToggle : undefined}
-      onDoubleClick={(e) => { e.stopPropagation(); onOpen(); }}
-      onMouseEnter={() => setTip(tipData)}
-      onMouseLeave={() => setTip(null)}
-      style={{ display: "block", width: "100%", height: "auto", maxWidth: `${size}px`, cursor: "pointer" }}
-    >
-      {showText && (
-        <text
-          x={c} y={16} textAnchor="middle"
-          fontFamily="Inter, system-ui, sans-serif"
-          fontSize="9" fontWeight="400"
-          fill={PAPER.ink} opacity="0.4"
-          style={{ fontVariantNumeric: "tabular-nums" }}
-        >
-          {dayIdx + 1}
-        </text>
-      )}
-
-      {marks.map(({ g, status }, i) => {
-        const ang = (i / Math.max(marks.length, 1)) * Math.PI * 2 + i;
-        const off = marks.length > 1 ? 2 : 0;
-        const faded = focus && g.id !== focus.id;
-        const op = status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
-        const color = goalColor(g);
-        return (
-          <g key={g.id} opacity={faded && status !== "off" ? 0.15 : 1}>
-            <Blob
-              cx={c + Math.cos(ang) * off}
-              cy={c + Math.sin(ang) * off}
-              color={color}
-              seed={(dayIdx + 1) + i * 31}
-              big={marks.length === 1}
-              opacity={op}
-            />
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate, onDayTap, onDayOpen, setTip }) {
+function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate, onDayTap, onDayOpen, setTip, todayISO, showHalo, registerCell, onMonthOpen }) {
   const name = MONTHS[monthIdx];
   const count = daysInMonth(monthIdx);
   const leadOffset = new Date(parseInt(YEAR), monthIdx, 1).getDay();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <div
+      <button
+        type="button"
+        onClick={() => onMonthOpen(monthIdx)}
         style={{
           fontSize: 14,
           letterSpacing: "0.14em",
@@ -141,10 +51,16 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate
           alignItems: "center",
           gap: 5,
           marginBottom: 4,
+          background: "transparent",
+          border: "none",
+          padding: 0,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          textAlign: "left",
         }}
       >
         {name}
-      </div>
+      </button>
       <div className="year-dow">
         {DAY_LETTERS.map((l, i) => (
           <span key={i} className="year-dow-cell">{l}</span>
@@ -162,16 +78,19 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate
             <DayCell
               key={iso}
               monthIdx={monthIdx}
+              monthName={name}
               dayIdx={i}
               isoDate={iso}
               goals={goals}
               adherenceMaps={adherenceMaps}
               focus={focus}
               pen={pen}
-              penHasEvent={Boolean(penEventByDate[iso])}
               onToggle={() => onDayTap({ dateISO: iso })}
               onOpen={() => onDayOpen(iso)}
               setTip={setTip}
+              isToday={iso === todayISO}
+              showHalo={showHalo}
+              cellRef={(el) => registerCell(iso, el)}
             />
           );
         })}
@@ -187,6 +106,64 @@ export default function Year() {
   const [logs, setLogs] = useState([]);
   const [tip, setTip] = useState(null);
   const [penId, setPenId] = useState(() => params.get("pen") || null);
+  const [todayMarked, setTodayMarked] = useState(false);
+  const cellRefs = useRef({});
+  const registerCell = useCallback((iso, el) => {
+    if (el) cellRefs.current[iso] = el;
+    else delete cellRefs.current[iso];
+  }, []);
+  const monthsShellRef = useRef(null);
+  const pinchRef = useRef(null);
+  const onPointerDown = useCallback((e) => {
+    if (e.pointerType !== "touch") return;
+    if (!pinchRef.current) pinchRef.current = { ptrs: new Map(), initDist: null, startMs: null, fired: false };
+    pinchRef.current.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const pts = [...pinchRef.current.ptrs.values()];
+    if (pts.length === 2) {
+      pinchRef.current.initDist = distanceOf(pts);
+      pinchRef.current.startMs = Date.now();
+    }
+  }, []);
+  const onPointerMove = useCallback((e) => {
+    const s = pinchRef.current;
+    if (!s?.ptrs.has(e.pointerId)) return;
+    s.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (s.fired || !s.initDist) return;
+    const pts = [...s.ptrs.values()];
+    if (pts.length < 2) return;
+    const ratio = distanceOf(pts) / s.initDist;
+    const elapsed = Date.now() - s.startMs;
+    if (monthsShellRef.current) {
+      monthsShellRef.current.style.transform = `scale(${Math.min(1.4, Math.max(0.8, ratio))})`;
+      monthsShellRef.current.style.transition = "none";
+    }
+    const dir = classifyPinch({ ratio, elapsed });
+    if (dir !== "in") return;
+    s.fired = true;
+    const c = centroidOf(pts);
+    let found = null;
+    for (const [iso, el] of Object.entries(cellRefs.current)) {
+      const r = el.getBoundingClientRect();
+      if (c.x >= r.left && c.x <= r.right && c.y >= r.top && c.y <= r.bottom) { found = iso; break; }
+    }
+    const mm = found ? found.slice(0, 7) : `${YEAR}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+    nav(`/month/${mm}${penId ? `?pen=${penId}` : ""}`);
+  }, [nav, penId]);
+  const _pinchEnd = useCallback((e) => {
+    const s = pinchRef.current;
+    if (!s?.ptrs.has(e.pointerId)) return;
+    s.ptrs.delete(e.pointerId);
+    if (s.ptrs.size === 0) {
+      pinchRef.current = null;
+      if (monthsShellRef.current) { monthsShellRef.current.style.transform = ""; monthsShellRef.current.style.transition = ""; }
+    }
+  }, []);
+  const todayISO = todayLocalISO();
+  const onTodayClick = useCallback(() => {
+    const el = cellRefs.current[todayISO];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTodayMarked((v) => !v);
+  }, [todayISO]);
 
   const fetchData = useCallback(async () => {
     const [gs, ls] = await Promise.all([
@@ -314,7 +291,12 @@ export default function Year() {
         color: PAPER.ink,
         fontFamily: FONT.sans,
         padding: "0 clamp(20px, 4vw, 56px) 80px",
+        touchAction: "pan-y",
       }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={_pinchEnd}
+      onPointerCancel={_pinchEnd}
     >
       <style>{`
         .year-shell {
@@ -337,6 +319,7 @@ export default function Year() {
           justify-items: center;
           min-width: 0;
         }
+        .year-days > svg { max-width: 26px; }
         .year-dow {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
@@ -373,50 +356,32 @@ export default function Year() {
               Your year, day by day
             </h1>
           </div>
+          <button
+            type="button"
+            onClick={onTodayClick}
+            aria-pressed={todayMarked}
+            style={{
+              padding: "6px 14px",
+              borderRadius: 999,
+              border: `1px solid ${todayMarked ? PAPER.ink : PAPER.line}`,
+              background: todayMarked ? PAPER.card : "transparent",
+              color: PAPER.ink,
+              fontFamily: FONT.sans,
+              fontSize: 13,
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            Today
+          </button>
         </header>
 
-        {/* Goal pen chips — pick a goal to hold its pen and tap days */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", margin: "20px 0 10px" }}>
-          {goals.map((g) => {
-            const v = { color: goalColor(g), name: CATS[g.cat]?.name ?? g.cat };
-            const isPen = penId === g.id;
-            const dimmed = penId && !isPen;
-            return (
-              <button
-                key={g.id}
-                onClick={() => setPenId(isPen ? null : g.id)}
-                aria-pressed={isPen}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 7,
-                  fontSize: 13,
-                  color: dimmed ? PAPER.faint : PAPER.ink,
-                  background: isPen ? PAPER.card : "transparent",
-                  border: `1px solid ${isPen ? PAPER.line : "transparent"}`,
-                  borderRadius: 999,
-                  padding: "4px 10px",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                <span
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "46% 54% 52% 48%",
-                    background: v.color,
-                    opacity: dimmed ? 0.3 : 0.8,
-                  }}
-                />
-                {g.name}
-                {isPen && penDays > 0 && (
-                  <span style={{ color: PAPER.dim, fontVariantNumeric: "tabular-nums" }}>· {penDays} days</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        <PenChips
+          goals={goals}
+          penId={penId}
+          onPick={setPenId}
+          penDayCount={() => penDays}
+        />
 
         {/* One quiet line of guidance / accumulation. Never a deficit. */}
         <div style={{ fontSize: 13, color: PAPER.dim, margin: "0 0 22px" }}>
@@ -452,7 +417,7 @@ export default function Year() {
           </div>
         )}
 
-        <div className="year-months">
+        <div className="year-months" ref={monthsShellRef}>
           {MONTHS.map((_, i) => (
             <MonthBlock
               key={i}
@@ -465,6 +430,13 @@ export default function Year() {
               onDayTap={onDayTap}
               onDayOpen={(iso) => nav(`/day/${iso}`)}
               setTip={setTip}
+              todayISO={todayISO}
+              showHalo={todayMarked}
+              registerCell={registerCell}
+              onMonthOpen={(mi) => {
+                const q = penId ? `?pen=${penId}` : "";
+                nav(`/month/${YEAR}-${String(mi + 1).padStart(2, "0")}${q}`);
+              }}
             />
           ))}
         </div>

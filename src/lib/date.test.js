@@ -18,3 +18,26 @@ describe("todayLocalISO", () => {
     expect(addDaysLocalISO("2026-01-31", 1)).toBe("2026-02-01");
   });
 });
+
+describe("addDaysLocalISO boundaries", () => {
+  it("Week prev crosses month (Aug → Jul)", () => {
+    expect(addDaysLocalISO("2026-08-02", -7)).toBe("2026-07-26");
+  });
+
+  it("Week next crosses month (Aug → Sep)", () => {
+    expect(addDaysLocalISO("2026-08-30", 7)).toBe("2026-09-06");
+  });
+
+  it("Week prev crosses year (Jan → Dec)", () => {
+    expect(addDaysLocalISO("2026-01-04", -7)).toBe("2025-12-28");
+  });
+
+  it("Week next crosses year (Dec → Jan)", () => {
+    expect(addDaysLocalISO("2025-12-28", 7)).toBe("2026-01-04");
+  });
+
+  it("leap day round-trip", () => {
+    expect(addDaysLocalISO("2024-02-28", 1)).toBe("2024-02-29");
+    expect(addDaysLocalISO("2024-02-29", 1)).toBe("2024-03-01");
+  });
+});
