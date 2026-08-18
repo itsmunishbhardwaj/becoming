@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { CATS, PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
 import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
 import { goalColor } from "../lib/goalColor.js";
+import { todayLocalISO } from "../lib/date.js";
+import DayCell from "../components/DayCell.jsx";
 
 // ── The spreadsheet gesture, reborn ────────────────────────────────────
 // The 2024 sheet's core act: on the day you moved a goal, you coloured its
@@ -28,103 +30,7 @@ function daysInMonth(monthIdx) {
   return new Date(parseInt(YEAR), monthIdx + 1, 0).getDate();
 }
 
-// Stable rotation for each ellipse per (day, index)
-function Blob({ cx, cy, color, seed, big, opacity }) {
-  const tilt = ((seed * 137) % 360) - 180;
-  const rx = big ? 9.5 : 7.5;
-  const ry = big ? 7.2 : 5.6;
-  return (
-    <ellipse
-      cx={cx}
-      cy={cy}
-      rx={rx}
-      ry={ry}
-      fill={color}
-      opacity={opacity ?? 0.78}
-      transform={`rotate(${tilt} ${cx} ${cy})`}
-    />
-  );
-}
-
-function markStyleFor(status, catColor) {
-  if (status === "none" || status === "clean") return null;
-  const base = { width: 5.6, height: 4.6, borderRadius: 999, display: "inline-block" };
-  const op = status === "soft" ? 0.55 : 0.85;
-  return { ...base, background: catColor, opacity: op };
-}
-
-// adherenceMaps: Record<goalId, Record<isoDate, status>>
-// dayMarks: built per DayCell from adherenceMaps + goals
-function DayCell({ monthIdx, dayIdx, isoDate, goals, adherenceMaps, focus, pen, penHasEvent, onToggle, onOpen, setTip }) {
-  const size = 26;
-  const c = size / 2;
-  const clickable = !!pen;
-
-  // Per-goal marks for this day. When a pen is held, only the pen's goal
-  // renders — every goal owns its own visual layer.
-  const marks = useMemo(() => {
-    const visible = pen ? goals.filter((g) => g.id === pen.id) : goals;
-    return visible
-      .map((g) => {
-        const map = adherenceMaps[g.id] || {};
-        const status = map[isoDate] || "none";
-        const style = markStyleFor(status, goalColor(g));
-        return { g, status, style };
-      })
-      .filter(({ style }) => style !== null);
-  }, [goals, adherenceMaps, isoDate, pen]);
-
-  const hasContent = marks.length > 0;
-  // Text is the tap affordance. Blob wins when the viewed goal has an event.
-  const showText = !hasContent;
-
-  const tipData = { month: MONTHS[monthIdx], day: dayIdx + 1, iso: isoDate, marks };
-
-  return (
-    <svg
-      viewBox={`0 0 ${size} ${size}`}
-      onClick={clickable ? onToggle : undefined}
-      onDoubleClick={(e) => { e.stopPropagation(); onOpen(); }}
-      onMouseEnter={() => setTip(tipData)}
-      onMouseLeave={() => setTip(null)}
-      style={{ display: "block", width: "100%", height: "auto", maxWidth: `${size}px`, cursor: "pointer" }}
-    >
-      {showText && (
-        <text
-          x={c} y={16} textAnchor="middle"
-          fontFamily="Inter, system-ui, sans-serif"
-          fontSize="9" fontWeight="400"
-          fill={PAPER.ink} opacity="0.4"
-          style={{ fontVariantNumeric: "tabular-nums" }}
-        >
-          {dayIdx + 1}
-        </text>
-      )}
-
-      {marks.map(({ g, status }, i) => {
-        const ang = (i / Math.max(marks.length, 1)) * Math.PI * 2 + i;
-        const off = marks.length > 1 ? 2 : 0;
-        const faded = focus && g.id !== focus.id;
-        const op = status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
-        const color = goalColor(g);
-        return (
-          <g key={g.id} opacity={faded && status !== "off" ? 0.15 : 1}>
-            <Blob
-              cx={c + Math.cos(ang) * off}
-              cy={c + Math.sin(ang) * off}
-              color={color}
-              seed={(dayIdx + 1) + i * 31}
-              big={marks.length === 1}
-              opacity={op}
-            />
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate, onDayTap, onDayOpen, setTip }) {
+function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate, onDayTap, onDayOpen, setTip, todayISO, showHalo, registerCell }) {
   const name = MONTHS[monthIdx];
   const count = daysInMonth(monthIdx);
   const leadOffset = new Date(parseInt(YEAR), monthIdx, 1).getDay();
@@ -162,16 +68,19 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, penEventByDate
             <DayCell
               key={iso}
               monthIdx={monthIdx}
+              monthName={name}
               dayIdx={i}
               isoDate={iso}
               goals={goals}
               adherenceMaps={adherenceMaps}
               focus={focus}
               pen={pen}
-              penHasEvent={Boolean(penEventByDate[iso])}
               onToggle={() => onDayTap({ dateISO: iso })}
               onOpen={() => onDayOpen(iso)}
               setTip={setTip}
+              isToday={iso === todayISO}
+              showHalo={showHalo}
+              cellRef={(el) => registerCell(iso, el)}
             />
           );
         })}
@@ -187,6 +96,18 @@ export default function Year() {
   const [logs, setLogs] = useState([]);
   const [tip, setTip] = useState(null);
   const [penId, setPenId] = useState(() => params.get("pen") || null);
+  const [todayMarked, setTodayMarked] = useState(false);
+  const cellRefs = useRef({});
+  const registerCell = useCallback((iso, el) => {
+    if (el) cellRefs.current[iso] = el;
+    else delete cellRefs.current[iso];
+  }, []);
+  const todayISO = todayLocalISO();
+  const onTodayClick = useCallback(() => {
+    const el = cellRefs.current[todayISO];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTodayMarked((v) => !v);
+  }, [todayISO]);
 
   const fetchData = useCallback(async () => {
     const [gs, ls] = await Promise.all([
@@ -373,6 +294,24 @@ export default function Year() {
               Your year, day by day
             </h1>
           </div>
+          <button
+            type="button"
+            onClick={onTodayClick}
+            aria-pressed={todayMarked}
+            style={{
+              padding: "6px 14px",
+              borderRadius: 999,
+              border: `1px solid ${todayMarked ? PAPER.ink : PAPER.line}`,
+              background: todayMarked ? PAPER.card : "transparent",
+              color: PAPER.ink,
+              fontFamily: FONT.sans,
+              fontSize: 13,
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            Today
+          </button>
         </header>
 
         {/* Goal pen chips — pick a goal to hold its pen and tap days */}
@@ -465,6 +404,9 @@ export default function Year() {
               onDayTap={onDayTap}
               onDayOpen={(iso) => nav(`/day/${iso}`)}
               setTip={setTip}
+              todayISO={todayISO}
+              showHalo={todayMarked}
+              registerCell={registerCell}
             />
           ))}
         </div>
