@@ -61,6 +61,7 @@ export default function DayCell({
     <svg
       ref={cellRef}
       viewBox={`0 0 ${size} ${size}`}
+      data-iso={isoDate}
       onClick={onToggle}
       onDoubleClick={(e) => { e.stopPropagation(); onOpen(); }}
       onMouseEnter={() => setTip?.(tipData)}

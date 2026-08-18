@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Link, useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { centroidOf, distanceOf, classifyPinch } from "../lib/pinchGesture.js";
 import { PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
@@ -155,19 +156,73 @@ export default function Month() {
   }, [goPrev, goNext]);
 
   const swipeRef = useRef(null);
+  const pinchRef = useRef(null);
+  const daysShellRef = useRef(null);
+
   const onPointerDown = (e) => {
     if (e.pointerType !== "touch") return;
-    swipeRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+    if (!pinchRef.current) pinchRef.current = { ptrs: new Map(), initDist: null, startMs: null, fired: false };
+    pinchRef.current.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const pts = [...pinchRef.current.ptrs.values()];
+    if (pts.length === 1) {
+      swipeRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+    } else {
+      swipeRef.current = null;
+      pinchRef.current.initDist = distanceOf(pts);
+      pinchRef.current.startMs = Date.now();
+    }
   };
+
+  const onPointerMove = (e) => {
+    const s = pinchRef.current;
+    if (!s?.ptrs.has(e.pointerId)) return;
+    s.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (s.fired || !s.initDist || s.ptrs.size < 2) return;
+    const pts = [...s.ptrs.values()];
+    const ratio = distanceOf(pts) / s.initDist;
+    const elapsed = Date.now() - s.startMs;
+    if (daysShellRef.current) {
+      daysShellRef.current.style.transform = `scale(${Math.min(1.4, Math.max(0.8, ratio))})`;
+      daysShellRef.current.style.transition = "none";
+    }
+    const dir = classifyPinch({ ratio, elapsed });
+    if (!dir) return;
+    s.fired = true;
+    if (daysShellRef.current) { daysShellRef.current.style.transform = ""; daysShellRef.current.style.transition = ""; }
+    const q = params.toString();
+    if (dir === "out") {
+      nav(`/year${q ? `?${q}` : ""}`);
+    } else {
+      // pinch-in → week row under centroid
+      const c = centroidOf(pts);
+      const pills = Array.from(document.querySelectorAll("[aria-label^='Week of']"));
+      let best = null;
+      let bestDy = Infinity;
+      for (const btn of pills) {
+        const r = btn.getBoundingClientRect();
+        const midY = r.top + r.height / 2;
+        const dy = Math.abs(c.y - midY);
+        if (dy < bestDy) { bestDy = dy; best = btn; }
+      }
+      const iso = best?.getAttribute("aria-label")?.replace("Week of ", "") ?? null;
+      if (iso) nav(`/week/${iso}${q ? `?${q}` : ""}`);
+    }
+  };
+
   const onPointerUp = (e) => {
-    const s = swipeRef.current;
+    const s = pinchRef.current;
+    if (s?.ptrs.has(e.pointerId)) {
+      s.ptrs.delete(e.pointerId);
+      if (s.ptrs.size === 0) {
+        pinchRef.current = null;
+        if (daysShellRef.current) { daysShellRef.current.style.transform = ""; daysShellRef.current.style.transition = ""; }
+      }
+    }
+    // Only classify swipe if no pinch fired
+    const sw = swipeRef.current;
     swipeRef.current = null;
-    if (!s || e.pointerType !== "touch") return;
-    const cls = classifySwipe({
-      dx: e.clientX - s.x,
-      dy: e.clientY - s.y,
-      dtMs: Date.now() - s.t,
-    });
+    if (!sw || e.pointerType !== "touch" || pinchRef.current?.fired) return;
+    const cls = classifySwipe({ dx: e.clientX - sw.x, dy: e.clientY - sw.y, dtMs: Date.now() - sw.t });
     if (cls === "next") goNext();
     if (cls === "prev") goPrev();
   };
@@ -191,7 +246,7 @@ export default function Month() {
   const leadOffset = new Date(year, monthIdx, 1).getDay();
 
   return (
-    <div style={pageStyle} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+    <div style={pageStyle} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
       <style>{`
         .month-shell { max-width: 720px; margin: 0 auto; }
         @media (min-width: 900px)  { .month-shell { max-width: 960px; } }
@@ -253,7 +308,7 @@ export default function Month() {
           ))}
           <span aria-hidden="true" />
         </div>
-        <div className={`month-days ${transition ? `month-slide-${transition}` : ""}`}>
+        <div className={`month-days ${transition ? `month-slide-${transition}` : ""}`} ref={daysShellRef}>
           {Array.from({ length: Math.ceil((leadOffset + dayCount) / 7) }, (_, r) => {
             const dayNum = r * 7 - leadOffset + 1;
             const d = new Date(year, monthIdx, dayNum);

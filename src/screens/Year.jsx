@@ -6,6 +6,7 @@ import { dailyAdherence } from "../data/adherence.js";
 import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
 import { goalColor } from "../lib/goalColor.js";
 import { todayLocalISO } from "../lib/date.js";
+import { centroidOf, distanceOf, classifyPinch } from "../lib/pinchGesture.js";
 import DayCell from "../components/DayCell.jsx";
 import PenChips from "../components/PenChips.jsx";
 
@@ -110,6 +111,52 @@ export default function Year() {
   const registerCell = useCallback((iso, el) => {
     if (el) cellRefs.current[iso] = el;
     else delete cellRefs.current[iso];
+  }, []);
+  const monthsShellRef = useRef(null);
+  const pinchRef = useRef(null);
+  const onPointerDown = useCallback((e) => {
+    if (e.pointerType !== "touch") return;
+    if (!pinchRef.current) pinchRef.current = { ptrs: new Map(), initDist: null, startMs: null, fired: false };
+    pinchRef.current.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const pts = [...pinchRef.current.ptrs.values()];
+    if (pts.length === 2) {
+      pinchRef.current.initDist = distanceOf(pts);
+      pinchRef.current.startMs = Date.now();
+    }
+  }, []);
+  const onPointerMove = useCallback((e) => {
+    const s = pinchRef.current;
+    if (!s?.ptrs.has(e.pointerId)) return;
+    s.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (s.fired || !s.initDist) return;
+    const pts = [...s.ptrs.values()];
+    if (pts.length < 2) return;
+    const ratio = distanceOf(pts) / s.initDist;
+    const elapsed = Date.now() - s.startMs;
+    if (monthsShellRef.current) {
+      monthsShellRef.current.style.transform = `scale(${Math.min(1.4, Math.max(0.8, ratio))})`;
+      monthsShellRef.current.style.transition = "none";
+    }
+    const dir = classifyPinch({ ratio, elapsed });
+    if (dir !== "in") return;
+    s.fired = true;
+    const c = centroidOf(pts);
+    let found = null;
+    for (const [iso, el] of Object.entries(cellRefs.current)) {
+      const r = el.getBoundingClientRect();
+      if (c.x >= r.left && c.x <= r.right && c.y >= r.top && c.y <= r.bottom) { found = iso; break; }
+    }
+    const mm = found ? found.slice(0, 7) : `${YEAR}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+    nav(`/month/${mm}${penId ? `?pen=${penId}` : ""}`);
+  }, [nav, penId]);
+  const _pinchEnd = useCallback((e) => {
+    const s = pinchRef.current;
+    if (!s?.ptrs.has(e.pointerId)) return;
+    s.ptrs.delete(e.pointerId);
+    if (s.ptrs.size === 0) {
+      pinchRef.current = null;
+      if (monthsShellRef.current) { monthsShellRef.current.style.transform = ""; monthsShellRef.current.style.transition = ""; }
+    }
   }, []);
   const todayISO = todayLocalISO();
   const onTodayClick = useCallback(() => {
@@ -244,7 +291,12 @@ export default function Year() {
         color: PAPER.ink,
         fontFamily: FONT.sans,
         padding: "0 clamp(20px, 4vw, 56px) 80px",
+        touchAction: "pan-y",
       }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={_pinchEnd}
+      onPointerCancel={_pinchEnd}
     >
       <style>{`
         .year-shell {
@@ -365,7 +417,7 @@ export default function Year() {
           </div>
         )}
 
-        <div className="year-months">
+        <div className="year-months" ref={monthsShellRef}>
           {MONTHS.map((_, i) => (
             <MonthBlock
               key={i}

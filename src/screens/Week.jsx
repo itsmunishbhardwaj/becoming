@@ -6,6 +6,7 @@ import { dailyAdherence } from "../data/adherence.js";
 import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
 import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
 import { classifySwipe } from "../lib/swipe.js";
+import { centroidOf, distanceOf, classifyPinch } from "../lib/pinchGesture.js";
 import DayCell from "../components/DayCell.jsx";
 import PenChips from "../components/PenChips.jsx";
 
@@ -140,19 +141,75 @@ export default function Week() {
   }, [goPrev, goNext]);
 
   const swipeRef = useRef(null);
+  const pinchRef = useRef(null);
+  const daysRowRef = useRef(null);
+
   const onPointerDown = (e) => {
     if (e.pointerType !== "touch") return;
-    swipeRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+    if (!pinchRef.current) pinchRef.current = { ptrs: new Map(), initDist: null, startMs: null, fired: false };
+    pinchRef.current.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const pts = [...pinchRef.current.ptrs.values()];
+    if (pts.length === 1) {
+      swipeRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+    } else {
+      swipeRef.current = null;
+      pinchRef.current.initDist = distanceOf(pts);
+      pinchRef.current.startMs = Date.now();
+    }
   };
+
+  const onPointerMove = (e) => {
+    const s = pinchRef.current;
+    if (!s?.ptrs.has(e.pointerId)) return;
+    s.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (s.fired || !s.initDist || s.ptrs.size < 2) return;
+    const pts = [...s.ptrs.values()];
+    const ratio = distanceOf(pts) / s.initDist;
+    const elapsed = Date.now() - s.startMs;
+    if (daysRowRef.current) {
+      daysRowRef.current.style.transform = `scale(${Math.min(1.4, Math.max(0.8, ratio))})`;
+      daysRowRef.current.style.transition = "none";
+    }
+    const dir = classifyPinch({ ratio, elapsed });
+    if (!dir) return;
+    s.fired = true;
+    if (daysRowRef.current) { daysRowRef.current.style.transform = ""; daysRowRef.current.style.transition = ""; }
+    const q = params.toString();
+    if (dir === "out") {
+      // Back to month containing the anchor
+      const mm = anchor ? anchor.slice(0, 7) : null;
+      if (mm) nav(`/month/${mm}${q ? `?${q}` : ""}`);
+    } else {
+      // Zoom into day under centroid
+      const c = centroidOf(pts);
+      const svgs = Array.from(document.querySelectorAll(".week-cell svg"));
+      let best = null, bestDist = Infinity;
+      for (const svg of svgs) {
+        const r = svg.getBoundingClientRect();
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        const d = Math.hypot(c.x - cx, c.y - cy);
+        if (d < bestDist) { bestDist = d; best = svg; }
+      }
+      if (best) {
+        const iso = best.getAttribute("data-iso");
+        if (iso) nav(`/day/${iso}`);
+      }
+    }
+  };
+
   const onPointerUp = (e) => {
-    const s = swipeRef.current;
+    const s = pinchRef.current;
+    if (s?.ptrs.has(e.pointerId)) {
+      s.ptrs.delete(e.pointerId);
+      if (s.ptrs.size === 0) {
+        pinchRef.current = null;
+        if (daysRowRef.current) { daysRowRef.current.style.transform = ""; daysRowRef.current.style.transition = ""; }
+      }
+    }
+    const sw = swipeRef.current;
     swipeRef.current = null;
-    if (!s || e.pointerType !== "touch") return;
-    const cls = classifySwipe({
-      dx: e.clientX - s.x,
-      dy: e.clientY - s.y,
-      dtMs: Date.now() - s.t,
-    });
+    if (!sw || e.pointerType !== "touch" || pinchRef.current?.fired) return;
+    const cls = classifySwipe({ dx: e.clientX - sw.x, dy: e.clientY - sw.y, dtMs: Date.now() - sw.t });
     if (cls === "next") goNext();
     if (cls === "prev") goPrev();
   };
@@ -175,7 +232,7 @@ export default function Week() {
   const endIso = addDaysLocalISO(anchor, 6);
 
   return (
-    <div style={pageStyle} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+    <div style={pageStyle} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
       <style>{`
         .week-shell { max-width: 720px; margin: 0 auto; }
         @media (min-width: 900px)  { .week-shell { max-width: 960px; } }
@@ -237,7 +294,7 @@ export default function Week() {
           <PenChips goals={goals} penId={penId} onPick={setPenId} />
         )}
 
-        <div className={`week-days ${transition ? `week-slide-${transition}` : ""}`} style={{ marginTop: 20 }}>
+        <div className={`week-days ${transition ? `week-slide-${transition}` : ""}`} style={{ marginTop: 20 }} ref={daysRowRef}>
           {days.map((iso, i) => {
             const dayNum = Number(iso.slice(8, 10));
             const isToday = iso === todayISO;
