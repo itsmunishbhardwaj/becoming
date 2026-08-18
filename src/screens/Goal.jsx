@@ -49,7 +49,7 @@ export default function Goal() {
   useEffect(() => {
     let alive = true;
     const end = todayLocalISO();
-    const start = addDaysLocalISO(end, -30);
+    const start = addDaysLocalISO(end, -365);
     Promise.all([getGoal(id), readLogsInRange({ from: start, to: end })])
       .then(([g, l]) => {
         if (!alive) return;
@@ -79,13 +79,25 @@ export default function Goal() {
   const goalMomentum = momentum({ goal, logs, asOf: todayLocalISO() });
 
   const recentEvents = [];
+  const notesTimeline = [];
   for (const log of logs) {
     for (const e of log.events) {
       if (e.goalId === goal.id) recentEvents.push({ date: log.date, ...e });
     }
+    const noteText = log.notes?.[goal.id];
+    if (noteText && noteText.trim() !== "") {
+      notesTimeline.push({ date: log.date, text: noteText });
+    }
   }
   recentEvents.sort((a, b) => b.date.localeCompare(a.date));
   const recentTop = recentEvents.slice(0, 5);
+  notesTimeline.sort((a, b) => a.date.localeCompare(b.date));
+
+  function humanDay(iso) {
+    return new Date(iso + "T00:00:00").toLocaleDateString("en-US", {
+      weekday: "short", month: "short", day: "numeric", year: "numeric",
+    });
+  }
 
   return (
     <div style={pageStyle}>
@@ -216,6 +228,29 @@ export default function Goal() {
               );
             })}
           </div>
+        </section>
+
+        {/* Notes timeline */}
+        <section style={{ marginTop: 26 }}>
+          <div style={kickerStyle}>NOTES</div>
+          {notesTimeline.length === 0 ? (
+            <p style={{ marginTop: 10, fontSize: 13, color: PAPER.dim }}>
+              No notes yet — write one from a day.
+            </p>
+          ) : (
+            <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 16 }}>
+              {notesTimeline.map(({ date, text }) => (
+                <div key={date}>
+                  <div style={{ fontSize: 11.5, letterSpacing: "0.08em", textTransform: "uppercase", color: PAPER.faint, marginBottom: 4 }}>
+                    {humanDay(date)}
+                  </div>
+                  <div style={{ fontSize: 14, color: PAPER.ink, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
+                    {text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Recent activity */}

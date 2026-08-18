@@ -46,10 +46,20 @@ export function parseLog(src) {
     const [, verb, payload, goalId] = m;
     events.push({ ...parsePayload(verb, payload), goalId });
   }
-  return { date: data.date, events };
+  const notes = (data.notes && typeof data.notes === "object" && !Array.isArray(data.notes))
+    ? data.notes
+    : {};
+  return { date: data.date, events, notes };
 }
 
-export function serializeLog(date, events) {
+export function serializeLog(date, events, notes) {
   const body = "\n" + events.map(serializeEvent).join("\n") + "\n";
-  return serializeFrontMatter({ date }, body);
+  const cleaned = {};
+  if (notes && typeof notes === "object") {
+    for (const [k, v] of Object.entries(notes)) {
+      if (typeof v === "string" && v.trim() !== "") cleaned[k] = v;
+    }
+  }
+  const data = Object.keys(cleaned).length > 0 ? { date, notes: cleaned } : { date };
+  return serializeFrontMatter(data, body);
 }
