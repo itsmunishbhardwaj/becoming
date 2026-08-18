@@ -188,27 +188,12 @@ notes:
 Why: one file per day matches the "log your day" mental model, reuses existing atomic PUT path via `vaultMiddleware`, and goal-view aggregation is one `readLogsInRange` scan (already used for adherence). Empty/missing note = key omitted.
 
 ### Tasks
-- [ ] **1. Codec** — extend `src/data/logCodec.js`
-  - `parseLog` reads `notes` map from frontmatter (safe when absent → `{}`)
-  - `serializeLog(date, events, notes)` writes `notes:` block when non-empty; omits when all keys empty
-  - Tests in `logCodec.test.js`: round-trip with/without notes, empty-string note dropped, unicode preserved
-- [ ] **2. Store** — extend `src/data/store.js`
-  - `saveNote(date, goalId, text)` — reads existing log, updates note, PUTs merged markdown; deletes key when text is empty/whitespace
-  - Tests in `store.test.js` if network mocks exist; else lean on codec tests
-- [ ] **3. Day page** — `src/screens/Day.jsx`
-  - New "NOTES" section below "LOGGED"
-  - Renders one editor block per active/drift goal (same goals as ADD row)
-  - Each block: goal dot + name, textarea prefilled with current note, autosave on blur (debounced) via `saveNote`
-  - Subtle saved/saving indicator per block
-- [ ] **4. Goal detail** — `src/screens/Goal.jsx`
-  - New "NOTES" section: read all logs, filter entries where `notes[goalId]` present, render ascending by date
-  - Each row: date header (localized), then note text (preserve newlines)
-  - Empty state: "No notes yet — write one from a day."
-- [ ] **5. Home surface** — `src/components/GoalCard.jsx`
-  - Latest note snippet (truncated ~90 chars) with date, styled with `PAPER.faint`
-  - Only shows when a note exists; card layout unchanged otherwise
-  - Requires GoalCard to receive `latestNote` prop (compute in Home.jsx from same log scan already used for momentum)
-- [ ] **6. Verify** — dev server up, walk the full flow in browser: write note on day → see on goal page → see snippet on Home; refresh → persisted in vault; delete note (empty textarea) → removed everywhere.
+- [x] **1. Codec** — extend `src/data/logCodec.js`
+- [x] **2. Store** — extend `src/data/store.js` (added `saveNote`)
+- [x] **3. Day page** — NOTES section, per-goal textareas, autosave on blur
+- [x] **4. Goal detail** — NOTES timeline ascending by date
+- [x] **5. Home surface** — GoalCard shows latest snippet
+- [x] **6. Verify** — full flow tested in browser; shipped in PR #14
 
 ### Non-goals (deferred)
 - Note editing on the goal detail page (read-only there for v1 — user asked to view chronologically, not edit)
