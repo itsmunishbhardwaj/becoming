@@ -28,10 +28,10 @@ describe("parseLog", () => {
 
 describe("serializeLog round-trip", () => {
   it("parse then serialize then parse is stable", () => {
-    const { date, events } = parseLog(SAMPLE);
-    const out = serializeLog(date, events);
+    const { date, events, notes } = parseLog(SAMPLE);
+    const out = serializeLog(date, events, notes);
     const back = parseLog(out);
-    expect(back).toEqual({ date, events });
+    expect(back).toEqual({ date, events, notes });
   });
 });
 
@@ -70,6 +70,51 @@ date: 2026-08-11
     const { events } = parseLog(`---\ndate: 2026-08-11\n---\n\n${line}\n`);
     expect(events[0].verb).toBe("done");
     expect(events[0].goalId).toBe("read-every-day");
+  });
+});
+
+describe("notes in frontmatter", () => {
+  it("parseLog returns empty notes when absent", () => {
+    const { notes } = parseLog(SAMPLE);
+    expect(notes).toEqual({});
+  });
+
+  it("parseLog reads notes map", () => {
+    const src = `---
+date: 2026-08-11
+notes: {"wake-6am":"felt tired, still made it","meditate":"10 min, quiet"}
+---
+
+- wake 07:12 → [[wake-6am]]
+`;
+    const { notes } = parseLog(src);
+    expect(notes).toEqual({
+      "wake-6am": "felt tired, still made it",
+      "meditate": "10 min, quiet",
+    });
+  });
+
+  it("serializeLog omits notes when empty", () => {
+    const out = serializeLog("2026-08-11", [], {});
+    expect(out).not.toContain("notes:");
+  });
+
+  it("serializeLog writes notes when present", () => {
+    const out = serializeLog("2026-08-11", [], { "wake-6am": "good day" });
+    expect(out).toContain(`notes: {"wake-6am":"good day"}`);
+  });
+
+  it("round-trips notes with newlines and unicode", () => {
+    const notes = { "wake-6am": "line one\nline two — ✨" };
+    const md = serializeLog("2026-08-11", [], notes);
+    const back = parseLog(md);
+    expect(back.notes).toEqual(notes);
+  });
+
+  it("empty-string values are omitted on serialize", () => {
+    const out = serializeLog("2026-08-11", [], { "wake-6am": "kept", "meditate": "" });
+    expect(out).toContain(`"wake-6am":"kept"`);
+    expect(out).not.toContain(`"meditate"`);
   });
 });
 

@@ -16,7 +16,18 @@ function rangeEnd() {
 }
 
 function rangeStart() {
-  return addDaysLocalISO(todayLocalISO(), -13);
+  return addDaysLocalISO(todayLocalISO(), -89);
+}
+
+function latestNoteForGoal(goalId, logs) {
+  let best = null;
+  for (const log of logs) {
+    const t = log.notes?.[goalId];
+    if (t && t.trim() !== "" && (!best || log.date > best.date)) {
+      best = { date: log.date, text: t };
+    }
+  }
+  return best;
 }
 
 function prefersReducedMotion() {
@@ -87,6 +98,7 @@ export default function Home() {
           : null,
         projects: g.projects || [],
         habits: g.habits || [],
+        latestNote: latestNoteForGoal(g.id, logs),
       }))
     : [];
 

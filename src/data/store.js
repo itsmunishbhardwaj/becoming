@@ -66,16 +66,31 @@ export async function deleteLogEvent(date, event) {
 }
 
 export async function appendLog(date, event) {
-  const existing = (await readLog(date)) || { date, events: [] };
+  const existing = (await readLog(date)) || { date, events: [], notes: {} };
   const line = serializeEvent(event);
   const already = existing.events.some((e) => serializeEvent(e) === line);
   if (already) return;
   const merged = { date, events: [...existing.events, event] };
-  const md = serializeLog(date, merged.events);
+  const md = serializeLog(date, merged.events, existing.notes || {});
   const r = await req(`/api/vault/logs/${encodeURIComponent(date)}`, {
     method: "PUT",
     headers: { "Content-Type": "text/markdown" },
     body: md,
   });
   if (!r.ok) throw new Error(`appendLog ${date}: ${r.status}`);
+}
+
+export async function saveNote(date, goalId, text) {
+  const existing = (await readLog(date)) || { date, events: [], notes: {} };
+  const nextNotes = { ...(existing.notes || {}) };
+  const trimmed = typeof text === "string" ? text.trim() : "";
+  if (trimmed === "") delete nextNotes[goalId];
+  else nextNotes[goalId] = text;
+  const md = serializeLog(date, existing.events, nextNotes);
+  const r = await req(`/api/vault/logs/${encodeURIComponent(date)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "text/markdown" },
+    body: md,
+  });
+  if (!r.ok) throw new Error(`saveNote ${date} ${goalId}: ${r.status}`);
 }

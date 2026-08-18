@@ -19,6 +19,32 @@ const CADENCE_GOAL = {
   ],
 };
 
+describe("dailyAdherence — event outside round window", () => {
+  it("simple goal: an event logged before the round starts still marks as hit", () => {
+    const goal = {
+      id: "oil-pulling",
+      type: "simple",
+      currentRound: 1,
+      rounds: [{ n: 1, targetValue: null, startDate: "2026-08-18", endDate: "2026-12-31" }],
+    };
+    const logs = [{ date: "2026-01-17", events: [{ verb: "done", goalId: "oil-pulling" }] }];
+    const out = dailyAdherence({ goal, logs, from: "2026-01-17", to: "2026-01-17" });
+    expect(out["2026-01-17"]).toBe("hit");
+  });
+
+  it("cadence goal: a session logged before the round starts still marks as hit", () => {
+    const goal = {
+      id: "cadence-reset",
+      type: "cadence",
+      currentRound: 1,
+      rounds: [{ n: 1, targetValue: { intervalDays: 2 }, startDate: "2026-08-18", endDate: "2026-12-31" }],
+    };
+    const logs = [{ date: "2026-01-17", events: [{ verb: "session", durationMin: 10, goalId: "cadence-reset" }] }];
+    const out = dailyAdherence({ goal, logs, from: "2026-01-17", to: "2026-01-17" });
+    expect(out["2026-01-17"]).toBe("hit");
+  });
+});
+
 describe("dailyAdherence — wake", () => {
   it("marks hit/soft/off/none per rule bands", () => {
     const logs = [
@@ -44,13 +70,13 @@ describe("dailyAdherence — cadence", () => {
       { date: "2026-08-10", events: [{ verb: "session", durationMin: 12, goalId: "cadence-reset" }] }, // green + session → hit
       { date: "2026-08-11", events: [] }, // non-green + no session → clean
       { date: "2026-08-13", events: [{ verb: "session", durationMin: 8,  goalId: "cadence-reset" }] }, // non-green + session → off
-      // 2026-08-12 (green) with no session → none
+      // 2026-08-12 (green) with no session → still hit (schedule is fixed)
     ];
     const out = dailyAdherence({ goal: CADENCE_GOAL, logs, from: "2026-08-10", to: "2026-08-13" });
     expect(out).toEqual({
       "2026-08-10": "hit",
       "2026-08-11": "clean",
-      "2026-08-12": "none",
+      "2026-08-12": "hit",
       "2026-08-13": "off",
     });
   });
@@ -97,8 +123,10 @@ describe("momentum — cadence", () => {
     ];
     const m = momentum({ goal: CADENCE_GOAL, logs, asOf: "2026-08-11" });
     // Window: 2026-07-29 .. 2026-08-11 (14 days ending on asOf).
-    // Only 2026-08-11 is inside round 1. All other days are before round start → status "none".
-    // "none" contributes 0. So numerator = 0. Denominator = 14. Result 0.
-    expect(m).toBe(0);
+    // 2026-08-10 is a green day inside round 1 → "hit" (scheduled, always counts).
+    // 2026-08-11 is non-green with a session → "off" → 0.
+    // Days before round start (07-29..08-09) have no events → "none" → 0.
+    // Numerator = 1 (just Aug 10). Denominator = 14. Result 1/14.
+    expect(m).toBeCloseTo(1 / 14, 4);
   });
 });

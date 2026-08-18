@@ -94,6 +94,19 @@ export default function GoalCard({ goal }) {
 
       {!still && <MomentumBar cat={goal.cat} color={color} momentum={goal.momentum} dormant={dormant} />}
 
+      {goal.latestNote && (
+        <div style={{ marginTop: 12, fontSize: 12.5, color: PAPER.faint, lineHeight: 1.5 }}>
+          <span style={{ fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", marginRight: 8 }}>
+            {goal.latestNote.date}
+          </span>
+          <span style={{ fontStyle: "italic" }}>
+            {goal.latestNote.text.length > 90
+              ? goal.latestNote.text.slice(0, 90).trimEnd() + "…"
+              : goal.latestNote.text}
+          </span>
+        </div>
+      )}
+
     </Link>
   );
 }

@@ -162,3 +162,166 @@ If a change makes any of those slower or less obvious → revert it.
 Legend: `[x]` done · `[~]` partial · `[ ]` not started. Live roadmap for what's next lives in `docs/roadmap-live.md`.
 
 Ship each milestone as its own PR to `main`. No milestone is "done" until the "Done when" criterion is demonstrated with a screen recording in the PR description.
+
+---
+
+## Feature: Per-Goal Notes (branch `feat-per-goal-notes`)
+
+### Intent
+On any day's page (`/day/:date`), user can write a **separate note per goal** — a free-form paragraph capturing what happened / how it felt for that goal, that day. Notes aggregate on the goal detail page (`/goal/:id`) as a chronological timeline (ascending), and the latest snippet appears on the Home GoalCard.
+
+### Storage (decision)
+Notes live in the **daily log frontmatter**, keyed by goalId:
+
+```yaml
+---
+date: 2026-08-18
+notes:
+  wake-6am: |
+    felt tired, still made it
+  meditate: |
+    10 min, quiet
+---
+- wake 07:12 → [[wake-6am]]
+```
+
+Why: one file per day matches the "log your day" mental model, reuses existing atomic PUT path via `vaultMiddleware`, and goal-view aggregation is one `readLogsInRange` scan (already used for adherence). Empty/missing note = key omitted.
+
+### Tasks
+- [ ] **1. Codec** — extend `src/data/logCodec.js`
+  - `parseLog` reads `notes` map from frontmatter (safe when absent → `{}`)
+  - `serializeLog(date, events, notes)` writes `notes:` block when non-empty; omits when all keys empty
+  - Tests in `logCodec.test.js`: round-trip with/without notes, empty-string note dropped, unicode preserved
+- [ ] **2. Store** — extend `src/data/store.js`
+  - `saveNote(date, goalId, text)` — reads existing log, updates note, PUTs merged markdown; deletes key when text is empty/whitespace
+  - Tests in `store.test.js` if network mocks exist; else lean on codec tests
+- [ ] **3. Day page** — `src/screens/Day.jsx`
+  - New "NOTES" section below "LOGGED"
+  - Renders one editor block per active/drift goal (same goals as ADD row)
+  - Each block: goal dot + name, textarea prefilled with current note, autosave on blur (debounced) via `saveNote`
+  - Subtle saved/saving indicator per block
+- [ ] **4. Goal detail** — `src/screens/Goal.jsx`
+  - New "NOTES" section: read all logs, filter entries where `notes[goalId]` present, render ascending by date
+  - Each row: date header (localized), then note text (preserve newlines)
+  - Empty state: "No notes yet — write one from a day."
+- [ ] **5. Home surface** — `src/components/GoalCard.jsx`
+  - Latest note snippet (truncated ~90 chars) with date, styled with `PAPER.faint`
+  - Only shows when a note exists; card layout unchanged otherwise
+  - Requires GoalCard to receive `latestNote` prop (compute in Home.jsx from same log scan already used for momentum)
+- [ ] **6. Verify** — dev server up, walk the full flow in browser: write note on day → see on goal page → see snippet on Home; refresh → persisted in vault; delete note (empty textarea) → removed everywhere.
+
+### Non-goals (deferred)
+- Note editing on the goal detail page (read-only there for v1 — user asked to view chronologically, not edit)
+- Note search
+- Notes per day *not* tied to a goal (day-level journal)
+- Rich text / markdown rendering beyond newlines
+
+### Guardrails
+- **Never touch files outside the vault** (memory rule). All writes go through existing `PUT /api/vault/logs/:date`.
+- Follow tokens (`src/tokens.js`) — no new colors, no hardcoded hex.
+- No guilt UI. Missing note = silent.
+
+---
+
+## Feature: Month view, Week view, Today marker (branch `feat-calendar-zoom-views`)
+
+### Intent
+Zoom levels on the calendar: **Year (existing) → Month → Week**. Each level owns the full viewport at that zoom. Add a **Today** control on the Year view that scrolls to and marks today with a subtle white halo behind (not over) the day's blobs.
+
+Longer-term this becomes the Google-Maps continuous zoom (roadmap risk item). This ticket ships the three levels as routes with swipe/button nav — the transform-based morph comes later.
+
+### Routes
+- `/year` — existing
+- `/month/:yyyymm` — e.g. `/month/2026-08`
+- `/week/:yyyymmdd` — anchored on the **Sunday** that starts the visible week (matches `DAY_LETTERS` starting `S`)
+
+### 1. Month view — `src/screens/Month.jsx`
+- One month fills the viewport. Header: month name + year (serif, large), prev/next arrow buttons, "Year ↑" back link.
+- Reuses `DayCell` semantics: pen chip row, tap-to-mark, double-click → `/day/:iso`. All existing pen state carried in `?pen=...` query param.
+- Grid: 7-col, larger cells (~clamp 44–64px) than Year. Weekday header row.
+- Loads logs for month range only (`readLogsInRange({from: firstOfMonth, to: lastOfMonth})`).
+- Nav:
+  - Buttons: `‹` prev, `›` next (top-right of header)
+  - Keyboard: `←` / `→`
+  - Touch swipe: horizontal swipe (>60px, faster than 0.3s) → nav prev/next. Use pointer events, no library.
+  - Month-to-month transition: 180ms slide + fade; respect `prefers-reduced-motion` (no motion).
+- Boundary: December → next = `/month/{year+1}-01`; January → prev = `/month/{year-1}-12`.
+- **No new tokens.** Same paper bg, same category colors.
+
+### 2. Week view — `src/screens/Week.jsx`
+- One week fills the viewport. Header: "Week of Aug 10 – 16, 2026" (or the ISO range), prev/next.
+- 7 day cells in a single row, each cell **much larger** (~clamp 88–140px) — enough to show weekday letter + day number + blobs at comfortable size.
+- Same pen chip row, tap-to-mark, double-click → `/day/:iso`.
+- Nav (same idioms as Month): prev/next buttons, `←`/`→` keys, horizontal swipe. Boundary crosses month/year cleanly (advance by 7 days from the Sunday anchor).
+- Blob sizing: reuse `<Blob>` but with larger cell viewBox so blobs read at ~2× the Year size. Add a `scale` prop to `Blob` (default 1) so DayCell can reuse it across zoom levels without a fork.
+- Optional (nice-to-have, not required): show event count / note snippet below each day cell if space allows. **Deferred** if it complicates layout.
+
+### 3. Today button + halo — Year view
+- Button placement: in the Year header row (right of title), styled as a pill — `padding: 4px 12px`, matches pen chips visually.
+- Click behavior:
+  - Compute today's ISO from local date (use existing `todayLocalISO` from `src/lib/date.js`).
+  - Scroll today's `DayCell` into view (smooth, block: center). Cell needs a stable ref/id keyed by iso.
+  - Set a Year-scoped `todayMarked` state (persists during session; cleared on unmount). Toggle off if button clicked again on the same day.
+- Halo rendering:
+  - Inside `DayCell` SVG, when `isToday && showHalo`, render `<circle>` **as the first SVG child** (behind blobs and behind text).
+  - `cx=13, cy=13, r=12` (fits inside the 26×26 viewBox, ~92% of cell).
+  - `fill="#FFFFFF"`, `opacity=0.6`.
+  - Rationale: paper bg (`PAPER.bg` is a warm off-white); pure white at 0.6 brightens the cell into a soft disc that reads as "today" without overpowering the pastel blobs (0.78–0.85 opacity). Because it sits behind the ellipses, blobs stay legible on top.
+  - Optional subtle scale-in: 200ms `transform: scale(0.85 → 1)` on first mount; opacity 0 → 0.6. Skipped under `prefers-reduced-motion`.
+- Pass-through: `DayCell` gains `isToday` and `showHalo` props. Year computes `todayISO` once, forwards to the matching cell.
+
+### Tasks
+- [ ] **1. Shared cell** — extract `DayCell` and `Blob` from `Year.jsx` into `src/components/DayCell.jsx` and `src/components/Blob.jsx`. Add `scale` prop on `Blob`. Add `isToday`, `showHalo` props on `DayCell` (halo renders as first SVG child). No behavior change on Year.
+- [ ] **2. Today button** — add pill button to Year header. Wire scroll-into-view + halo toggle. Refs map: `Record<iso, HTMLElement>` populated by DayCell via `ref` callback prop.
+- [ ] **3. Month screen** — `src/screens/Month.jsx` + route `/month/:yyyymm` in `App.jsx`. Reuse `DayCell`, `Blob`, pen chip row (extract into `src/components/PenChips.jsx` if it stays clean). Add prev/next + keyboard + swipe.
+- [ ] **4. Week screen** — `src/screens/Week.jsx` + route `/week/:yyyymmdd`. Anchor = Sunday of visible week. Same nav idioms. Larger cells, `scale=2` on blobs.
+- [ ] **5. Cross-linking**
+  - Year: click month name → `/month/:yyyymm`
+  - Month: click "Week N" mini-label (or a small "week" pill on each row) → `/week/:sundayISO`
+  - Week: click day → `/day/:iso` (single-click, since cells are large enough; double-click reserved for future zoom morph)
+- [ ] **6. Tests**
+  - Unit: swipe detection helper (pure function, threshold + velocity)
+  - Snapshot / render: `DayCell` with `isToday && showHalo` includes the circle as first child
+  - Boundary: Month prev from Jan crosses year; Week prev crosses months
+- [ ] **7. Verify** — dev server, walk each level: Year → Today → halo appears + scroll; Year → click month → Month view swipes work; Month → click week → Week view swipes work; back navigation returns to correct zoom.
+
+### Pinch-to-zoom navigation (mobile)
+Native multi-touch pinch bridges zoom levels. Complements the swipe (siblings) + button (explicit) nav already spec'd.
+
+- **Pinch out / spread → zoom in** = go one level deeper:
+  - Year → Month (lands on the month under the pinch centroid)
+  - Month → Week (lands on the week under the pinch centroid — the row containing the centroid's Y)
+- **Pinch in / squeeze → zoom out** = go one level up:
+  - Week → Month (parent month of the current week anchor)
+  - Month → Year
+  - Year → no-op
+- **Detection** — native `pointerdown`/`pointermove` with pointerType `touch`, track two active pointers:
+  - Compute initial distance between the two pointers on second `pointerdown`.
+  - On each move, compute current distance. Scale ratio = current / initial.
+  - **Trigger threshold**: ratio ≥ 1.35 → zoom-in fires; ratio ≤ 0.75 → zoom-out fires.
+  - **Debounce**: fire once per gesture (lock until both pointers lift). No repeats mid-gesture.
+  - **Centroid**: midpoint of the two pointers → hit-test the DayCell refs map to find target iso → derive month/week.
+- **Feedback during pinch** (before threshold trip): CSS `transform: scale(ratio)` on the calendar shell, clamped to `[0.8, 1.4]`, so gesture feels physical. Reset on release (whether it fired or not).
+- **Animation on route change**: 200ms cross-fade + slight scale toward pinch centroid (in) / away (out). Skipped under `prefers-reduced-motion`.
+- **Guards**:
+  - Ignore pinch on `<button>` / textareas / any tappable inside cells (check `event.target` closest interactive ancestor).
+  - Prevent default browser page-zoom during gesture (`touch-action: none` on calendar shell).
+  - Don't trip on accidental two-finger scroll: require ratio move within 400ms window and pointer displacement < 40px per pointer (mostly zoom, not swipe).
+- **Extract**: put pinch logic in `src/lib/pinchGesture.js` (pure functions: `centroidOf(pts)`, `distanceOf(pts)`, `classifyPinch({ratio, elapsed})`) + a `usePinchZoom` hook in `src/hooks/usePinchZoom.js`. Unit tests for the pure helpers.
+
+### Task additions (append to Tasks list above)
+- [ ] **8. Pinch gesture lib + hook** — `src/lib/pinchGesture.js`, `src/hooks/usePinchZoom.js`, unit tests
+- [ ] **9. Wire pinch** into `Year.jsx`, `Month.jsx`, `Week.jsx`. Each screen owns its zoom-in/out target derivation from centroid.
+- [ ] **10. Verify on device** — real iPhone via local network. Golden path: Year → pinch out on August cell → lands on `/month/2026-08` → pinch out on second row → lands on `/week/2026-08-09`. Reverse pinches back up.
+
+### Deferred (v2 / roadmap risk item)
+- Continuous Google-Maps zoom morph between levels. This ticket ships them as separate routes so the mental model + data is proven first. Pinch above is a discrete threshold-triggered route change, not the continuous transform morph — that's the v2 target.
+- Persisting `todayMarked` across reloads (session-only is fine).
+- Note snippets per day in Week view.
+- Trackpad pinch (desktop) — Safari fires `gesturestart`/`gesturechange`; Chromium uses `wheel` with `ctrlKey`. Cross-browser is fiddly; ship touch first, add desktop later if used.
+
+### Guardrails
+- No hardcoded colors except the explicit `#FFFFFF` for the today halo (justified: it's not a category color; it's a neutral highlight against paper bg). If tokens grow a `PAPER.today` later, swap.
+- All new components pass `prefers-reduced-motion` unchanged.
+- No new deps for swipe (native pointer events).
+
