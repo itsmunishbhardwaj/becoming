@@ -37,7 +37,6 @@ export default function DayCell({
 }) {
   const size = 26;
   const c = size / 2;
-  const clickable = !!pen;
 
   const marks = useMemo(() => {
     const visible = pen ? goals.filter((g) => g.id === pen.id) : goals;
@@ -62,7 +61,7 @@ export default function DayCell({
     <svg
       ref={cellRef}
       viewBox={`0 0 ${size} ${size}`}
-      onClick={clickable ? onToggle : undefined}
+      onClick={onToggle}
       onDoubleClick={(e) => { e.stopPropagation(); onOpen(); }}
       onMouseEnter={() => setTip?.(tipData)}
       onMouseLeave={() => setTip?.(null)}

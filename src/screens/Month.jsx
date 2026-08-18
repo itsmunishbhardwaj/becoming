@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Link, useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { PAPER, FONT, TYPE } from "../tokens.js";
+import { PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
 import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
@@ -198,13 +198,14 @@ export default function Month() {
         @media (min-width: 1200px) { .month-shell { max-width: 1120px; } }
         .month-days {
           display: grid;
-          grid-template-columns: repeat(7, 1fr);
+          grid-template-columns: repeat(7, 1fr) 28px;
           gap: clamp(6px, 1vw, 14px);
           justify-items: center;
+          align-items: center;
         }
         .month-dow {
           display: grid;
-          grid-template-columns: repeat(7, 1fr);
+          grid-template-columns: repeat(7, 1fr) 28px;
           gap: clamp(6px, 1vw, 14px);
           justify-items: center;
           margin-bottom: 6px;
@@ -250,31 +251,50 @@ export default function Month() {
           {DAY_LETTERS.map((l, i) => (
             <span key={i} className="month-dow-cell">{l}</span>
           ))}
+          <span aria-hidden="true" />
         </div>
         <div className={`month-days ${transition ? `month-slide-${transition}` : ""}`}>
-          {Array.from({ length: leadOffset }, (_, i) => (
-            <span key={`lead-${i}`} aria-hidden="true" />
-          ))}
-          {Array.from({ length: dayCount }, (_, i) => {
-            const iso = isoAt(year, monthIdx, i);
+          {Array.from({ length: Math.ceil((leadOffset + dayCount) / 7) }, (_, r) => {
+            const dayNum = r * 7 - leadOffset + 1;
+            const d = new Date(year, monthIdx, dayNum);
+            const sundayISO = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            const q = params.toString();
             return (
-              <div key={iso} className="month-cell">
-                <DayCell
-                  monthIdx={monthIdx}
-                  monthName={monthName}
-                  dayIdx={i}
-                  isoDate={iso}
-                  goals={goals ?? []}
-                  adherenceMaps={adherenceMaps}
-                  focus={focus}
-                  pen={pen}
-                  onToggle={() => onDayTap({ dateISO: iso })}
-                  onOpen={() => nav(`/day/${iso}`)}
-                  isToday={iso === todayISO}
-                  showHalo={false}
-                  blobScale={1.6}
-                />
-              </div>
+              <React.Fragment key={r}>
+                {Array.from({ length: 7 }, (_, col) => {
+                  const pos = r * 7 + col;
+                  const i = pos - leadOffset;
+                  if (i < 0 || i >= dayCount) return <span key={`e-${r}-${col}`} aria-hidden="true" />;
+                  const iso = isoAt(year, monthIdx, i);
+                  return (
+                    <div key={iso} className="month-cell">
+                      <DayCell
+                        monthIdx={monthIdx}
+                        monthName={monthName}
+                        dayIdx={i}
+                        isoDate={iso}
+                        goals={goals ?? []}
+                        adherenceMaps={adherenceMaps}
+                        focus={focus}
+                        pen={pen}
+                        onToggle={() => onDayTap({ dateISO: iso })}
+                        onOpen={() => nav(`/day/${iso}`)}
+                        isToday={iso === todayISO}
+                        showHalo={false}
+                        blobScale={1.6}
+                      />
+                    </div>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => nav(`/week/${sundayISO}${q ? `?${q}` : ""}`)}
+                  aria-label={`Week of ${sundayISO}`}
+                  style={weekPillStyle}
+                >
+                  ›
+                </button>
+              </React.Fragment>
             );
           })}
         </div>
@@ -310,4 +330,12 @@ const navBtn = {
   color: PAPER.ink, fontSize: 18, cursor: "pointer",
   display: "grid", placeItems: "center",
   fontFamily: "inherit",
+};
+const weekPillStyle = {
+  width: 22, height: 22, borderRadius: 999,
+  border: `1px solid ${PAPER.line}`, background: "transparent",
+  color: PAPER.dim, fontSize: 12, cursor: "pointer",
+  display: "grid", placeItems: "center",
+  padding: 0, flexShrink: 0,
+  lineHeight: 1,
 };

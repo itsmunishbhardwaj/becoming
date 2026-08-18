@@ -255,7 +255,7 @@ export default function Week() {
                     adherenceMaps={adherenceMaps}
                     focus={focus}
                     pen={pen}
-                    onToggle={() => onDayTap({ dateISO: iso })}
+                    onToggle={pen ? () => onDayTap({ dateISO: iso }) : () => nav(`/day/${iso}`)}
                     onOpen={() => nav(`/day/${iso}`)}
                     isToday={isToday}
                     showHalo={false}
