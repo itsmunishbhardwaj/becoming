@@ -342,6 +342,7 @@ export default function Year() {
         <header style={{ padding: "56px 0 8px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
           <div>
             <div
+              className="year-kicker"
               style={{
                 fontSize: 14,
                 letterSpacing: "0.16em",
