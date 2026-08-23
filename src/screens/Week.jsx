@@ -220,7 +220,11 @@ export default function Week() {
     return (
       <div style={pageStyle}>
         <div style={containerStyle}>
-          <Link to="/year" style={backLink}>← Year</Link>
+          <div style={viewPillWrap}>
+            <Link to="/year" style={viewPillItem(false)}>Y</Link>
+            <Link to="/year" style={viewPillItem(false)}>M</Link>
+            <span style={viewPillItem(true)}>W</span>
+          </div>
           <p style={{ color: PAPER.dim, marginTop: 20 }}>Bad week.</p>
         </div>
       </div>
@@ -230,6 +234,7 @@ export default function Week() {
   const days = Array.from({ length: 7 }, (_, i) => addDaysLocalISO(anchor, i));
   const startIso = anchor;
   const endIso = addDaysLocalISO(anchor, 6);
+  const containingMonth = addDaysLocalISO(anchor, 3).slice(0, 7);
 
   return (
     <div style={pageStyle} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
@@ -276,7 +281,11 @@ export default function Week() {
       `}</style>
       <div className="week-shell">
         <div style={{ padding: "40px 0 8px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-          <Link to="/year" style={backLink}>← Year</Link>
+          <div style={viewPillWrap}>
+            <Link to={`/year${penId ? `?pen=${penId}` : ""}`} style={viewPillItem(false)}>Y</Link>
+            <Link to={`/month/${containingMonth}${penId ? `?pen=${penId}` : ""}`} style={viewPillItem(false)}>M</Link>
+            <span style={viewPillItem(true)}>W</span>
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <button type="button" onClick={goPrev} aria-label="Previous week" style={navBtn}>‹</button>
             <button type="button" onClick={goNext} aria-label="Next week" style={navBtn}>›</button>
@@ -344,7 +353,18 @@ const pageStyle = {
   touchAction: "pan-y",
 };
 const containerStyle = { maxWidth: 720, margin: "0 auto" };
-const backLink = { color: PAPER.dim, fontSize: 13, textDecoration: "none" };
+const viewPillWrap = {
+  display: "inline-flex", borderRadius: 999,
+  border: `1px solid ${PAPER.line}`, overflow: "hidden",
+};
+const viewPillItem = (active) => ({
+  padding: "5px 11px", fontSize: 12, fontWeight: 500,
+  letterSpacing: "0.05em", textDecoration: "none", lineHeight: 1,
+  background: active ? PAPER.ink : "transparent",
+  color: active ? PAPER.bg : PAPER.dim,
+  cursor: active ? "default" : "pointer",
+  border: "none", fontFamily: "inherit",
+});
 const kicker = { fontSize: 11.5, letterSpacing: "1.8px", textTransform: "uppercase", color: PAPER.faint, fontWeight: 500 };
 const h1Style = {
   fontFamily: FONT.serif, fontWeight: 500, fontSize: "clamp(28px, 4.5vw, 48px)",
