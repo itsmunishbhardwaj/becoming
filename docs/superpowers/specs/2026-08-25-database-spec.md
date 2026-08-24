@@ -55,7 +55,7 @@ CREATE TABLE goals (
   retro               text,           -- filled when state → completed | retired
 
   -- Tracker fields (NULL for habit goals)
-  baseline            jsonb,          -- "HH:MM" (wake) | {intervalDays:N} (cadence) | null (count)
+  baseline            jsonb,          -- shape encodes behavior: "HH:MM" | {intervalDays:N} | null
   target              jsonb,          -- same shape as baseline
   end_date            date,
   current_round       int NOT NULL DEFAULT 1,
@@ -115,10 +115,8 @@ CREATE TABLE rounds (
 **Design notes:**
 - Habit goals have no rounds. Constraint enforced at application layer
   (store.js never inserts rounds for habit goals).
-- `target_value` shape matches `goal.target` for the same variant:
-  - wake → `"HH:MM"` string
-  - cadence → `{ "intervalDays": N }`
-  - count → `null`
+- `target_value` shape matches `goal.target` — same three shapes:
+  `"HH:MM"` string, `{ "intervalDays": N }`, or `null`.
 
 ---
 
@@ -362,17 +360,16 @@ auth.users
 Before the vault backend is deleted, a migration script must:
 
 1. Read all goal markdown files from `vault/goals/*.md` via vault REST API
-2. Parse each with `goalCodec.parseGoal()`
-3. Map `type` field: `wake` → tracker/wake, `cadence` → tracker/cadence, `simple` → tracker/count
-4. Insert into `goals` with a generated UUID, storing the original slug in `vault_id`
-5. Insert all rounds from `goal.rounds` into `rounds`
-6. Read all daily log files from `vault/Daily/*.md` via vault REST API
-7. Parse each with `logCodec.parseLog()`
-8. Resolve each event's `goalId` (slug) → the new UUID via `vault_id` lookup
-9. Insert events into `log_events`
-10. Insert notes into `log_notes`
-11. Verify row counts match expectation before proceeding
-12. Drop `vault_id` column in a follow-on migration after verification
+2. Parse each with `goalCodec.parseGoal()` — codec already normalizes stored `wake`/`cadence`/`simple` to `tracker`
+3. Insert into `goals` with a generated UUID, storing the original slug in `vault_id`
+4. Insert all rounds from `goal.rounds` into `rounds`
+5. Read all daily log files from `vault/Daily/*.md` via vault REST API
+6. Parse each with `logCodec.parseLog()`
+7. Resolve each event's `goalId` (slug) → the new UUID via `vault_id` lookup
+8. Insert events into `log_events`
+9. Insert notes into `log_notes`
+10. Verify row counts match expectation before proceeding
+11. Drop `vault_id` column in a follow-on migration after verification
 
 **Habit goals:** none exist in the current vault (the type is new), so no habit_logs
 migration is needed.
@@ -383,8 +380,8 @@ migration is needed.
 
 None blocking the schema. The following are deferred decisions:
 
-- **Numeric trackers:** if a future tracker variant needs to log a scalar value
-  (e.g. weight in kg, pages read), add `value numeric` to `log_events`. The column
-  is nullable; existing rows are unaffected. No schema change needed now.
+- **Numeric logging:** if a future tracker needs to log a scalar value
+  (e.g. weight in kg, pages read), add `value numeric` to `log_events`. Nullable;
+  existing rows unaffected. No schema change needed now.
 - **Projects table:** deferred to when Goal workspace projects section is built.
   Will be `projects(id, goal_id, user_id, name, created_at)` + milestone tracking.
