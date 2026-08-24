@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS, CATS } from "../tokens.js";
 import { saveGoal, listGoals } from "../data/store.js";
-import { getType } from "../data/goalTypes/index.js";
+import * as simple from "../data/goalTypes/simple.js";
 import { todayLocalISO } from "../lib/date.js";
 import { PALETTE, autoPickColor } from "../lib/goalColor.js";
 
@@ -36,7 +36,7 @@ export default function QuickCreate() {
     if (!endDate) return setError("Pick an end date.");
 
     const startDate = todayLocalISO();
-    const rounds = getType("simple").buildRounds(null, null, startDate, endDate);
+    const rounds = simple.buildRounds(null, null, startDate, endDate);
     const color = colorMode === "auto" ? autoPickColor(existingGoals, cat) : colorMode;
 
     const goal = {
@@ -44,7 +44,7 @@ export default function QuickCreate() {
       name: name.trim(),
       cat,
       color,
-      type: "simple",
+      type: "tracker",
       state: "active",
       baseline: null,
       target: null,

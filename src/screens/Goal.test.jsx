@@ -15,7 +15,7 @@ const WAKE_GOAL = {
   name: "Wake at 6:00 AM",
   cat: "health",
   state: "active",
-  type: "wake",
+  type: "tracker",
   baseline: "08:30",
   target: "06:00",
   endDate: "2026-12-31",
@@ -68,12 +68,20 @@ describe("Goal workspace", () => {
     getGoal.mockResolvedValue({
       ...WAKE_GOAL,
       currentRound: 1,
-      rounds: [{ n: 1, targetValue: "08:00", startDate: "2026-08-01", endDate: "2026-08-31" }],
+      // Use a round spanning the full year so it's always active
+      rounds: [{ n: 1, targetValue: "08:00", startDate: "2026-01-01", endDate: "2026-12-31" }],
     });
+    // Use recent dates (within the 14-day momentum window) to guarantee momentum > 0
+    const today = new Date();
+    function isoOffset(n) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - n);
+      return d.toISOString().slice(0, 10);
+    }
     readLogsInRange.mockResolvedValue([
-      { date: "2026-08-10", events: [{ verb: "wake", time: "07:55", goalId: "wake-6am" }] },
-      { date: "2026-08-09", events: [{ verb: "wake", time: "08:00", goalId: "wake-6am" }] },
-      { date: "2026-08-08", events: [{ verb: "wake", time: "07:50", goalId: "wake-6am" }] },
+      { date: isoOffset(1), events: [{ verb: "wake", time: "07:55", goalId: "wake-6am" }] },
+      { date: isoOffset(2), events: [{ verb: "wake", time: "08:00", goalId: "wake-6am" }] },
+      { date: isoOffset(3), events: [{ verb: "wake", time: "07:50", goalId: "wake-6am" }] },
     ]);
     renderGoal();
     const orbWrap = await screen.findByTestId("goal-orb-wrap");

@@ -20,12 +20,12 @@ beforeEach(() => {
 });
 
 const WAKE_GOAL = {
-  id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", type: "wake",
-  state: "active", rounds: [], currentRound: 1,
+  id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", type: "tracker",
+  baseline: "08:30", state: "active", rounds: [], currentRound: 1,
 };
 const CADENCE_GOAL = {
-  id: "cadence-reset", name: "Cadence reset", cat: "relationships", type: "cadence",
-  state: "active", rounds: [], currentRound: 1,
+  id: "cadence-reset", name: "Cadence reset", cat: "relationships", type: "tracker",
+  baseline: { intervalDays: 1 }, state: "active", rounds: [], currentRound: 1,
 };
 
 describe("LogSheet parse preview", () => {

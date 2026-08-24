@@ -91,7 +91,7 @@ describe("saveGoal", () => {
       id: "wake-6am",
       name: "Wake at 6:00 AM",
       cat: "health",
-      type: "wake",
+      type: "tracker",
       state: "active",
       baseline: "08:30",
       target: "06:00",

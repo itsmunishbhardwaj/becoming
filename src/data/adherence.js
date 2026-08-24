@@ -1,4 +1,4 @@
-import { getType } from "./goalTypes/index.js";
+import { getTypeByGoal } from "./goalTypes/index.js";
 import { todayLocalISO } from "../lib/date.js";
 
 function addDays(iso, n) {
@@ -25,7 +25,7 @@ function eventsForGoalOnDay(logs, goalId, date) {
 }
 
 export function dailyAdherence({ goal, logs, from, to }) {
-  const t = getType(goal.type);
+  const t = getTypeByGoal(goal);
   const out = {};
   let cur = from;
   while (cur <= to) {
@@ -50,14 +50,14 @@ export function momentum({ goal, logs, asOf }) {
   const start = addDays(end, -13);
   const per = dailyAdherence({ goal, logs, from: start, to: end });
   const days = Object.values(per);
-  if (goal.type === "wake") {
+  if (typeof goal.baseline === "string") {
     let sum = 0, n = 0;
     for (const s of days) {
       if (s in WAKE_WEIGHT) { sum += WAKE_WEIGHT[s]; n++; }
     }
     return n === 0 ? 0 : sum / n;
   }
-  if (goal.type === "simple") {
+  if (goal.baseline == null) {
     let sum = 0;
     for (const s of days) if (s === "hit") sum += 1;
     return sum / 14;

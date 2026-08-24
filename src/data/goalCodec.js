@@ -16,11 +16,10 @@ const SECTION_ORDER = [
 
 function parseTargetCell(cell, type) {
   const v = cell.trim();
-  if (type === "cadence") {
-    const m = v.match(/^every\s+(\d+)d$/i);
-    return m ? { intervalDays: Number(m[1]) } : { intervalDays: 0 };
-  }
-  if (type === "simple") return null;
+  // Cadence format: "every Nd" — detect by content regardless of type string
+  const cadenceMatch = v.match(/^every\s+(\d+)d$/i);
+  if (cadenceMatch) return { intervalDays: Number(cadenceMatch[1]) };
+  if (type === "simple" || v === "—") return null;
   return v;
 }
 
@@ -77,15 +76,23 @@ function fmEncode(v) {
   return v;
 }
 
+function normalizeStoredType(raw) {
+  if (raw === "habit") return "habit";
+  // wake, cadence, simple, tracker → all collapse to tracker
+  return "tracker";
+}
+
 export function parseGoal(src) {
   const { data, body } = parseFrontMatter(src);
   const sec = parseSections(body);
+  // Use raw stored type for codec internals (round table parsing), but expose normalized type
+  const rawType = data.type;
   return {
     id: data.id,
     name: data.name,
     cat: data.cat,
     ...(data.color ? { color: data.color } : {}),
-    type: data.type,
+    type: normalizeStoredType(rawType),
     state: data.state,
     baseline: data.baseline,
     target: data.target,
@@ -93,7 +100,7 @@ export function parseGoal(src) {
     currentRound: data.currentRound,
     createdAt: data.createdAt,
     ambition: (sec.Ambition || "").trim(),
-    rounds: parseRoundsTable(sec.Rounds || "", data.type),
+    rounds: parseRoundsTable(sec.Rounds || "", rawType),
     howWeGetThere: (sec["How we get there"] || "").trim(),
     indicators: {
       right: parseBullets(sec["Right direction"] || ""),
@@ -103,13 +110,22 @@ export function parseGoal(src) {
   };
 }
 
+function codecType(g) {
+  if (g.type === "habit") return "habit";
+  if (typeof g.baseline === "string") return "wake";
+  if (g.baseline != null && typeof g.baseline === "object" && "intervalDays" in g.baseline) return "cadence";
+  return "simple";
+}
+
 export function serializeGoal(g) {
+  const ct = codecType(g);
+  const storedType = g.type === "habit" ? "habit" : "tracker";
   const fmData = {
     id: g.id,
     name: g.name,
     cat: g.cat,
     ...(g.color ? { color: g.color } : {}),
-    type: g.type,
+    type: storedType,
     state: g.state,
     baseline: fmEncode(g.baseline),
     target: fmEncode(g.target),
@@ -119,7 +135,7 @@ export function serializeGoal(g) {
   };
   const sections = {
     Ambition: g.ambition + "\n",
-    Rounds: serializeRoundsTable(g.rounds, g.type),
+    Rounds: serializeRoundsTable(g.rounds, ct),
     "How we get there": g.howWeGetThere + "\n",
     "Right direction": serializeBullets(g.indicators.right),
     "Wrong direction": serializeBullets(g.indicators.wrong),

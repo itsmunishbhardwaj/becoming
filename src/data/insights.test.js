@@ -2,7 +2,8 @@ import { describe, it, expect } from "vitest";
 import { generateInsights } from "./insights.js";
 
 const goal = {
-  id: "wake-6am", name: "Wake at 6:00 AM", type: "wake",
+  id: "wake-6am", name: "Wake at 6:00 AM", type: "tracker",
+  baseline: "08:30",
   state: "active", currentRound: 1,
   rounds: [{ n: 1, targetValue: "08:00", startDate: "2026-07-01", endDate: "2026-12-31" }],
 };
@@ -59,7 +60,8 @@ describe("generateInsights — ordering", () => {
 
 describe("generateInsights — indicator echo", () => {
   const goalWithWrong = {
-    id: "wake-6am", name: "Wake at 6:00 AM", type: "wake",
+    id: "wake-6am", name: "Wake at 6:00 AM", type: "tracker",
+    baseline: "08:30",
     state: "active", currentRound: 1,
     rounds: [{ n: 1, targetValue: "08:00", startDate: "2026-07-01", endDate: "2026-12-31" }],
     indicators: { right: [], wrong: ["Snoozing past target by 45+ min two days in a row"], stall: [] },

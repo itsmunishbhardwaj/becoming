@@ -42,7 +42,7 @@ describe("Home auto-advances rounds", () => {
   it("bumps currentRound + saves when today is past round window", async () => {
     // A goal where round 1 ends 2026-08-01 but currentRound is stuck at 1
     listGoals.mockResolvedValue([{
-      id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", state: "active", type: "wake",
+      id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", state: "active", type: "tracker",
       baseline: "08:30", target: "06:00", endDate: "2026-12-31", createdAt: "2026-01-01",
       currentRound: 1,
       rounds: [
@@ -64,7 +64,7 @@ describe("Home auto-advances rounds", () => {
 describe("Home insights", () => {
   it("renders an insight when a goal has drifted 7+ days", async () => {
     listGoals.mockResolvedValue([{
-      id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", state: "active", type: "wake",
+      id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", state: "active", type: "tracker",
       baseline: "08:30", target: "06:00", endDate: "2026-12-31", createdAt: "2026-01-01",
       currentRound: 1,
       rounds: [{ n: 1, targetValue: "08:00", startDate: "2026-01-01", endDate: "2026-12-31" }],
@@ -83,11 +83,11 @@ describe("Home populated state", () => {
   it("renders one GoalCard per goal", async () => {
     listGoals.mockResolvedValue([
       { id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", state: "active",
-        ambition: "", type: "wake", baseline: "08:30", target: "06:00",
+        ambition: "", type: "tracker", baseline: "08:30", target: "06:00",
         rounds: [], currentRound: 1, indicators: { right: [], wrong: [], stall: [] },
         headline: { n: 0, unit: "days marked" } },
       { id: "cadence-reset", name: "Cadence reset", cat: "relationships", state: "active",
-        ambition: "", type: "cadence", baseline: { intervalDays: 1 }, target: { intervalDays: 7 },
+        ambition: "", type: "tracker", baseline: { intervalDays: 1 }, target: { intervalDays: 7 },
         rounds: [], currentRound: 1, indicators: { right: [], wrong: [], stall: [] },
         headline: { n: 0, unit: "days marked" } },
     ]);

@@ -223,7 +223,7 @@ export default function Year() {
   const onDayTap = useCallback(async ({ dateISO }) => {
     if (!pen) return;
     // Scheduled cadence days are the plan itself — immovable. Tap is a no-op.
-    if (pen.type === "cadence") {
+    if (pen.baseline?.intervalDays != null) {
       const round = pen.rounds.find((r) => dateISO >= r.startDate && dateISO <= r.endDate);
       if (round && cadenceIsScheduledDay({ date: dateISO, currentRound: round })) return;
     }
@@ -234,9 +234,9 @@ export default function Year() {
       return;
     }
     const event =
-      pen.type === "wake"
+      typeof pen.baseline === "string"
         ? { verb: "wake", time: "07:00", goalId: pen.id }
-        : pen.type === "cadence"
+        : pen.baseline?.intervalDays != null
           ? { verb: "session", durationMin: 10, goalId: pen.id }
           : { verb: "done", goalId: pen.id };
     await appendLog(dateISO, event);

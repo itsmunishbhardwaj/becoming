@@ -23,8 +23,8 @@ function humanDate(iso) {
 }
 
 function defaultEventFor(goal) {
-  if (goal.type === "wake") return { verb: "wake", time: "07:00", goalId: goal.id };
-  if (goal.type === "cadence") return { verb: "session", durationMin: 10, goalId: goal.id };
+  if (typeof goal.baseline === "string") return { verb: "wake", time: "07:00", goalId: goal.id };
+  if (goal.baseline?.intervalDays != null) return { verb: "session", durationMin: 10, goalId: goal.id };
   return { verb: "done", goalId: goal.id };
 }
 

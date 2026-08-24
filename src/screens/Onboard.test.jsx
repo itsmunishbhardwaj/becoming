@@ -55,7 +55,7 @@ describe("Onboard send", () => {
 describe("Onboard edit mode", () => {
   it("hydrates state from ?goalId and jumps to ?turn", async () => {
     getGoal.mockResolvedValue({
-      id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", type: "wake",
+      id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", type: "tracker",
       state: "active", baseline: "08:30", target: "06:00", endDate: "2026-12-31",
       createdAt: "2026-08-01", currentRound: 1,
       rounds: [{ n: 1, targetValue: "08:00", startDate: "2026-08-01", endDate: "2026-09-01" }],
@@ -89,7 +89,7 @@ describe("Onboard confirm", () => {
 
     await waitFor(() => expect(saveGoal).toHaveBeenCalledTimes(1));
     const goal = saveGoal.mock.calls[0][0];
-    expect(goal.type).toBe("wake");
+    expect(goal.type).toBe("tracker");
     expect(goal.rounds.length).toBeGreaterThan(0);
     expect(localStorage.getItem("becoming.onboard.draft")).toBe(null);
   });

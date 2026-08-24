@@ -8,9 +8,9 @@ import Orb from "../components/Orb.jsx";
 import { goalColor, PALETTE } from "../lib/goalColor.js";
 
 function formatTarget(goal, r) {
-  if (goal.type === "wake") return `wake by ${r.targetValue}`;
-  if (goal.type === "cadence") return `every ${r.targetValue.intervalDays}d`;
-  return "one tap per day"; // simple
+  if (typeof goal.baseline === "string") return `wake by ${r.targetValue}`;
+  if (goal.baseline?.intervalDays != null) return `every ${r.targetValue.intervalDays}d`;
+  return "one tap per day"; // tracker/simple
 }
 
 function formatEvent(evt) {
