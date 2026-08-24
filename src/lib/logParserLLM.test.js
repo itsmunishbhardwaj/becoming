@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { parseLogSmart } from "./logParserLLM.js";
 
 const GOALS = [
-  { id: "wake-6am", type: "wake", state: "active" },
-  { id: "cadence-reset", type: "cadence", state: "active" },
+  { id: "wake-6am", type: "tracker", baseline: "08:30", state: "active" },
+  { id: "cadence-reset", type: "tracker", baseline: { intervalDays: 1 }, state: "active" },
 ];
 
 describe("parseLogSmart", () => {

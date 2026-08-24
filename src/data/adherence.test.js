@@ -3,7 +3,8 @@ import { dailyAdherence, momentum } from "./adherence.js";
 
 const WAKE_GOAL = {
   id: "wake-6am",
-  type: "wake",
+  type: "tracker",
+  baseline: "08:30",
   currentRound: 1,
   rounds: [
     { n: 1, targetValue: "08:00", startDate: "2026-08-10", endDate: "2026-08-24" },
@@ -12,7 +13,8 @@ const WAKE_GOAL = {
 
 const CADENCE_GOAL = {
   id: "cadence-reset",
-  type: "cadence",
+  type: "tracker",
+  baseline: { intervalDays: 1 },
   currentRound: 1,
   rounds: [
     { n: 1, targetValue: { intervalDays: 2 }, startDate: "2026-08-10", endDate: "2026-08-24" },
@@ -23,7 +25,8 @@ describe("dailyAdherence — event outside round window", () => {
   it("simple goal: an event logged before the round starts still marks as hit", () => {
     const goal = {
       id: "oil-pulling",
-      type: "simple",
+      type: "tracker",
+      baseline: null,
       currentRound: 1,
       rounds: [{ n: 1, targetValue: null, startDate: "2026-08-18", endDate: "2026-12-31" }],
     };
@@ -35,7 +38,8 @@ describe("dailyAdherence — event outside round window", () => {
   it("cadence goal: a session logged before the round starts still marks as hit", () => {
     const goal = {
       id: "cadence-reset",
-      type: "cadence",
+      type: "tracker",
+      baseline: { intervalDays: 1 },
       currentRound: 1,
       rounds: [{ n: 1, targetValue: { intervalDays: 2 }, startDate: "2026-08-18", endDate: "2026-12-31" }],
     };

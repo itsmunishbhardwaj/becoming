@@ -7,9 +7,13 @@ import { todayLocalISO } from "../lib/date.js";
 import { goalColor } from "../lib/goalColor.js";
 
 function routeEvent(evt, goals) {
-  const wanted = evt.verb === "wake" ? "wake" : evt.verb === "session" ? "cadence" : null;
-  if (!wanted) return null;
-  return goals.find((g) => g.type === wanted && (g.state === "active" || g.state === "drift")) || null;
+  if (evt.verb === "wake") {
+    return goals.find((g) => typeof g.baseline === "string" && (g.state === "active" || g.state === "drift")) || null;
+  }
+  if (evt.verb === "session") {
+    return goals.find((g) => g.baseline?.intervalDays != null && (g.state === "active" || g.state === "drift")) || null;
+  }
+  return null;
 }
 
 function payloadFor(evt) {

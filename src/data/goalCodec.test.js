@@ -40,7 +40,7 @@ describe("parseGoal", () => {
   it("parses front-matter, ambition, rounds table, indicators", () => {
     const g = parseGoal(SAMPLE);
     expect(g.id).toBe("wake-6am");
-    expect(g.type).toBe("wake");
+    expect(g.type).toBe("tracker");
     expect(g.baseline).toBe("08:30");
     expect(g.currentRound).toBe(1);
     expect(g.ambition).toBe("Own the morning before the world does.");

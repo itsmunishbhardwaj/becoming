@@ -12,7 +12,8 @@ import Year from "./Year.jsx";
 import { listGoals, readLogsInRange } from "../data/store.js";
 
 const WAKE_GOAL = {
-  id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", type: "wake",
+  id: "wake-6am", name: "Wake at 6:00 AM", cat: "health", type: "tracker",
+  baseline: "08:30",
   state: "active", currentRound: 1,
   rounds: [{ n: 1, targetValue: "08:00", startDate: "2026-01-01", endDate: "2026-12-31" }],
 };

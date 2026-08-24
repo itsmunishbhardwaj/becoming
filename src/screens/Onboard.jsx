@@ -77,9 +77,12 @@ export default function Onboard() {
           isConfigured().then(setLlmOn).catch(() => setLlmOn(false));
           return;
         }
+        // Derive onboard session type ("wake"|"cadence") from baseline shape,
+        // since stored goal.type is now "tracker"|"habit".
+        const sessionType = goal.baseline?.intervalDays != null ? "cadence" : "wake";
         const answers = {
           ambition: goal.ambition,
-          type: goal.type,
+          type: sessionType,
           baseline: goal.baseline,
           target: goal.target,
           endDate: goal.endDate,

@@ -90,7 +90,7 @@ describe("finalize", () => {
     s = applyInput(s, "confirm", true);
     const goal = finalize(s);
     expect(goal.id).toBeTruthy();
-    expect(goal.type).toBe("wake");
+    expect(goal.type).toBe("tracker");
     expect(goal.state).toBe("active");
     expect(goal.baseline).toBe("08:30");
     expect(goal.target).toBe("06:00");

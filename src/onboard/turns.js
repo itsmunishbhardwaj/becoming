@@ -106,7 +106,7 @@ export function finalize(state) {
     id,
     name: state.name || a.ambition,
     cat: state.cat || "health",
-    type: a.type,
+    type: "tracker",
     state: "active",
     baseline: a.baseline,
     target: a.target,
