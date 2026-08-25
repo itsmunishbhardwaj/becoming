@@ -6,27 +6,20 @@ export function goalColor(goal, fallback = PAPER.faint) {
   return CATS[goal.cat]?.color ?? fallback;
 }
 
-// Watercolor wash palette — 16 perceptually-distinct hues spanning the wheel.
-// One shade per hue family so days with multiple goals stay legible.
-// Rules from docs/brand.md: no red, no pure black/white, one paper theme.
-// Slight saturation lift vs. earlier draft so warm and cool anchors read apart.
+// Color palette sourced exactly from deanira.co/onestopshop and andrewsbodega.com.
+// Values are unmodified — exact computed colors from those sites.
 export const PALETTE = [
-  { color: "#E9A6B0", name: "Blush" },        // pink
-  { color: "#D48FA6", name: "Rose" },         // magenta wash
-  { color: "#C99BC4", name: "Orchid" },       // pink-purple
-  { color: "#B48FC4", name: "Plum" },         // violet
-  { color: "#9E8FD1", name: "Iris" },         // deep lavender
-  { color: "#8A98D2", name: "Indigo" },       // blue-violet
-  { color: "#8FB0DC", name: "Cornflower" },   // blue
-  { color: "#8FBFC4", name: "Teal" },         // blue-green
-  { color: "#7FB79A", name: "Sea" },          // green-teal
-  { color: "#9EC078", name: "Meadow" },       // green
-  { color: "#C9CE7B", name: "Chartreuse" },   // yellow-green
-  { color: "#E4D273", name: "Honey" },        // yellow
-  { color: "#E6B972", name: "Amber" },        // gold
-  { color: "#DFA26F", name: "Apricot" },      // orange
-  { color: "#D08B6C", name: "Terracotta" },   // burnt orange
-  { color: "#9B9DAB", name: "Slate" },        // cool grey wash
+  { color: "#84A8BA", name: "Steel" },        // deanira — dominant blue-grey section
+  { color: "#2C6AAD", name: "Ocean" },        // deanira — button / accent blue
+  { color: "#538AFF", name: "Electric" },     // bodega — bright cornflower blue
+  { color: "#194DC4", name: "Denim" },        // bodega — deep blue
+  { color: "#7096C4", name: "Cornflower" },   // bodega — muted periwinkle
+  { color: "#DFE3E6", name: "Mist" },         // deanira — cool grey
+  { color: "#696969", name: "Smoke" },        // deanira — mid grey
+  { color: "#F6BD60", name: "Marigold" },     // deanira — amber gold accent
+  { color: "#EE4434", name: "Tomato" },       // deanira — red CTA
+  { color: "#FFFAED", name: "Parchment" },    // deanira — warm cream bg
+  { color: "#F0F0F0", name: "Pearl" },        // bodega — light grey
 ];
 
 export function autoPickColor(existingGoals = [], preferKey = null) {

@@ -59,8 +59,8 @@ describe("LogSheet save", () => {
     render(<LogSheet open onClose={onClose} onSaved={onSaved} />);
     const ta = await screen.findByRole("textbox");
     fireEvent.change(ta, { target: { value: "woke 07:00\nrandom note\nsession 12 min" } });
-    await waitFor(() => expect(screen.getByRole("button", { name: /looks right — save/i })).not.toBeDisabled(), { timeout: 1000 });
-    fireEvent.click(screen.getByRole("button", { name: /looks right — save/i }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /save log/i })).not.toBeDisabled(), { timeout: 1000 });
+    fireEvent.click(screen.getByRole("button", { name: /save log/i }));
     await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1));
     // Two writes: wake + session. "random note" skipped by parser.
     expect(appendLog).toHaveBeenCalledTimes(2);

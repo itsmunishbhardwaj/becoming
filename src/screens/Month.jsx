@@ -238,7 +238,7 @@ export default function Month() {
             <span style={viewPillItem(true)}>M</span>
             <Link to={`/week/${todayISO}`} style={viewPillItem(false)}>W</Link>
           </div>
-          <p style={{ color: PAPER.dim, marginTop: 20 }}>Bad month.</p>
+          <p style={{ color: PAPER.dim, marginTop: 20 }}>Couldn't load this month.</p>
         </div>
       </div>
     );
@@ -270,7 +270,7 @@ export default function Month() {
           margin-bottom: 6px;
         }
         .month-dow-cell {
-          font-family: 'Inter', system-ui, sans-serif;
+          font-family: 'Instrument Sans', 'Inter', system-ui, sans-serif;
           font-size: 11px;
           font-weight: 500;
           letter-spacing: 0.08em;
@@ -364,7 +364,7 @@ export default function Month() {
 
         <footer style={{ marginTop: 40, textAlign: "center", fontSize: 13 }}>
           <Link to="/" style={{ color: PAPER.faint, textDecoration: "none" }}>
-            ← back to Life
+            ← Life
           </Link>
         </footer>
       </div>
