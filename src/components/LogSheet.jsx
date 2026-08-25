@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useDragControls } from "motion/react";
 import { PAPER, FONT, RADIUS } from "../tokens.js";
 import { parseLogSmart } from "../lib/logParserLLM.js";
 import { chat, isConfigured } from "../lib/llm.js";
@@ -31,6 +31,7 @@ export default function LogSheet({ open, onClose, onSaved }) {
   const [goals, setGoals] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const dragControls = useDragControls();
 
   useEffect(() => {
     if (!open) return;
@@ -94,25 +95,48 @@ export default function LogSheet({ open, onClose, onSaved }) {
           }}
         >
           <motion.div
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0.2, bottom: 0 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 100 || info.velocity.y > 300) onClose();
+            }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", duration: 0.35, bounce: 0.1 }}
+            transition={{ type: "spring", duration: 0.3, bounce: 0.2 }}
             onClick={(e) => e.stopPropagation()}
             style={{
               position: "absolute", left: 0, right: 0, bottom: 0,
-              background: PAPER.bg, color: PAPER.ink,
+              background: "rgba(251, 251, 249, 0.88)",
+              backdropFilter: "blur(20px) saturate(160%)",
+              WebkitBackdropFilter: "blur(20px) saturate(160%)",
+              color: PAPER.ink,
               borderTopLeftRadius: 26, borderTopRightRadius: 22,
-              padding: "22px 24px 30px",
+              padding: "0 24px 30px",
               boxShadow: PAPER.sheetShadow,
               fontFamily: FONT.sans,
               maxHeight: "85vh", overflowY: "auto",
             }}
           >
-            <div style={{
-              width: 38, height: 4, borderRadius: 999, background: PAPER.line,
-              margin: "0 auto 14px",
-            }} />
+            {/* Drag handle — only this initiates the dismiss gesture */}
+            <div
+              onPointerDown={(e) => dragControls.start(e)}
+              style={{
+                touchAction: "none",
+                cursor: "grab",
+                padding: "14px 0 10px",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <div style={{
+                width: 38, height: 4, borderRadius: 999, background: PAPER.line,
+              }} />
+            </div>
+
             <div style={{
               fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase",
               color: PAPER.faint, fontWeight: 500, marginBottom: 10,

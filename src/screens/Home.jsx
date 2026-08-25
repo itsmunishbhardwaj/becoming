@@ -159,7 +159,7 @@ export default function Home() {
           </div>
           <h1 style={{
             fontFamily: FONT.serif, fontWeight: 400, fontSize: TYPE.h1,
-            lineHeight: 1.25, margin: 0, color: PAPER.ink,
+            lineHeight: 1.25, margin: 0, color: PAPER.ink, letterSpacing: "-0.01em",
           }}>
             Who are you becoming?
           </h1>
