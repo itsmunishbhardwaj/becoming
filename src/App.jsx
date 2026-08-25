@@ -11,6 +11,7 @@ import Week from "./screens/Week.jsx";
 export default function App() {
   return (
     <BrowserRouter>
+      <div className="grain" aria-hidden="true" />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/year" element={<Year />} />

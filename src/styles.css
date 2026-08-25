@@ -5,6 +5,22 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+/* ── Paper grain overlay ───────────────────────────────────── */
+/* Matches brand.md "paper grain" rule. Fixed above all layers, */
+/* pointer-events:none so it never blocks interaction.          */
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* grain is static, no motion — keep it */
+}
+
 /* ── Tap highlight ─────────────────────────────────────────── */
 button, a { -webkit-tap-highlight-color: transparent; }
 
