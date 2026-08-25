@@ -488,6 +488,172 @@ body::after {
 [data-dir="living"] .log-blob:hover { transform: scale(1.1); box-shadow: 0 12px 32px rgba(85,80,92,0.16); }
 [data-dir="living"] .log-blob:active { transform: scale(0.92); }
 
+/* ═══════════════════════════════════════════════════════════
+   DIRECTION 4 — SYNTHESIS
+   Journal structure · Living Paper orbs · Instrument year grid
+   ═══════════════════════════════════════════════════════════ */
+[data-dir="synthesis"] .screen {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 52px 32px 120px;
+}
+[data-dir="synthesis"] .wordmark {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 56px;
+}
+[data-dir="synthesis"] .date-line {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--dim);
+  margin-bottom: 48px;
+}
+[data-dir="synthesis"] .section-label {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 28px;
+}
+[data-dir="synthesis"] .goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+[data-dir="synthesis"] .goal-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  gap: 0 18px;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: opacity 150ms var(--ease-out);
+}
+[data-dir="synthesis"] .goal-row:first-child { border-top: 1px solid var(--line); }
+[data-dir="synthesis"] .goal-row:hover { opacity: 0.72; }
+[data-dir="synthesis"] .orb {
+  width: 52px; height: 52px;
+  border-radius: 58% 42% 55% 45% / 45% 55% 42% 58%;
+  animation: orb-breathe 7s ease-in-out infinite;
+  flex-shrink: 0;
+}
+[data-dir="synthesis"] .goal-row:nth-child(2) .orb { animation-delay: -2.1s; }
+[data-dir="synthesis"] .goal-row:nth-child(3) .orb { animation-delay: -4.4s; }
+[data-dir="synthesis"] .goal-row:nth-child(4) .orb { animation-delay: -1.6s; }
+[data-dir="synthesis"] .goal-inner { min-width: 0; }
+[data-dir="synthesis"] .goal-name {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+[data-dir="synthesis"] .momentum-bar {
+  height: 2px;
+  background: var(--track);
+  border-radius: 99px;
+  overflow: hidden;
+}
+[data-dir="synthesis"] .momentum-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 600ms var(--ease-out);
+}
+[data-dir="synthesis"] .goal-days {
+  font-family: var(--serif);
+  font-size: 36px;
+  font-weight: 300;
+  color: var(--faint);
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
+}
+[data-dir="synthesis"] .goal-days span {
+  display: block;
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  text-align: right;
+  margin-top: 3px;
+}
+
+/* Year grid — Warm Instrument style inside Journal layout */
+[data-dir="synthesis"] .year-section {
+  margin-top: 48px;
+}
+[data-dir="synthesis"] .year-grid-wrap {
+  overflow: hidden;
+}
+[data-dir="synthesis"] .year-grid {
+  display: grid;
+  grid-template-columns: repeat(52, 1fr);
+  gap: 2px;
+  margin-top: 16px;
+}
+[data-dir="synthesis"] .year-week {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+[data-dir="synthesis"] .year-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 1px;
+  background: var(--track);
+}
+[data-dir="synthesis"] .year-cell.filled {
+  opacity: 0.75;
+}
+
+[data-dir="synthesis"] .new-goal-btn {
+  margin-top: 44px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: color 120ms ease, opacity 120ms ease;
+}
+[data-dir="synthesis"] .new-goal-btn:hover { color: var(--ink); }
+[data-dir="synthesis"] .new-goal-btn:active { opacity: 0.6; }
+[data-dir="synthesis"] .plus-mark {
+  width: 28px; height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 18px;
+  color: var(--faint);
+  font-style: normal;
+}
+[data-dir="synthesis"] .log-blob {
+  position: fixed;
+  right: 28px; bottom: 28px;
+  width: 58px; height: 58px;
+  background: linear-gradient(135deg, var(--card) 0%, var(--panel) 100%);
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 20px rgba(85,80,92,0.10);
+  color: var(--ink);
+  font-size: 26px;
+  font-weight: 300;
+  display: grid; place-items: center;
+  animation: log-breathe 7s ease-in-out infinite;
+  transition: transform 120ms var(--ease-out), box-shadow 120ms ease;
+}
+[data-dir="synthesis"] .log-blob:hover { transform: scale(1.08); box-shadow: 0 10px 28px rgba(85,80,92,0.14); }
+[data-dir="synthesis"] .log-blob:active { transform: scale(0.92); }
+
 /* ── Tweaks Panel ─────────────────────────────────────────── */
 .tweaks-toggle {
   position: fixed;
@@ -570,10 +736,10 @@ body::after {
 }
 </style>
 </head>
-<body data-dir="journal">
+<body data-dir="synthesis">
 
 <!-- ─── DIRECTION 1: DEEP JOURNAL ─────────────────────────── -->
-<div class="screen" id="dir-journal">
+<div class="screen" id="dir-journal" style="display:none">
   <div class="wordmark">Becoming</div>
   <div class="date-line">Tuesday, August 2026</div>
   <div class="section-label">Your Goals</div>
@@ -774,6 +940,76 @@ body::after {
 </div>
 
 
+<!-- ─── DIRECTION 4: SYNTHESIS ────────────────────────────── -->
+<div class="screen" id="dir-synthesis">
+  <div class="wordmark">Becoming</div>
+  <div class="date-line">Tuesday, August 2026</div>
+  <div class="section-label">Your Goals</div>
+
+  <div class="goal-list">
+
+    <div class="goal-row">
+      <div class="orb" style="background: radial-gradient(circle at 35% 30%, #A9CEBB, #8DBFAB 80%);"></div>
+      <div class="goal-inner">
+        <div class="goal-name">Run every morning</div>
+        <div class="momentum-bar">
+          <div class="momentum-fill" style="width:82%; background:#A9CEBB;"></div>
+        </div>
+      </div>
+      <div class="goal-days">214<span>days</span></div>
+    </div>
+
+    <div class="goal-row">
+      <div class="orb" style="background: radial-gradient(circle at 35% 30%, #E9B3B7, #D4979C 80%);"></div>
+      <div class="goal-inner">
+        <div class="goal-name">Deep work, daily</div>
+        <div class="momentum-bar">
+          <div class="momentum-fill" style="width:55%; background:#E9B3B7;"></div>
+        </div>
+      </div>
+      <div class="goal-days">89<span>days</span></div>
+    </div>
+
+    <div class="goal-row">
+      <div class="orb" style="background: radial-gradient(circle at 35% 30%, #C5B5E3, #AA99D3 80%);"></div>
+      <div class="goal-inner">
+        <div class="goal-name">Read before bed</div>
+        <div class="momentum-bar">
+          <div class="momentum-fill" style="width:70%; background:#C5B5E3;"></div>
+        </div>
+      </div>
+      <div class="goal-days">41<span>days</span></div>
+    </div>
+
+    <div class="goal-row">
+      <div class="orb" style="background: radial-gradient(circle at 35% 30%, #EBC3A0, #D4A882 80%);"></div>
+      <div class="goal-inner">
+        <div class="goal-name">Cook something weekly</div>
+        <div class="momentum-bar">
+          <div class="momentum-fill" style="width:38%; background:#EBC3A0;"></div>
+        </div>
+      </div>
+      <div class="goal-days">18<span>sessions</span></div>
+    </div>
+
+  </div>
+
+  <div class="year-section">
+    <div class="section-label">This year</div>
+    <div class="year-grid-wrap">
+      <div class="year-grid" id="synthesis-year-grid"></div>
+    </div>
+  </div>
+
+  <button class="new-goal-btn" onclick="alert('New goal flow')">
+    <span class="plus-mark">+</span>
+    begin something new
+  </button>
+
+  <button class="log-blob" onclick="alert('Log sheet')">+</button>
+</div>
+
+
 <!-- ─── Tweaks ─────────────────────────────────────────────── -->
 <button class="tweaks-toggle" id="tweaks-toggle" title="Tweaks">⚙</button>
 
@@ -781,13 +1017,17 @@ body::after {
   <div class="tweaks-title">Tweaks</div>
   <span class="tweaks-label">Design direction</span>
   <div class="dir-btns">
-    <button class="dir-btn active" data-target="journal">
+    <button class="dir-btn active" data-target="synthesis">
+      Synthesis ✦
+      <small>Journal + orbs + year grid</small>
+    </button>
+    <button class="dir-btn" data-target="journal">
       Deep Journal
-      <small>Craig Mod · type-first</small>
+      <small>Type-first · whitespace</small>
     </button>
     <button class="dir-btn" data-target="instrument">
       Warm Instrument
-      <small>Tufte · data-dense</small>
+      <small>Data-dense · monospace</small>
     </button>
     <button class="dir-btn" data-target="living">
       Living Paper
@@ -797,42 +1037,47 @@ body::after {
 </div>
 
 <script>
-// ── Year grid for Warm Instrument ─────────────────────────
-(function buildYearGrid() {
-  const grid = document.getElementById('year-grid');
+// ── Year grid builder ─────────────────────────────────────
+function buildYearGrid(gridId, weekClass, cellClass, filledClass) {
+  const grid = document.getElementById(gridId);
   if (!grid) return;
   const today = new Date();
   const start = new Date(today.getFullYear(), 0, 1);
   const dayOfWeek = start.getDay();
-  const weeks = 52;
-  for (let w = 0; w < weeks; w++) {
+  const catColors = ['#A9CEBB','#E9B3B7','#C5B5E3','#EBC3A0'];
+  for (let w = 0; w < 52; w++) {
     const col = document.createElement('div');
-    col.className = 'mini-week';
+    col.className = weekClass;
     for (let d = 0; d < 7; d++) {
       const cell = document.createElement('div');
       const dayNum = w * 7 + d - dayOfWeek;
       const cellDate = new Date(start);
       cellDate.setDate(start.getDate() + dayNum);
-      cell.className = 'mini-day';
+      cell.className = cellClass;
       if (cellDate <= today && dayNum >= 0) {
-        // Pseudo-random fill based on position
         const rand = (w * 7 + d * 13 + 7) % 10;
-        if (rand > 4) cell.classList.add('filled');
+        if (rand > 4) {
+          cell.classList.add(filledClass);
+          cell.style.background = catColors[(w + d) % catColors.length];
+        }
       }
       col.appendChild(cell);
     }
     grid.appendChild(col);
   }
-})();
+}
+buildYearGrid('year-grid', 'mini-week', 'mini-day', 'filled');
+buildYearGrid('synthesis-year-grid', 'year-week', 'year-cell', 'filled');
 
 // ── Direction switcher ────────────────────────────────────
 const screens = {
+  synthesis:  document.getElementById('dir-synthesis'),
   journal:    document.getElementById('dir-journal'),
   instrument: document.getElementById('dir-instrument'),
   living:     document.getElementById('dir-living'),
 };
 const body = document.body;
-let currentDir = 'journal';
+let currentDir = 'synthesis';
 
 function switchDir(dir) {
   if (dir === currentDir) return;
