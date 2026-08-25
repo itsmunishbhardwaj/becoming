@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "motion/react";
 import { CATS, PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
@@ -442,45 +443,57 @@ export default function Year() {
           ))}
         </div>
 
-        {tip && (
-          <div
-            style={{
-              position: "fixed",
-              bottom: 24,
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: PAPER.card,
-              border: `1px solid ${PAPER.line}`,
-              boxShadow: "0 8px 30px rgba(74,70,88,0.12)",
-              borderRadius: 14,
-              padding: "12px 18px",
-              display: "flex",
-              gap: 14,
-              alignItems: "center",
-              fontSize: 13,
-            }}
-          >
-            <span style={{ color: PAPER.dim, fontVariantNumeric: "tabular-nums" }}>
-              {new Date(tip.iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "short" })} · {tip.month} {tip.day}
-            </span>
-            {tip.marks.map(({ g, status }) => {
-              const color = status === "off" ? PAPER.whisper : goalColor(g);
-              return (
-                <span key={g.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span
-                    style={{
-                      width: 11,
-                      height: 9,
-                      borderRadius: "46% 54% 52% 48%",
-                      background: color,
-                    }}
-                  />
-                  {g.name}
+        <AnimatePresence>
+          {tip && (
+            <div
+              style={{
+                position: "fixed",
+                bottom: 24,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 50,
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 4 }}
+                transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
+                style={{
+                  background: PAPER.card,
+                  border: `1px solid ${PAPER.line}`,
+                  boxShadow: "0 8px 30px rgba(74,70,88,0.12)",
+                  borderRadius: 14,
+                  padding: "12px 18px",
+                  display: "flex",
+                  gap: 14,
+                  alignItems: "center",
+                  fontSize: 13,
+                }}
+              >
+                <span style={{ color: PAPER.dim, fontVariantNumeric: "tabular-nums" }}>
+                  {new Date(tip.iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "short" })} · {tip.month} {tip.day}
                 </span>
-              );
-            })}
-          </div>
-        )}
+                {tip.marks.map(({ g, status }) => {
+                  const color = status === "off" ? PAPER.whisper : goalColor(g);
+                  return (
+                    <span key={g.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span
+                        style={{
+                          width: 11,
+                          height: 9,
+                          borderRadius: "46% 54% 52% 48%",
+                          background: color,
+                        }}
+                      />
+                      {g.name}
+                    </span>
+                  );
+                })}
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         <footer style={{ marginTop: 34, textAlign: "center", fontSize: 13 }}>
           <Link to="/" style={{ color: PAPER.faint, textDecoration: "none" }}>

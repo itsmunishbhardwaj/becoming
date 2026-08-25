@@ -28,6 +28,57 @@ function defaultEventFor(goal) {
   return { verb: "done", goalId: goal.id };
 }
 
+function DeleteButton({ evt, color, busy, onDelete }) {
+  const [holding, setHolding] = useState(false);
+  const timerRef = useRef(null);
+
+  const startHold = () => {
+    setHolding(true);
+    timerRef.current = setTimeout(() => {
+      onDelete(evt);
+      setHolding(false);
+    }, 1800);
+  };
+
+  const cancelHold = () => {
+    clearTimeout(timerRef.current);
+    setHolding(false);
+  };
+
+  return (
+    <button
+      disabled={busy}
+      onPointerDown={startHold}
+      onPointerUp={cancelHold}
+      onPointerLeave={cancelHold}
+      style={{
+        ...dangerPill,
+        position: "relative",
+        overflow: "hidden",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+      }}
+      title="Hold to remove"
+    >
+      <span
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: color,
+          opacity: 0.25,
+          clipPath: holding ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
+          transition: holding
+            ? "clip-path 1.8s linear"
+            : "clip-path 160ms cubic-bezier(0.23, 1, 0.32, 1)",
+          borderRadius: "inherit",
+          pointerEvents: "none",
+        }}
+      />
+      remove
+    </button>
+  );
+}
+
 export default function Day() {
   const { date } = useParams();
   const nav = useNavigate();
@@ -135,7 +186,7 @@ export default function Day() {
         </header>
 
         {events.length === 0 ? (
-          <p style={{ fontFamily: FONT.serif, fontStyle: "italic", fontSize: TYPE.ambition, color: PAPER.dim }}>
+          <p className="day-empty" style={{ fontFamily: FONT.serif, fontStyle: "italic", fontSize: TYPE.ambition, color: PAPER.dim }}>
             A quiet day. Rest counts too.
           </p>
         ) : (
@@ -154,9 +205,7 @@ export default function Day() {
                         {g ? g.name : evt.goalId}
                       </div>
                     </div>
-                    <button onClick={() => onDelete(evt)} disabled={busy} style={dangerPill} title="Remove this event">
-                      remove
-                    </button>
+                    <DeleteButton evt={evt} color={color} busy={busy} onDelete={onDelete} />
                   </div>
                 );
               })}

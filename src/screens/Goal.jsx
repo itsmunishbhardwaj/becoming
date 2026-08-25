@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { AnimatePresence, motion } from "motion/react";
 import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
 import { getGoal, readLogsInRange, saveGoal } from "../data/store.js";
 import { momentum } from "../data/adherence.js";
@@ -130,50 +131,59 @@ export default function Goal() {
           </div>
         </header>
 
-        {editingColor && (
-          <div
-            style={{
-              marginTop: 14,
-              padding: "12px 14px",
-              background: PAPER.card,
-              border: `1px solid ${PAPER.line}`,
-              borderRadius: RADIUS.r1,
-            }}
-          >
-            <div style={{
-              fontSize: 10.5, letterSpacing: "1.4px", textTransform: "uppercase",
-              color: PAPER.faint, fontWeight: 500, marginBottom: 10,
-            }}>
-              COLOR {savingColor && "· saving…"}
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
-              {PALETTE.map((p) => {
-                const selected = catHue === p.color;
-                return (
-                  <button
-                    key={p.color}
-                    type="button"
-                    onClick={() => pickColor(p.color)}
-                    disabled={savingColor}
-                    aria-label={p.name}
-                    aria-pressed={selected}
-                    title={p.name}
-                    style={{
-                      width: 40, height: 40, borderRadius: "50%",
-                      background: `radial-gradient(circle at 35% 30%, ${p.color}, ${p.color}99 70%)`,
-                      boxShadow: selected
-                        ? `0 0 0 2px ${PAPER.ink}, 0 0 12px ${p.color}80`
-                        : `0 0 10px ${p.color}55`,
-                      border: "none",
-                      cursor: savingColor ? "default" : "pointer",
-                      padding: 0,
-                    }}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {editingColor && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.28, bounce: 0 }}
+              style={{ overflow: "hidden", marginTop: 14 }}
+            >
+              <div
+                style={{
+                  padding: "12px 14px",
+                  background: PAPER.card,
+                  border: `1px solid ${PAPER.line}`,
+                  borderRadius: RADIUS.r1,
+                }}
+              >
+                <div style={{
+                  fontSize: 10.5, letterSpacing: "1.4px", textTransform: "uppercase",
+                  color: PAPER.faint, fontWeight: 500, marginBottom: 10,
+                }}>
+                  COLOR {savingColor && "· saving…"}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
+                  {PALETTE.map((p) => {
+                    const selected = catHue === p.color;
+                    return (
+                      <button
+                        key={p.color}
+                        type="button"
+                        onClick={() => pickColor(p.color)}
+                        disabled={savingColor}
+                        aria-label={p.name}
+                        aria-pressed={selected}
+                        title={p.name}
+                        style={{
+                          width: 40, height: 40, borderRadius: "50%",
+                          background: `radial-gradient(circle at 35% 30%, ${p.color}, ${p.color}99 70%)`,
+                          boxShadow: selected
+                            ? `0 0 0 2px ${PAPER.ink}, 0 0 12px ${p.color}80`
+                            : `0 0 10px ${p.color}55`,
+                          border: "none",
+                          cursor: savingColor ? "default" : "pointer",
+                          padding: 0,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <blockquote style={{
           fontFamily: FONT.serif, fontStyle: "italic",
