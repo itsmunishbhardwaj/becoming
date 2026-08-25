@@ -69,13 +69,16 @@ export default function QuickCreate() {
 
   return (
     <div style={pageStyle}>
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "36px 26px 60px" }}>
-        <Link to="/" style={backLink}>← Life</Link>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "44px 26px 80px" }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 40 }}>
+          <div style={wordmarkStyle}>Becoming</div>
+          <Link to="/" style={backLink}>← Life</Link>
+        </div>
 
-        <header style={{ marginTop: 12, marginBottom: 24 }}>
-          <div style={kickerStyle}>QUICK CREATE</div>
+        <header style={{ marginBottom: 32 }}>
+          <div style={kickerStyle}>New goal</div>
           <h1 style={h1Style}>Name it. Track it.</h1>
-          <p style={{ color: PAPER.dim, fontSize: 13.5, margin: "8px 0 0", lineHeight: 1.5 }}>
+          <p style={{ color: PAPER.dim, fontSize: 13.5, margin: "10px 0 0", lineHeight: 1.55, fontFamily: FONT.serif, fontStyle: "italic" }}>
             Every day is a tap. That's it.
           </p>
         </header>
@@ -170,17 +173,22 @@ const pageStyle = {
   color: PAPER.ink,
   fontFamily: FONT.sans,
 };
-const backLink = { color: PAPER.dim, fontSize: 13, textDecoration: "none" };
+const wordmarkStyle = {
+  fontFamily: FONT.serif, fontWeight: 300, fontSize: 13,
+  letterSpacing: "0.18em", textTransform: "uppercase", color: PAPER.faint,
+};
+const backLink = { color: PAPER.dim, fontSize: 12, textDecoration: "none" };
 const kickerStyle = {
-  fontSize: 11.5, letterSpacing: "1.8px", textTransform: "uppercase",
-  color: PAPER.faint, fontWeight: 500,
+  fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
+  color: PAPER.faint, fontWeight: 500, marginBottom: 10,
 };
 const h1Style = {
-  fontFamily: FONT.serif, fontWeight: 400, fontSize: TYPE.h1,
-  lineHeight: 1.25, margin: "8px 0 0", color: PAPER.ink,
+  fontFamily: FONT.serif, fontWeight: 400,
+  fontSize: "clamp(26px, 4vw, 36px)",
+  lineHeight: 1.2, margin: "0", color: PAPER.ink, letterSpacing: "-0.01em",
 };
 const fieldLabelStyle = {
-  fontSize: 11, letterSpacing: "1.4px", textTransform: "uppercase",
+  fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
   color: PAPER.faint, fontWeight: 500,
 };
 const inputStyle = {

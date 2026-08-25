@@ -44,7 +44,7 @@ export const PAPER = {
 
 export const FONT = {
   serif: "'Fraunces', Georgia, serif", // IDENTITY: goal names, headlines, ambitions
-  sans: "'Inter', system-ui, sans-serif", // DATA: numbers, labels, UI
+  sans: "'Instrument Sans', 'Inter', system-ui, sans-serif", // DATA: numbers, labels, UI
 };
 
 // Type scale (px) — serif for who you are, sans for what you did.

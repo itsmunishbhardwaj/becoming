@@ -329,7 +329,7 @@ export default function Year() {
           margin-bottom: 2px;
         }
         .year-dow-cell {
-          font-family: 'Inter', system-ui, sans-serif;
+          font-family: 'Instrument Sans', 'Inter', system-ui, sans-serif;
           font-size: 10px;
           font-weight: 500;
           letter-spacing: 0.06em;
@@ -339,21 +339,18 @@ export default function Year() {
         }
       `}</style>
       <div className="year-shell">
-        <header style={{ padding: "56px 0 8px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
+        <header style={{ padding: "52px 0 8px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
           <div>
-            <div
-              className="year-kicker"
-              style={{
-                fontSize: 14,
-                letterSpacing: "0.16em",
-                textTransform: "uppercase",
-                color: PAPER.dim,
-                marginBottom: 12,
-              }}
-            >
-              {YEAR} · a year in progress
+            <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 28 }}>
+              <div style={{ fontFamily: FONT.serif, fontWeight: 300, fontSize: 13, letterSpacing: "0.18em", textTransform: "uppercase", color: PAPER.faint }}>
+                Becoming
+              </div>
+              <Link to="/" style={{ fontSize: 12, color: PAPER.faint, textDecoration: "none" }}>← Life</Link>
             </div>
-            <h1 style={{ fontFamily: FONT.serif, fontWeight: 500, fontSize: "clamp(32px, 4.5vw, 56px)", margin: 0, letterSpacing: "-0.01em", lineHeight: 1.05 }}>
+            <div style={{ fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: PAPER.faint, marginBottom: 10 }}>
+              {YEAR} · in progress
+            </div>
+            <h1 style={{ fontFamily: FONT.serif, fontWeight: 400, fontSize: "clamp(32px, 4.5vw, 56px)", margin: 0, letterSpacing: "-0.01em", lineHeight: 1.05 }}>
               Your year, day by day
             </h1>
           </div>

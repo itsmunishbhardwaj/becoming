@@ -197,12 +197,16 @@ export default function Onboard() {
   return (
     <div style={pageStyle}>
       <div style={{ maxWidth: 560, margin: "0 auto", display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <header style={{ padding: "36px 26px 12px" }}>
-          <div style={kickerStyle}>STEP ZERO — THE BALBOA BREAKDOWN</div>
+        <header style={{ padding: "44px 26px 16px" }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 32 }}>
+            <div style={wordmarkStyle}>Becoming</div>
+            <Link to="/" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>← Life</Link>
+          </div>
+          <div style={kickerStyle}>Step zero — the Balboa breakdown</div>
           <h1 style={h1Style}>One step. One punch. One round.</h1>
           {!llmOn && (
             <p style={{ color: PAPER.faint, fontSize: 12, marginTop: 8 }}>
-              No LLM key set — running scripted mode. See <code>.env.example</code>.
+              No LLM key set — running scripted mode.
             </p>
           )}
         </header>
@@ -230,7 +234,7 @@ export default function Onboard() {
         </div>
 
         <footer style={{ padding: "12px 26px 24px", textAlign: "center" }}>
-          <Link to="/" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>← Back to Life</Link>
+          <span style={{ color: PAPER.faint, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase" }}>becoming</span>
         </footer>
       </div>
     </div>
@@ -243,13 +247,18 @@ const pageStyle = {
   color: PAPER.ink,
   fontFamily: FONT.sans,
 };
+const wordmarkStyle = {
+  fontFamily: FONT.serif, fontWeight: 300, fontSize: 13,
+  letterSpacing: "0.18em", textTransform: "uppercase", color: PAPER.faint,
+};
 const kickerStyle = {
-  fontSize: 11.5, letterSpacing: "1.8px", textTransform: "uppercase",
-  color: PAPER.faint, fontWeight: 500,
+  fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
+  color: PAPER.faint, fontWeight: 500, marginBottom: 10,
 };
 const h1Style = {
-  fontFamily: FONT.serif, fontWeight: 400, fontSize: TYPE.h1,
-  lineHeight: 1.25, margin: "6px 0 0", color: PAPER.ink,
+  fontFamily: FONT.serif, fontWeight: 400,
+  fontSize: "clamp(26px, 4vw, 36px)",
+  lineHeight: 1.2, margin: "0 0 0", color: PAPER.ink, letterSpacing: "-0.01em",
 };
 const bubbleBase = {
   padding: "10px 14px", borderRadius: 14, marginTop: 10,

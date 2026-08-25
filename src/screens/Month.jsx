@@ -270,7 +270,7 @@ export default function Month() {
           margin-bottom: 6px;
         }
         .month-dow-cell {
-          font-family: 'Inter', system-ui, sans-serif;
+          font-family: 'Instrument Sans', 'Inter', system-ui, sans-serif;
           font-size: 11px;
           font-weight: 500;
           letter-spacing: 0.08em;

@@ -1,13 +1,10 @@
 import { Link } from "react-router-dom";
-import { PAPER, STATE } from "../tokens.js";
+import { PAPER, FONT, STATE } from "../tokens.js";
 import Orb from "./Orb.jsx";
 import MomentumBar from "./MomentumBar.jsx";
 import { goalColor } from "../lib/goalColor.js";
 
-// Accumulation framing everywhere (docs/origin-spreadsheets.md, oblig. 5):
-// the big number is what was EARNED; the target is quiet context. Never
-// render the remainder, never headline a percentage of missed days.
-export default function GoalCard({ goal }) {
+export default function GoalCard({ goal, isFirst }) {
   const dormant = goal.state === STATE.DORMANT;
   const drift = goal.state === STATE.DRIFT;
   const completed = goal.state === STATE.COMPLETED;
@@ -19,94 +16,86 @@ export default function GoalCard({ goal }) {
       to={`/goal/${goal.id}`}
       className="goal-card"
       style={{
-        display: "block",
-        width: "100%",
-        textAlign: "left",
-        background: PAPER.card,
-        border: `1px solid ${PAPER.cardBorder}`,
-        borderRadius: 20,
-        padding: "20px 22px",
+        display: "grid",
+        gridTemplateColumns: "52px 1fr auto",
+        gap: "0 16px",
+        alignItems: "center",
+        padding: "18px 0",
+        borderTop: isFirst ? `1px solid ${PAPER.line}` : "none",
+        borderBottom: `1px solid ${PAPER.line}`,
         cursor: "pointer",
         color: PAPER.ink,
-        opacity: dormant ? 0.72 : 1,
+        opacity: dormant ? 0.62 : 1,
         textDecoration: "none",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <Orb cat={goal.cat} color={color} momentum={goal.momentum} dormant={still} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between",
-              gap: 12,
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "'Fraunces', serif",
-                fontSize: 19,
-                fontWeight: 500,
-                letterSpacing: "0.01em",
-              }}
-            >
-              {goal.name}
-            </span>
-            {dormant ? (
-              <span style={{ fontSize: 12, color: PAPER.dim, whiteSpace: "nowrap", flexShrink: 0 }}>
-                🌙 Resting since {goal.last}
-              </span>
-            ) : completed ? (
-              <span style={{ fontSize: 12, color, whiteSpace: "nowrap", flexShrink: 0 }}>
-                ✓ became real · {goal.last}
-              </span>
-            ) : (
-              // Accumulation headline: what exists now, in category color.
-              <span
-                style={{
-                  fontSize: 13,
-                  color,
-                  fontVariantNumeric: "tabular-nums",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                }}
-              >
-                {goal.headline.n} {goal.headline.unit}
-              </span>
-            )}
-          </div>
-          <div style={{ fontSize: 13, color: PAPER.dim, marginTop: 4 }}>
-            {dormant ? (
-              <em style={{ color: PAPER.faint }}>“{goal.dormantNote}”</em>
-            ) : completed ? (
-              <em style={{ color: PAPER.faint }}>“{goal.retro}”</em>
-            ) : (
-              <>
-                {goal.last} · {goal.lastDetail}
-                {goal.streak && <span style={{ color: PAPER.faint }}> · {goal.streak}</span>}
-                {drift && <span style={{ color: PAPER.whisper }}> · quiet lately</span>}
-              </>
-            )}
-          </div>
+      <Orb cat={goal.cat} color={color} momentum={goal.momentum} dormant={still} />
+
+      <div style={{ minWidth: 0 }}>
+        <div style={{
+          fontFamily: FONT.serif,
+          fontSize: 20,
+          fontWeight: 400,
+          color: PAPER.ink,
+          letterSpacing: "-0.01em",
+          lineHeight: 1.2,
+          marginBottom: still ? 0 : 8,
+          textWrap: "pretty",
+        }}>
+          {goal.name}
         </div>
+
+        {dormant && (
+          <div style={{ fontSize: 12, color: PAPER.dim, marginTop: 4, fontStyle: "italic" }}>
+            resting intentionally
+          </div>
+        )}
+        {completed && (
+          <div style={{ fontSize: 12, color, marginTop: 4 }}>
+            became real
+          </div>
+        )}
+        {!still && (
+          <MomentumBar cat={goal.cat} color={color} momentum={goal.momentum} />
+        )}
+        {drift && !still && (
+          <div style={{ fontSize: 11.5, color: PAPER.whisper, marginTop: 5 }}>
+            quiet lately
+          </div>
+        )}
+        {goal.latestNote && !still && (
+          <div style={{ fontSize: 12, color: PAPER.faint, marginTop: 6, lineHeight: 1.45, fontStyle: "italic" }}>
+            {goal.latestNote.text.length > 80
+              ? goal.latestNote.text.slice(0, 80).trimEnd() + "…"
+              : goal.latestNote.text}
+          </div>
+        )}
       </div>
 
-      {!still && <MomentumBar cat={goal.cat} color={color} momentum={goal.momentum} dormant={dormant} />}
-
-      {goal.latestNote && (
-        <div style={{ marginTop: 12, fontSize: 12.5, color: PAPER.faint, lineHeight: 1.5 }}>
-          <span style={{ fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", marginRight: 8 }}>
-            {goal.latestNote.date}
-          </span>
-          <span style={{ fontStyle: "italic" }}>
-            {goal.latestNote.text.length > 90
-              ? goal.latestNote.text.slice(0, 90).trimEnd() + "…"
-              : goal.latestNote.text}
-          </span>
-        </div>
-      )}
-
+      <div style={{
+        fontFamily: FONT.serif,
+        fontSize: 34,
+        fontWeight: 300,
+        color: PAPER.faint,
+        lineHeight: 1,
+        textAlign: "right",
+        whiteSpace: "nowrap",
+        minWidth: 48,
+      }}>
+        {goal.headline?.n ?? ""}
+        <span style={{
+          display: "block",
+          fontFamily: FONT.sans,
+          fontSize: 9,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: PAPER.faint,
+          marginTop: 3,
+          textAlign: "right",
+        }}>
+          {goal.headline?.unit ?? ""}
+        </span>
+      </div>
     </Link>
   );
 }

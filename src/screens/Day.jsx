@@ -129,13 +129,19 @@ export default function Day() {
       <div className="day-shell" style={containerStyle}>
         <Link to="/year" style={backLink}>← Year</Link>
 
-        <header style={{ marginTop: 12, marginBottom: 24 }}>
-          <div style={kickerStyle}>{humanDate(date).split(",")[0].toUpperCase()}</div>
-          <h1 style={h1Style}>{humanDate(date).split(", ").slice(1).join(", ")}</h1>
+        <header style={{ marginTop: 16, marginBottom: 36 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 24 }}>
+            <div style={wordmarkStyle}>Becoming</div>
+            <div style={{ fontSize: 12, color: PAPER.faint }}>{humanDate(date).split(",")[0]}</div>
+          </div>
+          <div style={kickerStyle}>{humanDate(date).replace(/^[^,]+,\s*/, "")}</div>
+          <h1 style={h1Style}>
+            {new Date(date + "T00:00:00").getDate()}
+          </h1>
         </header>
 
         {events.length === 0 ? (
-          <p style={{ fontFamily: FONT.serif, fontStyle: "italic", fontSize: TYPE.ambition, color: PAPER.dim }}>
+          <p className="day-empty" style={{ fontFamily: FONT.serif, fontStyle: "italic", fontSize: TYPE.ambition, color: PAPER.dim }}>
             A quiet day. Rest counts too.
           </p>
         ) : (
@@ -265,16 +271,21 @@ const pageStyle = {
 };
 const containerStyle = { margin: "0 auto" };
 const backLink = { color: PAPER.dim, fontSize: 13, textDecoration: "none" };
+const wordmarkStyle = {
+  fontFamily: FONT.serif, fontWeight: 300, fontSize: 13,
+  letterSpacing: "0.18em", textTransform: "uppercase", color: PAPER.faint,
+};
 const kickerStyle = {
-  fontSize: 11.5, letterSpacing: "1.8px", textTransform: "uppercase",
-  color: PAPER.faint, fontWeight: 500,
+  fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
+  color: PAPER.faint, fontWeight: 500, marginBottom: 4,
 };
 const h1Style = {
-  fontFamily: FONT.serif, fontWeight: 400, fontSize: TYPE.h1,
-  lineHeight: 1.25, margin: "6px 0 0", color: PAPER.ink,
+  fontFamily: FONT.serif, fontWeight: 300,
+  fontSize: "clamp(56px, 10vw, 96px)",
+  lineHeight: 0.95, margin: "0", color: PAPER.ink, letterSpacing: "-0.03em",
 };
 const sectionKicker = {
-  fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase",
+  fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
   color: PAPER.faint, fontWeight: 500,
 };
 const eventRow = {

@@ -31,36 +31,30 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .orb-breathe { animation: orb-breathe 7s ease-in-out infinite; }
 
-/* ── GoalCard ──────────────────────────────────────────────── */
+/* ── GoalCard (synthesis row) ──────────────────────────────── */
 .goal-card {
-  transition: transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
-  will-change: transform;
+  transition: opacity 150ms var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
-  .goal-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(85, 80, 92, 0.10);
-  }
+  .goal-card:hover { opacity: 0.62 !important; }
 }
-.goal-card:active {
-  transform: scale(0.98);
-  box-shadow: none;
-}
+.goal-card:active { opacity: 0.45 !important; }
 
 /* ── GoalCard stagger ──────────────────────────────────────── */
 @keyframes card-enter {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.home-goals-grid > * { animation: card-enter 320ms var(--ease-out) both; }
-.home-goals-grid > *:nth-child(1) { animation-delay: 0ms; }
-.home-goals-grid > *:nth-child(2) { animation-delay: 55ms; }
-.home-goals-grid > *:nth-child(3) { animation-delay: 110ms; }
-.home-goals-grid > *:nth-child(4) { animation-delay: 165ms; }
-.home-goals-grid > *:nth-child(5) { animation-delay: 220ms; }
-.home-goals-grid > *:nth-child(6) { animation-delay: 275ms; }
-.home-goals-grid > *:nth-child(7) { animation-delay: 330ms; }
-.home-goals-grid > *:nth-child(8) { animation-delay: 385ms; }
+.home-main > div > a,
+.home-main > div > .goal-card { animation: card-enter 280ms var(--ease-out) both; }
+.home-main > div > *:nth-child(1) { animation-delay: 0ms; }
+.home-main > div > *:nth-child(2) { animation-delay: 50ms; }
+.home-main > div > *:nth-child(3) { animation-delay: 100ms; }
+.home-main > div > *:nth-child(4) { animation-delay: 150ms; }
+.home-main > div > *:nth-child(5) { animation-delay: 200ms; }
+.home-main > div > *:nth-child(6) { animation-delay: 250ms; }
+.home-main > div > *:nth-child(7) { animation-delay: 300ms; }
+.home-main > div > *:nth-child(8) { animation-delay: 350ms; }
 
 /* ── LogBlob ───────────────────────────────────────────────── */
 @keyframes lb-breathe {
