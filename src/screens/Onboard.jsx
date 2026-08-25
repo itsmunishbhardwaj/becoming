@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { AnimatePresence, motion } from "motion/react";
 import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
 import {
   initialState, applyInput, nextTurn, finalize, validate, TURNS,
@@ -208,11 +209,19 @@ export default function Onboard() {
         </header>
 
         <div ref={scrollRef} style={{ flex: 1, padding: "0 26px 24px", overflowY: "auto" }}>
-          {transcript.map((m, i) => (
-            <div key={i} style={m.role === "user" ? userBubble : assistantBubble}>
-              {m.text}
-            </div>
-          ))}
+          <AnimatePresence initial={false}>
+            {transcript.map((m, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 6, x: m.role === "user" ? 6 : -6 }}
+                animate={{ opacity: 1, y: 0, x: 0 }}
+                transition={{ type: "spring", duration: 0.3, bounce: 0 }}
+                style={m.role === "user" ? userBubble : assistantBubble}
+              >
+                {m.text}
+              </motion.div>
+            ))}
+          </AnimatePresence>
           {error && <div style={{ color: PAPER.whisper, fontSize: 12, marginTop: 8 }}>{error}</div>}
         </div>
 

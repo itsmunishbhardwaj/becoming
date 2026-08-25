@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { PAPER } from "../tokens.js";
 import { goalColor } from "../lib/goalColor.js";
 import Blob from "./Blob.jsx";
@@ -105,26 +106,37 @@ export default function DayCell({
         </text>
       )}
 
-      {marks.map(({ g, status }, i) => {
-        const ang = (i / Math.max(marks.length, 1)) * Math.PI * 2 + i;
-        const off = marks.length > 1 ? 2 : 0;
-        const faded = focus && g.id !== focus.id;
-        const op = status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
-        const color = goalColor(g);
-        return (
-          <g key={g.id} opacity={faded && status !== "off" ? 0.15 : 1}>
-            <Blob
-              cx={c + Math.cos(ang) * off}
-              cy={c + Math.sin(ang) * off}
-              color={color}
-              seed={(dayIdx + 1) + i * 31}
-              big={marks.length === 1}
-              opacity={op}
-              scale={blobScale}
-            />
-          </g>
-        );
-      })}
+      <AnimatePresence initial={false}>
+        {marks.map(({ g, status }, i) => {
+          const ang = (i / Math.max(marks.length, 1)) * Math.PI * 2 + i;
+          const off = marks.length > 1 ? 2 : 0;
+          const faded = focus && g.id !== focus.id;
+          const op = status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
+          const color = goalColor(g);
+          const bx = c + Math.cos(ang) * off;
+          const by = c + Math.sin(ang) * off;
+          return (
+            <motion.g
+              key={g.id}
+              initial={{ opacity: 0, scale: 0.3 }}
+              animate={{ opacity: faded && status !== "off" ? 0.15 : 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.3 }}
+              transition={{ type: "spring", duration: 0.3, bounce: 0.2 }}
+              style={{ transformOrigin: `${bx}px ${by}px` }}
+            >
+              <Blob
+                cx={bx}
+                cy={by}
+                color={color}
+                seed={(dayIdx + 1) + i * 31}
+                big={marks.length === 1}
+                opacity={op}
+                scale={blobScale}
+              />
+            </motion.g>
+          );
+        })}
+      </AnimatePresence>
     </svg>
   );
 }
