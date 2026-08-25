@@ -66,26 +66,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
   box-shadow: none;
 }
 
-/* ── LogSheet scrim ────────────────────────────────────────── */
-.ls-scrim {
-  opacity: 1;
-  transition: opacity 200ms ease;
-}
-.ls-scrim[data-closing] { opacity: 0; }
-@starting-style {
-  .ls-scrim { opacity: 0; }
-}
-
-/* ── LogSheet panel ────────────────────────────────────────── */
-.ls-sheet {
-  transform: translateY(0);
-  transition: transform 240ms var(--ease-drawer);
-}
-.ls-sheet[data-closing] { transform: translateY(100%); }
-@starting-style {
-  .ls-sheet { transform: translateY(100%); }
-}
-
 /* ── LogSheet row stagger ──────────────────────────────────── */
 @keyframes ls-row-enter {
   from { opacity: 0; transform: translateY(4px); }
@@ -124,7 +104,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .orb-breathe  { animation: none; }
   .log-blob     { animation: none; }
   .home-goals-grid > * { animation: none; }
-  .ls-sheet,
-  .ls-scrim     { transition: none; }
+  /* motion respects prefers-reduced-motion natively */
   .insight-card { transition: none; }
 }
