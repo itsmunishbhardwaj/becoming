@@ -32,7 +32,13 @@ Home is night so glowing orbs read as momentum. Calendar is paper so pastel circ
 
 ## Motion
 
-Nothing appears suddenly; things morph. Orbs breathe (4.5s scale 1→1.12). Momentum bars ease-fill. All motion gated behind `prefers-reduced-motion`.
+Nothing appears suddenly; things morph. All motion gated behind `prefers-reduced-motion`.
+
+**Orb breathe** (`orb-breathe`, 11s linear infinite): mimics human breathing — inhale ~3s (scale 1→1.17, border-radius morphs), hold ~1s, exhale ~6s, rest ~1s. Irregular blob shape throughout. Dormant orbs are still.
+
+**Calendar blob entry** (`blob-surface`, 560ms ease-out): new blobs surface from scale 0.84 to 1.0 with opacity fade-in when a day is tapped. No stagger; each blob enters independently. Faded-goal opacity is baked into the SVG path's `opacity` attribute, not the `<g>` wrapper, so the entry animation doesn't override it.
+
+**"Becoming" intro** (Home, plays once per mount): original word rises from 36px below center (translateY) while an inverted blurred reflection simultaneously drops 24px downward — text and reflection split apart from the water surface between them. Hold, then mist exit: word drifts 22px upward and blurs to 16px, dissolving all at once. Background curtain fades over 0.55s. Total ~3.6s. Reduced motion: overlay hidden entirely.
 
 Roadmap motion: year→month→day is a continuous zoom (circles grow into day cells into activity labels), not a page change.
 

@@ -1,7 +1,7 @@
 import { CATS, RADIUS } from "../tokens.js";
 
 // Breathing momentum orb. Size + glow = momentum. Dormant = still + faded.
-export default function Orb({ cat, momentum, dormant, color: colorProp, size: sizeProp }) {
+export default function Orb({ cat, momentum, dormant, color: colorProp, size: sizeProp, viewTransitionName }) {
   const color = colorProp || CATS[cat]?.color;
   const box = sizeProp || 60;
   const size = box * 0.88;
@@ -22,9 +22,10 @@ export default function Orb({ cat, momentum, dormant, color: colorProp, size: si
           width: size,
           height: size,
           borderRadius: RADIUS.blob,
-          background: `radial-gradient(circle at 35% 30%, ${color}, ${color}66 70%)`,
-          boxShadow: dormant ? "none" : `0 0 ${10 + momentum * 22}px ${color}55`,
-          opacity: dormant ? 0.4 : 0.65 + momentum * 0.35,
+          background: `radial-gradient(circle at 35% 30%, ${color}, ${color}99 80%)`,
+          boxShadow: "none",
+          opacity: dormant ? 0.45 : 1,
+          viewTransitionName: viewTransitionName || undefined,
         }}
       />
     </div>

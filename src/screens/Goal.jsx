@@ -133,13 +133,15 @@ export default function Goal() {
               }}
             >
               <Orb cat={goal.cat} color={catHue} momentum={goalMomentum}
-                still={goal.state !== "active" && goal.state !== "drift"} />
+                still={goal.state !== "active" && goal.state !== "drift"}
+                viewTransitionName={`orb-${goal.id}`} />
             </button>
             <div style={{ flex: 1 }}>
               <h1 style={{
-                fontFamily: FONT.serif, fontWeight: 400,
+                fontFamily: FONT.serif, fontWeight: 600,
                 fontSize: "clamp(28px, 4vw, 42px)",
-                margin: 0, color: PAPER.ink, letterSpacing: "-0.01em", lineHeight: 1.1,
+                margin: 0, color: PAPER.ink, letterSpacing: "-0.01em", lineHeight: 1.1, textWrap: "balance",
+                viewTransitionName: `goal-name-${goal.id}`,
               }}>
                 {goal.name}
               </h1>
@@ -171,13 +173,14 @@ export default function Goal() {
                     aria-pressed={catHue === p.color}
                     title={p.name}
                     style={{
-                      width: 36, height: 36, borderRadius: "50%",
-                      background: `radial-gradient(circle at 35% 30%, ${p.color}, ${p.color}99 70%)`,
-                      boxShadow: catHue === p.color
-                        ? `0 0 0 2px ${PAPER.ink}, 0 0 12px ${p.color}80`
-                        : `0 0 10px ${p.color}55`,
+                      width: 36, height: 36,
+                      borderRadius: RADIUS.blob,
+                      background: `radial-gradient(circle at 35% 30%, ${p.color}, ${p.color}99 80%)`,
+                      boxShadow: catHue === p.color ? `0 0 0 2px ${PAPER.ink}` : "none",
+                      outline: "none",
                       border: "none", cursor: savingColor ? "default" : "pointer", padding: 0,
                     }}
+                    className="orb-breathe"
                   />
                 ))}
               </div>
@@ -190,8 +193,8 @@ export default function Goal() {
           fontFamily: FONT.serif, fontStyle: "italic",
           fontSize: 20, lineHeight: 1.6,
           color: PAPER.ink, margin: "0 0 40px",
-          borderLeft: `2px solid ${catHue}`,
-          paddingLeft: 20,
+          borderInlineStart: `2px solid ${catHue}`,
+          paddingInlineStart: 20,
         }}>
           "{goal.ambition}"
         </blockquote>
@@ -273,7 +276,7 @@ export default function Goal() {
               ) : (
                 <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 20 }}>
                   {notesTimeline.map(({ date, text }) => (
-                    <div key={date} style={{ borderLeft: `1.5px solid ${PAPER.line}`, paddingLeft: 16 }}>
+                    <div key={date} style={{ borderInlineStart: `1.5px solid ${PAPER.line}`, paddingInlineStart: 16 }}>
                       <div style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: PAPER.faint, marginBottom: 6 }}>
                         {humanDay(date)}
                       </div>

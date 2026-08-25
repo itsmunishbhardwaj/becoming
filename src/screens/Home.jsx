@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
 import { listGoals, readLogsInRange, saveGoal } from "../data/store.js";
@@ -84,10 +85,8 @@ function MiniYearGrid({ logs, goals }) {
                 width: "100%",
                 aspectRatio: "1",
                 borderRadius: 1,
-                background: !day || day.future
-                  ? "transparent"
-                  : day.color ? day.color : PAPER.track,
-                opacity: day?.color ? 0.75 : 1,
+                background: day?.color ? day.color : PAPER.track,
+                opacity: day?.color ? 0.8 : (day?.future ? 0.35 : 0.6),
               }}
             />
           ))}
@@ -110,7 +109,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!showIntro) return;
-    const t = setTimeout(() => setShowIntro(false), 2400);
+    const t = setTimeout(() => setShowIntro(false), 3700);
     return () => clearTimeout(t);
   }, [showIntro]);
 
@@ -151,7 +150,10 @@ export default function Home() {
         last: "—",
         lastDetail: "no logs yet",
         streak: null,
-        headline: g.headline || { n: 0, unit: "days marked" },
+        headline: (() => {
+          const n = logs.filter((l) => l.events.some((e) => e.goalId === g.id)).length;
+          return { n, unit: "days marked" };
+        })(),
         period: g.rounds && g.rounds[g.currentRound - 1]
           ? { label: `Round ${g.currentRound}`, target: renderTargetLabel(g) }
           : null,
@@ -180,15 +182,46 @@ export default function Home() {
   return (
     <div style={pageStyle}>
       <style>{`
-        @keyframes home-intro {
-          0%   { opacity: 0; transform: translateY(6px); }
-          38%  { opacity: 1; transform: translateY(0); }
-          68%  { opacity: 1; transform: translateY(0); }
-          100% { opacity: 0; transform: translateY(-4px); }
+        /* Container: opacity fade-in + mist exit (blur + upward drift). */
+        @keyframes home-intro-container {
+          0%   { opacity: 0; }
+          24%  { opacity: 1; }
+          68%  { opacity: 1; filter: blur(0px); transform: translateY(0); }
+          100% { opacity: 0; filter: blur(16px); transform: translateY(-22px); }
         }
-        .home-intro-word { animation: home-intro 2.4s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        /* Real text: rises upward into position. */
+        @keyframes home-intro-text-rise {
+          0%   { transform: translateY(36px); }
+          28%  { transform: translateY(0); }
+          100% { transform: translateY(0); }
+        }
+        /* Reflection: drops downward into position — opposite direction. */
+        @keyframes home-intro-reflect-drop {
+          0%   { transform: translateY(-24px); }
+          28%  { transform: translateY(0); }
+          100% { transform: translateY(0); }
+        }
+        @keyframes home-intro-curtain {
+          from { opacity: 1; }
+          to   { opacity: 0; }
+        }
+        .home-intro-container {
+          animation: home-intro-container 3s ease-out both;
+          display: inline-block;
+          position: relative;
+        }
+        .home-intro-text-inner {
+          animation: home-intro-text-rise 3s ease-out both;
+        }
+        .home-intro-reflect-wrapper {
+          animation: home-intro-reflect-drop 3s ease-out both;
+          margin-top: 5px;
+        }
+        .home-intro-overlay {
+          animation: home-intro-curtain 0.55s ease-out 3s both;
+        }
         @media (prefers-reduced-motion: reduce) {
-          .home-intro-word { animation: none; opacity: 0; }
+          .home-intro-container, .home-intro-overlay { display: none; }
         }
 
         /* ── Layout shells ─────────── */
@@ -196,7 +229,8 @@ export default function Home() {
           display: flex;
           flex-direction: column;
           min-height: 100dvh;
-          padding: 44px 26px 100px;
+          padding: 44px 26px 60px;
+          box-sizing: border-box;
         }
         .home-header {
           display: flex;
@@ -204,29 +238,29 @@ export default function Home() {
           justify-content: space-between;
           gap: 16px;
           margin-bottom: 48px;
+          flex-shrink: 0;
         }
-        .home-body {
-          display: flex;
-          flex-direction: column;
+        .home-main {
           flex: 1;
-          gap: 0;
         }
-        .home-sidebar { order: 2; margin-top: 56px; }
-        .home-main    { order: 1; }
+        .home-footer {
+          margin-top: 56px;
+          flex-shrink: 0;
+          padding-top: 40px;
+          border-top: 1px solid ${PAPER.line};
+        }
+        .home-footer-nav {
+          display: flex;
+          gap: 24px;
+          margin-top: 20px;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+        }
 
         @media (min-width: 768px) {
-          .home-layout  { padding: 52px 64px 80px; }
-          .home-header  { margin-bottom: 56px; }
-          .home-body    { flex-direction: row; align-items: start; gap: 72px; }
-          .home-sidebar {
-            order: 1;
-            width: 240px;
-            flex-shrink: 0;
-            margin-top: 0;
-            position: sticky;
-            top: 52px;
-          }
-          .home-main    { order: 2; flex: 1; max-width: 520px; }
+          .home-layout { padding: 52px 64px 80px; }
+          .home-header { margin-bottom: 56px; }
         }
 
         /* ── Goal rows ─────────────── */
@@ -247,15 +281,36 @@ export default function Home() {
       `}</style>
 
       {showIntro && (
-        <div style={{
-          position: "fixed", inset: 0, background: PAPER.bg,
-          display: "grid", placeItems: "center", zIndex: 100, pointerEvents: "none",
-        }}>
-          <div className="home-intro-word" style={{
-            fontFamily: FONT.serif, fontWeight: 300, fontSize: 56,
-            color: PAPER.ink, letterSpacing: "-0.02em",
-          }}>
-            Becoming
+        <div
+          className="home-intro-overlay"
+          style={{
+            position: "fixed", inset: 0, background: PAPER.bg,
+            display: "grid", placeItems: "center", zIndex: 100, pointerEvents: "none",
+          }}
+        >
+          <div className="home-intro-container">
+            {/* Real text — rises upward */}
+            <div
+              className="home-intro-text-inner"
+              style={{
+                fontFamily: FONT.serif, fontWeight: 300, fontSize: 56,
+                color: PAPER.ink, letterSpacing: "-0.02em", lineHeight: 1,
+              }}
+            >
+              Becoming
+            </div>
+            {/* Reflection — in normal flow below original, scaleY(-1) flips it in place */}
+            <div aria-hidden="true" className="home-intro-reflect-wrapper">
+              <div style={{
+                fontFamily: FONT.serif, fontWeight: 300, fontSize: 56,
+                color: PAPER.ink, letterSpacing: "-0.02em", lineHeight: 1,
+                transform: "scaleY(-1)",
+                filter: "blur(6px)",
+                opacity: 0.28,
+              }}>
+                Becoming
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -266,61 +321,71 @@ export default function Home() {
           <div style={dateLine}>{today}</div>
         </div>
 
-        <div className="home-body">
-          {/* Sidebar — year activity grid + nav */}
-          <aside className="home-sidebar">
-            <div style={sectionLabel}>This year</div>
-            {goals !== null && (
-              <MiniYearGrid logs={logs} goals={goals} />
+        {/* Main — goals list, fills all available width */}
+        <main className="home-main">
+          <AnimatePresence>
+            {activeInsight && (
+              <motion.div
+                key={activeInsight.id}
+                exit={{
+                  opacity: 0,
+                  transform: "translateY(-10px) scale(0.97)",
+                }}
+                transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                style={{ marginBottom: 28 }}
+              >
+                <InsightCard question={activeInsight} onAnswer={(id) => dismissInsight(id)} />
+              </motion.div>
             )}
-            <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 10 }}>
+          </AnimatePresence>
+
+          {goals === null && (
+            <p style={{ color: PAPER.faint, fontSize: TYPE.body }}>Reading your vault…</p>
+          )}
+
+          {goals && goals.length === 0 && <EmptyHome />}
+
+          {goals && goals.length > 0 && (
+            <>
+              <div style={sectionLabel}>Your goals</div>
+              <div style={{ marginTop: 4 }}>
+                {enriched.map((g, i) => (
+                  <GoalCard key={g.id} goal={g} index={i} />
+                ))}
+              </div>
+              <div style={{ marginTop: 40 }}>
+                <Link to="/create" className="home-cta" style={newGoalBtn}>
+                  <span style={plusRing}>+</span>
+                  begin something new
+                </Link>
+                <div style={{ marginTop: 10 }}>
+                  <Link to="/onboard" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>
+                    or walk it out with the Balboa breakdown →
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
+        </main>
+
+        {/* Footer — year activity grid, always at bottom */}
+        <footer className="home-footer">
+          <div style={sectionLabel}>This year</div>
+          {goals !== null && (
+            <MiniYearGrid logs={logs} goals={goals} />
+          )}
+          <div className="home-footer-nav">
+            <div style={{ display: "flex", gap: 24 }}>
               <Link to="/year" style={sideNavLink}>Year →</Link>
               <Link to={`/month/${todayLocalISO().slice(0, 7)}`} style={sideNavLink}>Month →</Link>
             </div>
             {goals && activeGoals.length > 0 && (
-              <div style={{ marginTop: 24, fontSize: 12, color: PAPER.faint }}>
+              <div style={{ fontSize: 12, color: PAPER.faint }}>
                 {activeGoals.length} goal{activeGoals.length === 1 ? "" : "s"} in motion
               </div>
             )}
-          </aside>
-
-          {/* Main — goals list */}
-          <main className="home-main">
-            {activeInsight && (
-              <div style={{ marginBottom: 28 }}>
-                <InsightCard question={activeInsight} onAnswer={(id) => dismissInsight(id)} />
-              </div>
-            )}
-
-            {goals === null && (
-              <p style={{ color: PAPER.faint, fontSize: TYPE.body }}>Reading your vault…</p>
-            )}
-
-            {goals && goals.length === 0 && <EmptyHome />}
-
-            {goals && goals.length > 0 && (
-              <>
-                <div style={sectionLabel}>Your goals</div>
-                <div style={{ marginTop: 4 }}>
-                  {enriched.map((g, i) => (
-                    <GoalCard key={g.id} goal={g} index={i} />
-                  ))}
-                </div>
-                <div style={{ marginTop: 40 }}>
-                  <Link to="/create" className="home-cta" style={newGoalBtn}>
-                    <span style={plusRing}>+</span>
-                    begin something new
-                  </Link>
-                  <div style={{ marginTop: 10 }}>
-                    <Link to="/onboard" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>
-                      or walk it out with the Balboa breakdown →
-                    </Link>
-                  </div>
-                </div>
-              </>
-            )}
-          </main>
-        </div>
+          </div>
+        </footer>
       </div>
 
       {goals && goals.length > 0 && (
@@ -383,11 +448,11 @@ const pageStyle = {
 };
 const wordmarkStyle = {
   fontFamily: FONT.serif,
-  fontWeight: 300,
+  fontWeight: 600,
   fontSize: 13,
-  letterSpacing: "0.18em",
+  letterSpacing: "0.14em",
   textTransform: "uppercase",
-  color: PAPER.faint,
+  color: PAPER.dim,
   flexShrink: 0,
 };
 const dateLine = {

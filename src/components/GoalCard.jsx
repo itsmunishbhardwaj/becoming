@@ -13,6 +13,7 @@ export default function GoalCard({ goal, index = 0 }) {
   return (
     <Link
       to={`/goal/${goal.id}`}
+      unstable_viewTransition
       className={`goal-row goal-row-${index}`}
       style={{
         display: "grid",
@@ -29,7 +30,7 @@ export default function GoalCard({ goal, index = 0 }) {
         transition: "opacity 150ms cubic-bezier(0.23, 1, 0.32, 1)",
       }}
     >
-      {/* Orb — direct blob div matching prototype exactly */}
+      {/* Orb — view-transition-name enables morph to goal detail page */}
       <div
         className="goal-orb orb-breathe"
         style={{
@@ -40,6 +41,7 @@ export default function GoalCard({ goal, index = 0 }) {
           flexShrink: 0,
           animationDelay: dormant ? "0s" : ORB_DELAYS[index % ORB_DELAYS.length],
           animation: dormant ? "none" : undefined,
+          viewTransitionName: `orb-${goal.id}`,
         }}
       />
 
@@ -49,13 +51,14 @@ export default function GoalCard({ goal, index = 0 }) {
           className="goal-name-text"
           style={{
             fontFamily: FONT.serif,
-            fontWeight: 400,
+            fontWeight: 600,
             fontSize: 20,
-            lineHeight: 1.2,
+            lineHeight: 1.35,
             color: PAPER.ink,
             letterSpacing: "-0.01em",
             marginBottom: 8,
             textWrap: "pretty",
+            viewTransitionName: `goal-name-${goal.id}`,
           }}
         >
           {goal.name}
@@ -78,7 +81,7 @@ export default function GoalCard({ goal, index = 0 }) {
         </div>
 
         {goal.state === "drift" && (
-          <div style={{ fontSize: 11.5, color: PAPER.whisper, marginTop: 5 }}>quiet lately</div>
+          <div style={{ fontSize: 12, color: PAPER.whisper, marginTop: 5 }}>quiet lately</div>
         )}
       </div>
 
@@ -91,6 +94,7 @@ export default function GoalCard({ goal, index = 0 }) {
           fontWeight: 300,
           color: PAPER.faint,
           lineHeight: 1,
+          fontVariantNumeric: "tabular-nums",
           textAlign: "right",
           whiteSpace: "nowrap",
         }}
@@ -99,8 +103,8 @@ export default function GoalCard({ goal, index = 0 }) {
         <span style={{
           display: "block",
           fontFamily: FONT.sans,
-          fontSize: 9,
-          letterSpacing: "0.14em",
+          fontSize: 10.5,
+          letterSpacing: "0.12em",
           textTransform: "uppercase",
           color: PAPER.faint,
           textAlign: "right",

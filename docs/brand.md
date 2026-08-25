@@ -31,23 +31,23 @@ Per-screen anatomy: `docs/ui-spec.md`.
 
 | Token | Hex | Use |
 |---|---|---|
-| bg | `#FBFBF9` | base background — cool near-white |
-| card | `#FFFFFF` | surfaces, held apart by hairline + shadow |
-| line | `#E7E2D5` | hairlines |
-| panel | `#F4F2EA` | recessed panels |
-| ink | `#55505C` | text |
-| dim | `#97919F` | secondary |
-| faint | `#C9C3CE` | tertiary, empty-day dots |
+| bg | `#F3EDE2` | base background — warm cream (deanira/bodega palette) |
+| card | `#FAF6EE` | surfaces, held apart by hairline + shadow |
+| line | `#DDD4C0` | hairlines |
+| panel | `#EBE3D2` | recessed panels |
+| ink | `#35303C` | text — deep warm charcoal |
+| dim | `#7A7485` | secondary |
+| faint | `#ACA5B4` | tertiary, empty-day dots |
 | whisper | `#B9A87F` | drift only |
-| track | `#ECE8DD` | progress troughs |
-| miss | `#EDE9DE` | habit-strip misses — near-invisible on purpose |
+| track | `#E2D9C6` | progress troughs |
+| miss | `#E8DFD0` | habit-strip misses — near-invisible on purpose |
 | AI | `#A8BEE8` | category |
-| Career | `#E9B3B7` | category |
-| Health | `#A9CEBB` | category |
+| Career | `#E8A8BA` | category — hue shifted to H=344° (rose-pink, not red-adjacent) |
+| Health | `#98C9AE` | category |
 | Relationships | `#EBC3A0` | category |
-| Reading | `#C5B5E3` | category |
-| Creativity | `#E5D6A3` | category |
-| Finance | `#A7D8D5` | category |
+| Reading | `#BBA8E0` | category |
+| Creativity | `#DDB84E` | category — amber-gold; was `#E5D6A3` which was invisible on track trough |
+| Finance | `#7FC8C4` | category |
 
 Note: the base was warmed to eggshell during design review and rejected —
 `#FBFBF9` won because it lets the pastels be the only colour on the page.

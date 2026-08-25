@@ -5,37 +5,80 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* ── Paper grain overlay ───────────────────────────────────── */
-/* Matches brand.md "paper grain" rule. Fixed above all layers, */
-/* pointer-events:none so it never blocks interaction.          */
+/* ── Vellum Mist overlay ───────────────────────────────────── */
+/* Two layers: fine vellum grain (top) + soft warm-white mist   */
+/* haze (beneath). Recreates the translucent atmospheric quality */
+/* of vellum paper — mist is the milky glow behind the texture. */
 .grain {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.045;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
+  opacity: 0.065;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.48' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 300px 300px;
+}
+/* Cool-white mist: subtle halos at edges, like studio lighting   */
+/* on a matte grey surface. Sits just below grain layer.          */
+.vellum-mist {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background:
+    radial-gradient(ellipse 120% 45% at 50% 0%,   rgba(255,255,255,0.14) 0%, transparent 70%),
+    radial-gradient(ellipse 100% 35% at 50% 100%, rgba(255,255,255,0.08) 0%, transparent 65%),
+    radial-gradient(ellipse 60%  80% at 0%   50%, rgba(255,255,255,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60%  80% at 100% 50%, rgba(255,255,255,0.05) 0%, transparent 60%);
 }
 @media (prefers-reduced-motion: reduce) {
-  /* grain is static, no motion — keep it */
+  /* grain + mist are static — keep both */
+}
+
+/* ── Root typography ───────────────────────────────────────── */
+/* Font smoothing once on root — macOS renders Fraunces heavier  */
+/* without antialiased; never set per-component.                 */
+/* font-optical-sizing: auto activates Fraunces opsz axis so    */
+/* letterforms optimize at every size (9–144pt range loaded).   */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
 }
 
 /* ── Tap highlight ─────────────────────────────────────────── */
 button, a { -webkit-tap-highlight-color: transparent; }
 
 /* ── Orb breathe ───────────────────────────────────────────── */
+/* Calm human breathing: inhale ~3s, hold ~1s, exhale ~6s, rest ~1s. */
+/* Shape morphs between distinct irregular blobs — never approaches round. */
 @keyframes orb-breathe {
-  0%, 100% {
+  0% {
     transform: scale(1);
-    border-radius: 58% 42% 55% 45% / 45% 55% 42% 58%;
+    border-radius: 67% 33% 52% 48% / 42% 58% 35% 65%;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
   }
-  50% {
-    transform: scale(1.06);
-    border-radius: 45% 55% 42% 58% / 58% 42% 55% 45%;
+  27% {
+    transform: scale(1.17);
+    border-radius: 38% 62% 63% 37% / 60% 35% 65% 40%;
+    animation-timing-function: ease;
+  }
+  36% {
+    transform: scale(1.17);
+    border-radius: 35% 65% 58% 42% / 55% 40% 60% 45%;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  91% {
+    transform: scale(1);
+    border-radius: 67% 33% 52% 48% / 42% 58% 35% 65%;
+    animation-timing-function: ease;
+  }
+  100% {
+    transform: scale(1);
+    border-radius: 67% 33% 52% 48% / 42% 58% 35% 65%;
   }
 }
-.orb-breathe { animation: orb-breathe 7s ease-in-out infinite; }
+.orb-breathe { animation: orb-breathe 11s linear infinite; }
 
 /* ── GoalCard (synthesis row) ──────────────────────────────── */
 .goal-card {
@@ -64,11 +107,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 /* ── LogBlob ───────────────────────────────────────────────── */
 @keyframes lb-breathe {
-  0%, 100% { border-radius: 58% 42% 55% 45% / 45% 55% 42% 58%; }
-  50%      { border-radius: 45% 55% 42% 58% / 58% 42% 55% 45%; }
+  0%, 100% { border-radius: 67% 33% 52% 48% / 42% 58% 35% 65%; }
+  33%      { border-radius: 38% 62% 63% 37% / 60% 35% 65% 40%; }
+  66%      { border-radius: 52% 48% 35% 65% / 65% 35% 58% 42%; }
 }
 .log-blob {
-  animation: lb-breathe 7s ease-in-out infinite;
+  animation: lb-breathe 11s ease-in-out infinite;
   transition: transform 120ms var(--ease-out), box-shadow 120ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
@@ -80,6 +124,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .log-blob:active {
   transform: scale(0.92);
   box-shadow: none;
+}
+
+/* ── Year tooltip entry ────────────────────────────────────── */
+.year-tip {
+  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+@starting-style {
+  .year-tip { opacity: 0; transform: translateX(-50%) translateY(6px); }
 }
 
 /* ── LogSheet row stagger ──────────────────────────────────── */
@@ -115,11 +167,57 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .home-cta { transition: transform 120ms var(--ease-out), opacity 120ms ease; }
 .home-cta:active { transform: scale(0.97); opacity: 0.82; }
 
+/* ── View Transitions ──────────────────────────────────────── */
+/* Orb morphs between home list (52px) and goal detail (53px).  */
+/* Goal name morphs from 20px list size to clamp(28,4vw,42px).  */
+/* Old page fades out, new page fades+slides in.                 */
+::view-transition-old(root) {
+  animation: vt-fade-out 220ms var(--ease-out) both;
+}
+::view-transition-new(root) {
+  animation: vt-fade-in 320ms var(--ease-out) both;
+}
+@keyframes vt-fade-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+@keyframes vt-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* Named elements morph automatically — browser handles the tween. */
+/* Pause the orb breathe animation during transition so it doesn't */
+/* fight the morph transform.                                       */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-timing-function: var(--ease-out);
+}
+
+/* ── Year blob entry ───────────────────────────────────────── */
+/* Slow opacity rise + barely-there scale: surfaces like condensation.    */
+/* No overshoot. ease-out so deceleration feels like water's own weight.  */
+@keyframes blob-surface {
+  0%   { opacity: 0; transform: scale(0.84); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes blob-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.blob-enter {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blob-surface 560ms ease-out both;
+}
+
 /* ── Reduced motion ────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .orb-breathe  { animation: none; }
   .log-blob     { animation: none; }
   .home-goals-grid > * { animation: none; }
-  /* motion respects prefers-reduced-motion natively */
   .insight-card { transition: none; }
+  .blob-enter   { animation: blob-fade 180ms ease both; }
+  /* Skip view transitions entirely */
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
 }

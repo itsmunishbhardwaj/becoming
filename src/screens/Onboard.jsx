@@ -204,11 +204,6 @@ export default function Onboard() {
           </div>
           <div style={kickerStyle}>Step zero — the Balboa breakdown</div>
           <h1 style={h1Style}>One step. One punch. One round.</h1>
-          {!llmOn && (
-            <p style={{ color: PAPER.faint, fontSize: 12, marginTop: 8 }}>
-              No LLM key set — running scripted mode.
-            </p>
-          )}
         </header>
 
         <div ref={scrollRef} style={{ flex: 1, padding: "0 26px 24px", overflowY: "auto" }}>

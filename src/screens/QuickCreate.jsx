@@ -63,7 +63,7 @@ export default function QuickCreate() {
       nav("/");
     } catch (err) {
       setSaving(false);
-      setError(`Could not save: ${err.message}`);
+      setError("Unable to save. Check your connection and try again.");
     }
   }
 

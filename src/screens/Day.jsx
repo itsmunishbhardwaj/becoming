@@ -103,7 +103,7 @@ export default function Day() {
         {shell}
         <div className="day-shell" style={containerStyle}>
           <Link to="/year" style={backLink}>← Year</Link>
-          <p style={{ color: PAPER.dim, marginTop: 20 }}>Bad date.</p>
+          <p style={{ color: PAPER.dim, marginTop: 20 }}>Couldn't load this day.</p>
         </div>
       </div>
     );
