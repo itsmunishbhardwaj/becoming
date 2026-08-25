@@ -69,14 +69,21 @@ function MiniYearGrid({ logs, goals }) {
   }
 
   return (
-    <div style={{ display: "flex", gap: 2 }}>
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(53, 1fr)",
+      gap: 2,
+      marginTop: 16,
+    }}>
       {weeks.map((week, w) => (
         <div key={w} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {week.map((day, d) => (
             <div
               key={d}
               style={{
-                width: 4, height: 4, borderRadius: 1,
+                width: "100%",
+                aspectRatio: "1",
+                borderRadius: 1,
                 background: !day || day.future
                   ? "transparent"
                   : day.color ? day.color : PAPER.track,
@@ -223,21 +230,19 @@ export default function Home() {
         }
 
         /* ── Goal rows ─────────────── */
-        .goal-card {
-          transition: opacity 150ms cubic-bezier(0.23, 1, 0.32, 1);
-        }
         @media (hover: hover) and (pointer: fine) {
-          .goal-card:hover { opacity: 0.65 !important; }
+          .goal-row:hover { opacity: 0.65 !important; }
         }
-        .goal-card:active { opacity: 0.5 !important; }
+        .goal-row:active { opacity: 0.45 !important; }
         @media (min-width: 768px) {
-          .goal-card {
+          .goal-row {
             grid-template-columns: 60px 1fr auto !important;
             gap: 0 20px !important;
             padding: 22px 0 !important;
           }
+          .goal-orb { width: 60px !important; height: 60px !important; }
           .goal-name-text { font-size: 24px !important; }
-          .goal-count-num { font-size: 42px !important; }
+          .goal-count-num { font-size: 40px !important; }
         }
       `}</style>
 
@@ -298,7 +303,7 @@ export default function Home() {
                 <div style={sectionLabel}>Your goals</div>
                 <div style={{ marginTop: 4 }}>
                   {enriched.map((g, i) => (
-                    <GoalCard key={g.id} goal={g} isFirst={i === 0} />
+                    <GoalCard key={g.id} goal={g} index={i} />
                   ))}
                 </div>
                 <div style={{ marginTop: 40 }}>
@@ -397,7 +402,7 @@ const sectionLabel = {
   letterSpacing: "0.22em",
   textTransform: "uppercase",
   color: PAPER.faint,
-  marginBottom: 16,
+  marginBottom: 20,
 };
 const sideNavLink = {
   fontSize: 12,

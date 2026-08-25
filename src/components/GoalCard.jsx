@@ -1,87 +1,100 @@
 import { Link } from "react-router-dom";
-import { PAPER, FONT, STATE } from "../tokens.js";
-import Orb from "./Orb.jsx";
-import MomentumBar from "./MomentumBar.jsx";
+import { PAPER, FONT, RADIUS } from "../tokens.js";
 import { goalColor } from "../lib/goalColor.js";
 
-export default function GoalCard({ goal, isFirst }) {
-  const dormant = goal.state === STATE.DORMANT;
-  const drift = goal.state === STATE.DRIFT;
-  const completed = goal.state === STATE.COMPLETED;
-  const still = dormant || completed;
+// Staggered animation offsets matching prototype orb-breathe phases
+const ORB_DELAYS = ["0s", "-2.1s", "-4.4s", "-1.6s", "-3.2s", "-5.7s", "-1.0s", "-3.9s"];
+
+export default function GoalCard({ goal, index = 0 }) {
   const color = goalColor(goal);
+  const m = goal.momentum ?? 0;
+  const dormant = goal.state === "dormant" || goal.state === "completed";
 
   return (
     <Link
       to={`/goal/${goal.id}`}
-      className="goal-card"
+      className={`goal-row goal-row-${index}`}
       style={{
         display: "grid",
         gridTemplateColumns: "52px 1fr auto",
         gap: "0 16px",
         alignItems: "center",
         padding: "18px 0",
-        borderTop: isFirst ? `1px solid ${PAPER.line}` : "none",
+        borderTop: index === 0 ? `1px solid ${PAPER.line}` : "none",
         borderBottom: `1px solid ${PAPER.line}`,
         cursor: "pointer",
         color: PAPER.ink,
-        opacity: dormant ? 0.62 : 1,
         textDecoration: "none",
+        opacity: dormant ? 0.55 : 1,
+        transition: "opacity 150ms cubic-bezier(0.23, 1, 0.32, 1)",
       }}
     >
-      <Orb cat={goal.cat} color={color} momentum={goal.momentum} dormant={still} />
+      {/* Orb — direct blob div matching prototype exactly */}
+      <div
+        className="goal-orb orb-breathe"
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: RADIUS.blob,
+          background: `radial-gradient(circle at 35% 30%, ${color}, ${color}99 80%)`,
+          flexShrink: 0,
+          animationDelay: dormant ? "0s" : ORB_DELAYS[index % ORB_DELAYS.length],
+          animation: dormant ? "none" : undefined,
+        }}
+      />
 
+      {/* Goal inner — name + momentum bar */}
       <div style={{ minWidth: 0 }}>
-        <div style={{
-          fontFamily: FONT.serif,
-          fontSize: 20,
-          fontWeight: 400,
-          color: PAPER.ink,
-          letterSpacing: "-0.01em",
-          lineHeight: 1.2,
-          marginBottom: still ? 0 : 8,
-          textWrap: "pretty",
-        }}>
+        <div
+          className="goal-name-text"
+          style={{
+            fontFamily: FONT.serif,
+            fontWeight: 400,
+            fontSize: 20,
+            lineHeight: 1.2,
+            color: PAPER.ink,
+            letterSpacing: "-0.01em",
+            marginBottom: 8,
+            textWrap: "pretty",
+          }}
+        >
           {goal.name}
         </div>
 
-        {dormant && (
-          <div style={{ fontSize: 12, color: PAPER.dim, marginTop: 4, fontStyle: "italic" }}>
-            resting intentionally
-          </div>
-        )}
-        {completed && (
-          <div style={{ fontSize: 12, color, marginTop: 4 }}>
-            became real
-          </div>
-        )}
-        {!still && (
-          <MomentumBar cat={goal.cat} color={color} momentum={goal.momentum} />
-        )}
-        {drift && !still && (
-          <div style={{ fontSize: 11.5, color: PAPER.whisper, marginTop: 5 }}>
-            quiet lately
-          </div>
-        )}
-        {goal.latestNote && !still && (
-          <div style={{ fontSize: 12, color: PAPER.faint, marginTop: 6, lineHeight: 1.45, fontStyle: "italic" }}>
-            {goal.latestNote.text.length > 80
-              ? goal.latestNote.text.slice(0, 80).trimEnd() + "…"
-              : goal.latestNote.text}
-          </div>
+        {/* Momentum bar */}
+        <div style={{
+          height: 2,
+          background: PAPER.track,
+          borderRadius: 99,
+          overflow: "hidden",
+        }}>
+          <div style={{
+            height: "100%",
+            width: `${Math.round(m * 100)}%`,
+            background: color,
+            borderRadius: 99,
+            transition: "width 600ms cubic-bezier(0.23, 1, 0.32, 1)",
+          }} />
+        </div>
+
+        {goal.state === "drift" && (
+          <div style={{ fontSize: 11.5, color: PAPER.whisper, marginTop: 5 }}>quiet lately</div>
         )}
       </div>
 
-      <div style={{
-        fontFamily: FONT.serif,
-        fontSize: 34,
-        fontWeight: 300,
-        color: PAPER.faint,
-        lineHeight: 1,
-        textAlign: "right",
-        whiteSpace: "nowrap",
-        minWidth: 48,
-      }}>
+      {/* Day count */}
+      <div
+        className="goal-count-num"
+        style={{
+          fontFamily: FONT.serif,
+          fontSize: 32,
+          fontWeight: 300,
+          color: PAPER.faint,
+          lineHeight: 1,
+          textAlign: "right",
+          whiteSpace: "nowrap",
+        }}
+      >
         {goal.headline?.n ?? ""}
         <span style={{
           display: "block",
@@ -90,8 +103,8 @@ export default function GoalCard({ goal, isFirst }) {
           letterSpacing: "0.14em",
           textTransform: "uppercase",
           color: PAPER.faint,
-          marginTop: 3,
           textAlign: "right",
+          marginTop: 3,
         }}>
           {goal.headline?.unit ?? ""}
         </span>
