@@ -26,8 +26,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 /* ── Orb breathe ───────────────────────────────────────────── */
 @keyframes orb-breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.06); }
+  0%, 100% {
+    transform: scale(1);
+    border-radius: 58% 42% 55% 45% / 45% 55% 42% 58%;
+  }
+  50% {
+    transform: scale(1.06);
+    border-radius: 45% 55% 42% 58% / 58% 42% 55% 45%;
+  }
 }
 .orb-breathe { animation: orb-breathe 7s ease-in-out infinite; }
 
