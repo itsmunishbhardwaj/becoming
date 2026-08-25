@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Lenis from "lenis";
 import Home from "./screens/Home.jsx";
@@ -9,6 +9,8 @@ import Day from "./screens/Day.jsx";
 import Goal from "./screens/Goal.jsx";
 import Month from "./screens/Month.jsx";
 import Week from "./screens/Week.jsx";
+import SignIn from "./screens/SignIn.jsx";
+import { getSession, onAuthStateChange } from "./lib/auth.js";
 
 function ScrollManager() {
   const location = useLocation();
@@ -45,6 +47,19 @@ function ScrollManager() {
 }
 
 export default function App() {
+  // undefined = loading, null = signed out, object = signed in
+  const [session, setSession] = useState(undefined);
+
+  useEffect(() => {
+    getSession().then(setSession);
+    const { data: { subscription } } = onAuthStateChange(setSession);
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (session === undefined) return null; // brief loading — no flash
+
+  if (!session) return <SignIn />;
+
   return (
     <BrowserRouter>
       <ScrollManager />

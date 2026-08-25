@@ -310,3 +310,107 @@ Native multi-touch pinch bridges zoom levels. Complements the swipe (siblings) +
 - All new components pass `prefers-reduced-motion` unchanged.
 - No new deps for swipe (native pointer events).
 
+---
+
+## Migration: Vault → Supabase (branch `feat/supabase-migration`)
+
+### Strategic decisions (locked)
+- **Auth:** Supabase Auth, Google OAuth for web now. Apple Sign-In later (iOS — needs $99/yr Apple Dev account).
+- **Multi-user:** one Postgres instance. Every table has `user_id UUID`. RLS enforces isolation at DB layer.
+- **Interface:** `store.js` API surface unchanged — screens untouched, codecs survive for iCloud export.
+
+### Schema
+
+**`goals`** — PRIMARY KEY (user_id, id)
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | TEXT | user slug ("wake-6am") |
+| `user_id` | UUID | FK → auth.users |
+| `name` | TEXT | |
+| `cat` | TEXT | |
+| `color` | TEXT | nullable |
+| `type` | TEXT | tracker \| habit |
+| `state` | TEXT | active \| drift \| dormant \| completed \| retired |
+| `baseline` | JSONB | "08:30" OR {intervalDays:1} OR null |
+| `target` | JSONB | nullable |
+| `end_date` | DATE | nullable |
+| `current_round` | INT | |
+| `created_at` | TIMESTAMPTZ | |
+| `ambition` | TEXT | |
+| `rounds` | JSONB | array |
+| `how_we_get_there` | TEXT | |
+| `indicators` | JSONB | {right:[], wrong:[], stall:[]} |
+
+**`log_events`** — PK `id UUID`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | gen_random_uuid() |
+| `user_id` | UUID | FK → auth.users |
+| `date` | DATE | |
+| `goal_id` | TEXT | |
+| `verb` | TEXT | wake, session, done… |
+| `payload` | TEXT | raw payload string |
+| `time` | TEXT | HH:MM nullable |
+| `duration_min` | INT | nullable |
+| `created_at` | TIMESTAMPTZ | default now() |
+
+UNIQUE(user_id, date, goal_id, verb, payload)
+
+**`log_notes`** — PRIMARY KEY (user_id, date, goal_id)
+
+| Column | Type | Notes |
+|---|---|---|
+| `user_id` | UUID | |
+| `date` | DATE | |
+| `goal_id` | TEXT | |
+| `text` | TEXT | |
+| `updated_at` | TIMESTAMPTZ | |
+
+**`insights_dismissed`** — PRIMARY KEY (user_id, insight_id)
+
+| Column | Type | Notes |
+|---|---|---|
+| `user_id` | UUID | |
+| `insight_id` | TEXT | |
+| `dismissed_at` | TIMESTAMPTZ | |
+
+### Tasks
+
+- [ ] **0. Prerequisites (user action)**
+  - Create Supabase project at supabase.com
+  - Enable Google OAuth: Auth → Providers → Google (needs Google Cloud OAuth client ID + secret)
+  - Copy project URL + anon key → `.env.local`
+  - Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to Vercel env vars
+
+- [ ] **1. Branch + install**
+  - `git checkout -b feat/supabase-migration`
+  - `bun add @supabase/supabase-js`
+
+- [ ] **2. SQL migration file**
+  - `supabase/migrations/001_initial.sql` — full schema + RLS policies
+  - Run in Supabase SQL editor
+
+- [ ] **3. Supabase client**
+  - `src/lib/supabase.js` — createClient with env vars
+
+- [ ] **4. Auth helpers + auth gate**
+  - `src/lib/auth.js` — signInWithGoogle, signOut, getSession, onAuthStateChange
+  - `src/screens/SignIn.jsx` — paper bg, Becoming wordmark, "Continue with Google" button
+  - Auth gate in `App.jsx` — session-check on mount; no session → SignIn; session → routes
+
+- [ ] **5. Rewrite store.js**
+  - Drop vault API calls, replace with Supabase queries
+  - Same exported interface: listGoals, getGoal, saveGoal, readLog, readLogsInRange, appendLog, deleteLogEvent, saveNote
+  - No codecs needed (data is structured in DB)
+  - Add `user_id: session.user.id` to all inserts
+
+- [ ] **6. Update tests**
+  - Mock `src/lib/supabase.js` in LogSheet tests (store.js mock already in place — minimal change)
+
+- [ ] **7. Verify + PR**
+  - Local flow: sign in with Google → create goal → log entry → reload → data persists
+  - CI green
+  - Update Google OAuth redirect URIs in Google Cloud + Supabase to include Vercel preview URL
+
