@@ -489,13 +489,23 @@ body::after {
 [data-dir="living"] .log-blob:active { transform: scale(0.92); }
 
 /* ═══════════════════════════════════════════════════════════
-   DIRECTION 4 — SYNTHESIS
+   DIRECTION 4 — SYNTHESIS  (responsive: phone + desktop)
    Journal structure · Living Paper orbs · Instrument year grid
    ═══════════════════════════════════════════════════════════ */
+
+/* ── Mobile base ─────────────────────────────────────────── */
 [data-dir="synthesis"] .screen {
-  max-width: 420px;
-  margin: 0 auto;
-  padding: 52px 32px 120px;
+  min-height: 100dvh;
+  padding: 44px 26px 100px;
+  display: flex;
+  flex-direction: column;
+}
+[data-dir="synthesis"] .syn-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 48px;
+  gap: 16px;
 }
 [data-dir="synthesis"] .wordmark {
   font-family: var(--serif);
@@ -504,39 +514,47 @@ body::after {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--faint);
-  margin-bottom: 56px;
+  flex-shrink: 0;
 }
 [data-dir="synthesis"] .date-line {
   font-family: var(--serif);
   font-style: italic;
-  font-size: 14px;
-  color: var(--dim);
-  margin-bottom: 48px;
+  font-size: 13px;
+  color: var(--faint);
+  text-align: right;
 }
+[data-dir="synthesis"] .syn-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+[data-dir="synthesis"] .syn-main  { order: 1; }
+[data-dir="synthesis"] .syn-sidebar { order: 2; margin-top: 48px; }
+
 [data-dir="synthesis"] .section-label {
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--faint);
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 [data-dir="synthesis"] .goal-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 [data-dir="synthesis"] .goal-row {
   display: grid;
   grid-template-columns: 52px 1fr auto;
-  gap: 0 18px;
+  gap: 0 16px;
   align-items: center;
-  padding: 20px 0;
+  padding: 18px 0;
   border-bottom: 1px solid var(--line);
   cursor: pointer;
   transition: opacity 150ms var(--ease-out);
 }
 [data-dir="synthesis"] .goal-row:first-child { border-top: 1px solid var(--line); }
-[data-dir="synthesis"] .goal-row:hover { opacity: 0.72; }
+[data-dir="synthesis"] .goal-row:hover { opacity: 0.7; }
 [data-dir="synthesis"] .orb {
   width: 52px; height: 52px;
   border-radius: 58% 42% 55% 45% / 45% 55% 42% 58%;
@@ -555,6 +573,7 @@ body::after {
   color: var(--ink);
   letter-spacing: -0.01em;
   margin-bottom: 8px;
+  text-wrap: pretty;
 }
 [data-dir="synthesis"] .momentum-bar {
   height: 2px;
@@ -569,7 +588,7 @@ body::after {
 }
 [data-dir="synthesis"] .goal-days {
   font-family: var(--serif);
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 300;
   color: var(--faint);
   line-height: 1;
@@ -585,14 +604,6 @@ body::after {
   color: var(--faint);
   text-align: right;
   margin-top: 3px;
-}
-
-/* Year grid — Warm Instrument style inside Journal layout */
-[data-dir="synthesis"] .year-section {
-  margin-top: 48px;
-}
-[data-dir="synthesis"] .year-grid-wrap {
-  overflow: hidden;
 }
 [data-dir="synthesis"] .year-grid {
   display: grid;
@@ -611,12 +622,9 @@ body::after {
   border-radius: 1px;
   background: var(--track);
 }
-[data-dir="synthesis"] .year-cell.filled {
-  opacity: 0.75;
-}
-
+[data-dir="synthesis"] .year-cell.filled { opacity: 0.75; }
 [data-dir="synthesis"] .new-goal-btn {
-  margin-top: 44px;
+  margin-top: 40px;
   font-family: var(--serif);
   font-style: italic;
   font-size: 15px;
@@ -639,7 +647,7 @@ body::after {
 }
 [data-dir="synthesis"] .log-blob {
   position: fixed;
-  right: 28px; bottom: 28px;
+  right: 24px; bottom: 24px;
   width: 58px; height: 58px;
   background: linear-gradient(135deg, var(--card) 0%, var(--panel) 100%);
   border: 1px solid var(--line);
@@ -653,6 +661,42 @@ body::after {
 }
 [data-dir="synthesis"] .log-blob:hover { transform: scale(1.08); box-shadow: 0 10px 28px rgba(85,80,92,0.14); }
 [data-dir="synthesis"] .log-blob:active { transform: scale(0.92); }
+
+/* ── Desktop (768px+) ────────────────────────────────────── */
+@media (min-width: 768px) {
+  [data-dir="synthesis"] .screen {
+    padding: 52px 64px 80px;
+  }
+  [data-dir="synthesis"] .syn-body {
+    flex-direction: row;
+    align-items: start;
+    gap: 72px;
+  }
+  [data-dir="synthesis"] .syn-sidebar {
+    order: 1;
+    width: 260px;
+    flex-shrink: 0;
+    margin-top: 0;
+    position: sticky;
+    top: 52px;
+  }
+  [data-dir="synthesis"] .syn-main {
+    order: 2;
+    flex: 1;
+    max-width: 520px;
+  }
+  [data-dir="synthesis"] .goal-row {
+    grid-template-columns: 60px 1fr auto;
+    gap: 0 20px;
+    padding: 22px 0;
+  }
+  [data-dir="synthesis"] .orb {
+    width: 60px; height: 60px;
+  }
+  [data-dir="synthesis"] .goal-name { font-size: 24px; }
+  [data-dir="synthesis"] .goal-days { font-size: 40px; }
+  [data-dir="synthesis"] .new-goal-btn { margin-top: 48px; }
+}
 
 /* ── Tweaks Panel ─────────────────────────────────────────── */
 .tweaks-toggle {
@@ -942,69 +986,76 @@ body::after {
 
 <!-- ─── DIRECTION 4: SYNTHESIS ────────────────────────────── -->
 <div class="screen" id="dir-synthesis">
-  <div class="wordmark">Becoming</div>
-  <div class="date-line">Tuesday, August 2026</div>
-  <div class="section-label">Your Goals</div>
-
-  <div class="goal-list">
-
-    <div class="goal-row">
-      <div class="orb" style="background: radial-gradient(circle at 35% 30%, #A9CEBB, #8DBFAB 80%);"></div>
-      <div class="goal-inner">
-        <div class="goal-name">Run every morning</div>
-        <div class="momentum-bar">
-          <div class="momentum-fill" style="width:82%; background:#A9CEBB;"></div>
-        </div>
-      </div>
-      <div class="goal-days">214<span>days</span></div>
-    </div>
-
-    <div class="goal-row">
-      <div class="orb" style="background: radial-gradient(circle at 35% 30%, #E9B3B7, #D4979C 80%);"></div>
-      <div class="goal-inner">
-        <div class="goal-name">Deep work, daily</div>
-        <div class="momentum-bar">
-          <div class="momentum-fill" style="width:55%; background:#E9B3B7;"></div>
-        </div>
-      </div>
-      <div class="goal-days">89<span>days</span></div>
-    </div>
-
-    <div class="goal-row">
-      <div class="orb" style="background: radial-gradient(circle at 35% 30%, #C5B5E3, #AA99D3 80%);"></div>
-      <div class="goal-inner">
-        <div class="goal-name">Read before bed</div>
-        <div class="momentum-bar">
-          <div class="momentum-fill" style="width:70%; background:#C5B5E3;"></div>
-        </div>
-      </div>
-      <div class="goal-days">41<span>days</span></div>
-    </div>
-
-    <div class="goal-row">
-      <div class="orb" style="background: radial-gradient(circle at 35% 30%, #EBC3A0, #D4A882 80%);"></div>
-      <div class="goal-inner">
-        <div class="goal-name">Cook something weekly</div>
-        <div class="momentum-bar">
-          <div class="momentum-fill" style="width:38%; background:#EBC3A0;"></div>
-        </div>
-      </div>
-      <div class="goal-days">18<span>sessions</span></div>
-    </div>
-
+  <div class="syn-header">
+    <div class="wordmark">Becoming</div>
+    <div class="date-line">Tuesday, August 2026</div>
   </div>
 
-  <div class="year-section">
-    <div class="section-label">This year</div>
-    <div class="year-grid-wrap">
-      <div class="year-grid" id="synthesis-year-grid"></div>
-    </div>
-  </div>
+  <div class="syn-body">
+    <aside class="syn-sidebar">
+      <div class="section-label">This year</div>
+      <div class="year-grid-wrap">
+        <div class="year-grid" id="synthesis-year-grid"></div>
+      </div>
+    </aside>
 
-  <button class="new-goal-btn" onclick="alert('New goal flow')">
-    <span class="plus-mark">+</span>
-    begin something new
-  </button>
+    <main class="syn-main">
+      <div class="section-label">Your Goals</div>
+
+      <div class="goal-list">
+
+        <div class="goal-row">
+          <div class="orb" style="background: radial-gradient(circle at 35% 30%, #A9CEBB, #8DBFAB 80%);"></div>
+          <div class="goal-inner">
+            <div class="goal-name">Run every morning</div>
+            <div class="momentum-bar">
+              <div class="momentum-fill" style="width:82%; background:#A9CEBB;"></div>
+            </div>
+          </div>
+          <div class="goal-days">214<span>days</span></div>
+        </div>
+
+        <div class="goal-row">
+          <div class="orb" style="background: radial-gradient(circle at 35% 30%, #E9B3B7, #D4979C 80%);"></div>
+          <div class="goal-inner">
+            <div class="goal-name">Deep work, daily</div>
+            <div class="momentum-bar">
+              <div class="momentum-fill" style="width:55%; background:#E9B3B7;"></div>
+            </div>
+          </div>
+          <div class="goal-days">89<span>days</span></div>
+        </div>
+
+        <div class="goal-row">
+          <div class="orb" style="background: radial-gradient(circle at 35% 30%, #C5B5E3, #AA99D3 80%);"></div>
+          <div class="goal-inner">
+            <div class="goal-name">Read before bed</div>
+            <div class="momentum-bar">
+              <div class="momentum-fill" style="width:70%; background:#C5B5E3;"></div>
+            </div>
+          </div>
+          <div class="goal-days">41<span>days</span></div>
+        </div>
+
+        <div class="goal-row">
+          <div class="orb" style="background: radial-gradient(circle at 35% 30%, #EBC3A0, #D4A882 80%);"></div>
+          <div class="goal-inner">
+            <div class="goal-name">Cook something weekly</div>
+            <div class="momentum-bar">
+              <div class="momentum-fill" style="width:38%; background:#EBC3A0;"></div>
+            </div>
+          </div>
+          <div class="goal-days">18<span>sessions</span></div>
+        </div>
+
+      </div>
+
+      <button class="new-goal-btn" onclick="alert('New goal flow')">
+        <span class="plus-mark">+</span>
+        begin something new
+      </button>
+    </main>
+  </div>
 
   <button class="log-blob" onclick="alert('Log sheet')">+</button>
 </div>
