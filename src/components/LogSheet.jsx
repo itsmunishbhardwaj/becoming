@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
+import { AnimatePresence, motion, useDragControls } from "motion/react";
+import { PAPER, FONT, RADIUS } from "../tokens.js";
 import { parseLogSmart } from "../lib/logParserLLM.js";
 import { chat, isConfigured } from "../lib/llm.js";
 import { listGoals, appendLog } from "../data/store.js";
@@ -30,6 +31,7 @@ export default function LogSheet({ open, onClose, onSaved }) {
   const [goals, setGoals] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const dragControls = useDragControls();
 
   useEffect(() => {
     if (!open) return;
@@ -77,119 +79,147 @@ export default function LogSheet({ open, onClose, onSaved }) {
     }
   }
 
-  if (!open) return null;
-
   return (
-    <>
-      <style>{`
-        @keyframes ls-slide { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .ls-sheet { animation: ls-slide 220ms ease-out; }
-        @media (prefers-reduced-motion: reduce) { .ls-sheet { animation: none; } }
-      `}</style>
-      <div
-        onClick={onClose}
-        style={{
-          position: "fixed", inset: 0,
-          background: PAPER.scrim, zIndex: 40,
-        }}
-      >
-        <div
-          className="ls-sheet"
-          onClick={(e) => e.stopPropagation()}
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="logsheet-scrim"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={onClose}
           style={{
-            position: "absolute", left: 0, right: 0, bottom: 0,
-            background: PAPER.bg, color: PAPER.ink,
-            borderTopLeftRadius: 26, borderTopRightRadius: 22,
-            padding: "22px 24px 30px",
-            boxShadow: PAPER.sheetShadow,
-            fontFamily: FONT.sans,
-            maxHeight: "85vh", overflowY: "auto",
+            position: "fixed", inset: 0,
+            background: PAPER.scrim, zIndex: 40,
           }}
         >
-          <div style={{
-            width: 38, height: 4, borderRadius: 999, background: PAPER.line,
-            margin: "0 auto 14px",
-          }} />
-          <div style={{
-            fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase",
-            color: PAPER.faint, fontWeight: 500, marginBottom: 10,
-          }}>
-            LOG YOUR DAY — JUST WRITE
-          </div>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="woke 07:12 · session 22:00 · 15min"
-            rows={4}
-            style={{
-              width: "100%", boxSizing: "border-box",
-              padding: "13px 15px", borderRadius: RADIUS.r2,
-              border: `1px solid ${PAPER.line}`, background: PAPER.card,
-              fontSize: 14.5, fontFamily: FONT.sans, color: PAPER.ink,
-              lineHeight: 1.55, resize: "vertical",
+          <motion.div
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0.2, bottom: 0 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 100 || info.velocity.y > 300) onClose();
             }}
-          />
-
-          {rows.length > 0 && (
-            <>
-              <div style={{ marginTop: 14, fontSize: 12, color: PAPER.dim }}>
-                Understood — no forms, no tags:
-              </div>
-              <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
-                {rows.map(({ evt, goal }, i) => (
-                  <div key={i} style={{
-                    display: "flex", alignItems: "center", gap: 10,
-                    padding: "8px 12px",
-                    borderRadius: i % 2 === 0 ? RADIUS.r1 : RADIUS.r2,
-                    background: PAPER.card, border: `1px solid ${PAPER.line}`,
-                  }}>
-                    <span style={{
-                      width: 10, height: 10, borderRadius: 999,
-                      background: goalColor(goal),
-                      display: "inline-block", flexShrink: 0,
-                    }} />
-                    <span style={{ fontSize: 13.5, color: PAPER.ink, flex: 1 }}>
-                      {evt.raw}
-                    </span>
-                    <span style={{ fontSize: 11.5, color: goal ? PAPER.dim : PAPER.whisper }}>
-                      {goal ? `→ ${goal.id}` : "no matching goal — skipped"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {error && <div style={{ marginTop: 10, color: PAPER.whisper, fontSize: 12 }}>{error}</div>}
-
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
-            <button
-              onClick={onClose}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", duration: 0.3, bounce: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "absolute", left: 0, right: 0, bottom: 0,
+              background: "rgba(251, 251, 249, 0.88)",
+              backdropFilter: "blur(20px) saturate(160%)",
+              WebkitBackdropFilter: "blur(20px) saturate(160%)",
+              color: PAPER.ink,
+              borderTopLeftRadius: 26, borderTopRightRadius: 22,
+              padding: "0 24px 30px",
+              boxShadow: PAPER.sheetShadow,
+              fontFamily: FONT.sans,
+              maxHeight: "85vh", overflowY: "auto",
+            }}
+          >
+            {/* Drag handle — only this initiates the dismiss gesture */}
+            <div
+              onPointerDown={(e) => dragControls.start(e)}
               style={{
-                padding: "9px 16px", borderRadius: RADIUS.pill,
-                border: `1px solid ${PAPER.line}`, background: "transparent",
-                color: PAPER.dim, fontSize: 13, fontFamily: FONT.sans, cursor: "pointer",
+                touchAction: "none",
+                cursor: "grab",
+                padding: "14px 0 10px",
+                display: "flex",
+                justifyContent: "center",
               }}
             >
-              Cancel
-            </button>
-            <button
-              onClick={save}
-              disabled={saving || rows.length === 0}
+              <div style={{
+                width: 38, height: 4, borderRadius: 999, background: PAPER.line,
+              }} />
+            </div>
+
+            <div style={{
+              fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase",
+              color: PAPER.faint, fontWeight: 500, marginBottom: 10,
+            }}>
+              LOG YOUR DAY — JUST WRITE
+            </div>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="woke 07:12 · session 22:00 · 15min"
+              rows={4}
               style={{
-                padding: "9px 16px", borderRadius: RADIUS.pill,
-                border: `1px solid ${PAPER.affirmLine}`,
-                background: PAPER.affirm, color: PAPER.affirmInk,
-                fontSize: 13, fontFamily: FONT.sans,
-                cursor: rows.length === 0 ? "not-allowed" : "pointer",
-                opacity: saving ? 0.7 : 1,
+                width: "100%", boxSizing: "border-box",
+                padding: "13px 15px", borderRadius: RADIUS.r2,
+                border: `1px solid ${PAPER.line}`, background: PAPER.card,
+                fontSize: 14.5, fontFamily: FONT.sans, color: PAPER.ink,
+                lineHeight: 1.55, resize: "vertical",
               }}
-            >
-              Looks right — save
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
+            />
+
+            {rows.length > 0 && (
+              <>
+                <div style={{ marginTop: 14, fontSize: 12, color: PAPER.dim }}>
+                  Understood — no forms, no tags:
+                </div>
+                <div className="ls-rows" style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+                  {rows.map(({ evt, goal }, i) => (
+                    <div key={i} style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      padding: "8px 12px",
+                      borderRadius: i % 2 === 0 ? RADIUS.r1 : RADIUS.r2,
+                      background: PAPER.card, border: `1px solid ${PAPER.line}`,
+                    }}>
+                      <span style={{
+                        width: 10, height: 10, borderRadius: 999,
+                        background: goalColor(goal),
+                        display: "inline-block", flexShrink: 0,
+                      }} />
+                      <span style={{ fontSize: 13.5, color: PAPER.ink, flex: 1 }}>
+                        {evt.raw}
+                      </span>
+                      <span style={{ fontSize: 11.5, color: goal ? PAPER.dim : PAPER.whisper }}>
+                        {goal ? `→ ${goal.id}` : "no matching goal — skipped"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {error && <div style={{ marginTop: 10, color: PAPER.whisper, fontSize: 12 }}>{error}</div>}
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
+              <button
+                className="ls-btn"
+                onClick={onClose}
+                style={{
+                  padding: "9px 16px", borderRadius: RADIUS.pill,
+                  border: `1px solid ${PAPER.line}`, background: "transparent",
+                  color: PAPER.dim, fontSize: 13, fontFamily: FONT.sans, cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="ls-btn"
+                onClick={save}
+                disabled={saving || rows.length === 0}
+                style={{
+                  padding: "9px 16px", borderRadius: RADIUS.pill,
+                  border: `1px solid ${PAPER.affirmLine}`,
+                  background: PAPER.affirm, color: PAPER.affirmInk,
+                  fontSize: 13, fontFamily: FONT.sans,
+                  cursor: rows.length === 0 ? "not-allowed" : "pointer",
+                  opacity: saving ? 0.7 : 1,
+                }}
+              >
+                Looks right — save
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

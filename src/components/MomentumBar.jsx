@@ -20,7 +20,7 @@ export default function MomentumBar({ cat, momentum, dormant, color: colorProp }
           background: dormant
             ? `${color}44`
             : `linear-gradient(90deg, ${color}99, ${color})`,
-          transition: "width 600ms ease",
+          transition: "width 400ms cubic-bezier(0.23, 1, 0.32, 1)",
         }}
       />
     </div>

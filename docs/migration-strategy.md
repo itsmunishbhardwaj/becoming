@@ -89,12 +89,29 @@ Features whose implementation strategy won't survive migration:
 - All React screen components → SwiftUI views (for iOS) + reused/refactored React (for web)
 - Vite + Node dev middleware → Vercel serverless functions + Supabase client
 - `vaultMiddleware.js` → deleted; SwiftUI reads/writes Postgres directly
+- JavaScript → TypeScript (do this as part of the Next.js rewrite, not before — see below)
 
 **Ports (mechanical):**
 - Design tokens → Swift `Color` / `Font` values
 - Vault schema → Postgres schema (flat tables mirroring current front-matter + rounds + indicators)
 - goalCodec / logCodec grammar → Swift structs + parsers (grammar unchanged)
 - adherence / momentum / insights math → Swift, same algorithms
+
+**TypeScript migration (do with step 3, not separately):**
+
+Add TypeScript at the same time as the React → Next.js rewrite. Doing it earlier is churn; doing it later means typing an already-migrated codebase twice.
+
+Priority order for types:
+
+1. **`store.js` first** — Supabase SDK ships row types via `Database['public']['Tables']`. Wire these up before typing anything else; every screen's data shape flows from here.
+2. **`src/data/*.js` business logic** — `adherence.js`, `rounds.js`, `insights.js`, `goalTypes/*.js` are pure functions; they type cleanly and the types will match what Swift gets later.
+3. **`src/tokens.js`** — type `CATS`, `PAPER`, `FONT` as `const` objects so components get literal types for category keys and color strings.
+4. **Components last** — prop interfaces for screens and components are mechanical once the data types exist.
+
+What to keep clean *now* so TS migration is cheap:
+- Never use `any`-shaped objects across module boundaries (already mostly true)
+- Keep `store.js` API surface stable: `listGoals(): Goal[]`, `appendLog(date, entry): void` — these are the function signatures to type first
+- Avoid dynamic property access (`obj[key]`) in business logic — it requires index signatures
 
 **Survives verbatim:**
 - Philosophy docs
@@ -106,7 +123,7 @@ Features whose implementation strategy won't survive migration:
 
 1. Design Supabase schema. Mirror current vault shape: `goals`, `logs`, `events`, `insights_dismissed`.
 2. Vercel + LLM proxy first (smallest scope, needed by both frontends).
-3. Rewrite React web as Next.js on Vercel, backed by Supabase.
+3. Rewrite React web as Next.js on Vercel, backed by Supabase — **add TypeScript here** (Supabase SDK provides row types; wire them through `store.ts` first, then components).
 4. SwiftUI app reading same Supabase.
 5. iOS export writer: reads Supabase → writes markdown to iCloud Drive on a schedule.
 6. Apple Developer Program ($99/yr ≈ ₹8,300) only when ready for TestFlight or App Store.

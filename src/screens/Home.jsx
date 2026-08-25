@@ -113,17 +113,14 @@ export default function Home() {
       }}
     >
       <style>{`
-        @keyframes breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
-        .breathe { animation: breathe 7s ease-in-out infinite; }
         @keyframes home-intro {
           0%   { opacity: 0; transform: translateY(6px); }
           38%  { opacity: 1; transform: translateY(0); }
           68%  { opacity: 1; transform: translateY(0); }
           100% { opacity: 0; transform: translateY(-4px); }
         }
-        .home-intro-word { animation: home-intro 2.4s ease-in-out forwards; }
+        .home-intro-word { animation: home-intro 2.4s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
         @media (prefers-reduced-motion: reduce) {
-          .breathe { animation: none; }
           .home-intro-word { animation: none; opacity: 0; }
         }
         .home-shell { max-width: 1400px; margin: 0 auto; }
@@ -162,7 +159,7 @@ export default function Home() {
           </div>
           <h1 style={{
             fontFamily: FONT.serif, fontWeight: 400, fontSize: TYPE.h1,
-            lineHeight: 1.25, margin: 0, color: PAPER.ink,
+            lineHeight: 1.25, margin: 0, color: PAPER.ink, letterSpacing: "-0.01em",
           }}>
             Who are you becoming?
           </h1>
@@ -191,7 +188,7 @@ export default function Home() {
               {enriched.map((g) => <GoalCard key={g.id} goal={g} />)}
             </div>
             <div style={{ marginTop: SPACE.xl, textAlign: "center" }}>
-              <Link to="/create" style={ctaStyle}>+ New goal</Link>
+              <Link to="/create" className="home-cta" style={ctaStyle}>+ New goal</Link>
               <div style={{ marginTop: 8 }}>
                 <Link to="/onboard" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>
                   or walk it out with the Balboa breakdown →
