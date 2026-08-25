@@ -27,7 +27,7 @@ const pillStyle = {
 export default function InsightCard({ question, onAnswer }) {
   if (!question) return null;
   return (
-    <div style={{
+    <div className="insight-card" style={{
       background: `linear-gradient(135deg, ${INSIGHT_GRADIENT.from} 0%, ${INSIGHT_GRADIENT.to} 100%)`,
       border: `1px solid ${PAPER.line}`,
       borderRadius: RADIUS.r2,
@@ -46,10 +46,10 @@ export default function InsightCard({ question, onAnswer }) {
         {question.text}
       </p>
       <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={() => onAnswer(question.id, "yes")} style={pillStyle}>
+        <button className="insight-pill" onClick={() => onAnswer(question.id, "yes")} style={pillStyle}>
           {question.yes.label}
         </button>
-        <button onClick={() => onAnswer(question.id, "no")} style={pillStyle}>
+        <button className="insight-pill" onClick={() => onAnswer(question.id, "no")} style={pillStyle}>
           {question.no.label}
         </button>
       </div>

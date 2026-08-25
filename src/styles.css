@@ -1,0 +1,130 @@
+/* ── Easing tokens ─────────────────────────────────────────── */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ── Tap highlight ─────────────────────────────────────────── */
+button, a { -webkit-tap-highlight-color: transparent; }
+
+/* ── Orb breathe ───────────────────────────────────────────── */
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+.orb-breathe { animation: orb-breathe 7s ease-in-out infinite; }
+
+/* ── GoalCard ──────────────────────────────────────────────── */
+.goal-card {
+  transition: transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+  will-change: transform;
+}
+@media (hover: hover) and (pointer: fine) {
+  .goal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(85, 80, 92, 0.10);
+  }
+}
+.goal-card:active {
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+/* ── GoalCard stagger ──────────────────────────────────────── */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.home-goals-grid > * { animation: card-enter 320ms var(--ease-out) both; }
+.home-goals-grid > *:nth-child(1) { animation-delay: 0ms; }
+.home-goals-grid > *:nth-child(2) { animation-delay: 55ms; }
+.home-goals-grid > *:nth-child(3) { animation-delay: 110ms; }
+.home-goals-grid > *:nth-child(4) { animation-delay: 165ms; }
+.home-goals-grid > *:nth-child(5) { animation-delay: 220ms; }
+.home-goals-grid > *:nth-child(6) { animation-delay: 275ms; }
+.home-goals-grid > *:nth-child(7) { animation-delay: 330ms; }
+.home-goals-grid > *:nth-child(8) { animation-delay: 385ms; }
+
+/* ── LogBlob ───────────────────────────────────────────────── */
+@keyframes lb-breathe {
+  0%, 100% { border-radius: 58% 42% 55% 45% / 45% 55% 42% 58%; }
+  50%      { border-radius: 45% 55% 42% 58% / 58% 42% 55% 45%; }
+}
+.log-blob {
+  animation: lb-breathe 7s ease-in-out infinite;
+  transition: transform 120ms var(--ease-out), box-shadow 120ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .log-blob:hover {
+    transform: scale(1.08);
+    box-shadow: 0 10px 28px rgba(85, 80, 92, 0.14);
+  }
+}
+.log-blob:active {
+  transform: scale(0.92);
+  box-shadow: none;
+}
+
+/* ── LogSheet scrim ────────────────────────────────────────── */
+.ls-scrim {
+  opacity: 1;
+  transition: opacity 200ms ease;
+}
+.ls-scrim[data-closing] { opacity: 0; }
+@starting-style {
+  .ls-scrim { opacity: 0; }
+}
+
+/* ── LogSheet panel ────────────────────────────────────────── */
+.ls-sheet {
+  transform: translateY(0);
+  transition: transform 240ms var(--ease-drawer);
+}
+.ls-sheet[data-closing] { transform: translateY(100%); }
+@starting-style {
+  .ls-sheet { transform: translateY(100%); }
+}
+
+/* ── LogSheet row stagger ──────────────────────────────────── */
+@keyframes ls-row-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ls-rows > * { animation: ls-row-enter 180ms var(--ease-out) both; }
+.ls-rows > *:nth-child(1) { animation-delay: 0ms; }
+.ls-rows > *:nth-child(2) { animation-delay: 40ms; }
+.ls-rows > *:nth-child(3) { animation-delay: 80ms; }
+.ls-rows > *:nth-child(4) { animation-delay: 120ms; }
+.ls-rows > *:nth-child(5) { animation-delay: 160ms; }
+
+/* ── LogSheet buttons ──────────────────────────────────────── */
+.ls-btn { transition: transform 120ms var(--ease-out), opacity 120ms ease; }
+.ls-btn:active { transform: scale(0.96); }
+
+/* ── InsightCard ───────────────────────────────────────────── */
+.insight-card {
+  transition: opacity 280ms var(--ease-out), transform 280ms var(--ease-out);
+}
+@starting-style {
+  .insight-card { opacity: 0; transform: translateY(5px); }
+}
+.insight-pill { transition: transform 120ms var(--ease-out), background 120ms ease; }
+.insight-pill:active { transform: scale(0.95); }
+@media (hover: hover) and (pointer: fine) {
+  .insight-pill:hover { background: #F0EDE6; }
+}
+
+/* ── Home CTA ──────────────────────────────────────────────── */
+.home-cta { transition: transform 120ms var(--ease-out), opacity 120ms ease; }
+.home-cta:active { transform: scale(0.97); opacity: 0.82; }
+
+/* ── Reduced motion ────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .orb-breathe  { animation: none; }
+  .log-blob     { animation: none; }
+  .home-goals-grid > * { animation: none; }
+  .ls-sheet,
+  .ls-scrim     { transition: none; }
+  .insight-card { transition: none; }
+}
