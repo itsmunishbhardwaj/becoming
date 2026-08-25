@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Becoming — Home Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens ──────────────────────────────────────────────── */
+:root {
+  --bg:       #FBFBF9;
+  --card:     #FFFFFF;
+  --line:     #E7E2D5;
+  --panel:    #F4F2EA;
+  --ink:      #55505C;
+  --dim:      #97919F;
+  --faint:    #C9C3CE;
+  --whisper:  #B9A87F;
+  --track:    #ECE8DD;
+
+  --cat-ai:            #A8BEE8;
+  --cat-career:        #E9B3B7;
+  --cat-health:        #A9CEBB;
+  --cat-relationships: #EBC3A0;
+  --cat-reading:       #C5B5E3;
+  --cat-creativity:    #E5D6A3;
+
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  --serif: 'Fraunces', Georgia, serif;
+  --sans:  'Instrument Sans', system-ui, sans-serif;
+  --mono:  'DM Mono', monospace;
+
+  --r1: 22px 18px 24px 19px;
+  --r2: 18px 23px 17px 22px;
+  --pill: 999px;
+}
+
+/* ── Reset ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+button { font: inherit; cursor: pointer; border: none; background: none; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Paper grain ─────────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ── Orb breathe ─────────────────────────────────────────── */
+@keyframes orb-breathe {
+  0%, 100% { border-radius: 58% 42% 55% 45% / 45% 55% 42% 58%; transform: scale(1); }
+  50%      { border-radius: 45% 55% 42% 58% / 58% 42% 55% 45%; transform: scale(1.05); }
+}
+@keyframes orb-breathe-lg {
+  0%, 100% { border-radius: 58% 42% 55% 45% / 45% 55% 42% 58%; transform: scale(1); }
+  50%      { border-radius: 48% 52% 44% 56% / 56% 44% 52% 48%; transform: scale(1.04); }
+}
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes log-breathe {
+  0%, 100% { border-radius: 58% 42% 55% 45% / 45% 55% 42% 58%; }
+  50%      { border-radius: 45% 55% 42% 58% / 58% 42% 55% 45%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb, .log-blob { animation: none !important; }
+  .goal-card { animation: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DIRECTION 1 — DEEP JOURNAL
+   ═══════════════════════════════════════════════════════════ */
+[data-dir="journal"] .screen {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 52px 32px 120px;
+}
+[data-dir="journal"] .wordmark {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 56px;
+}
+[data-dir="journal"] .date-line {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--dim);
+  margin-bottom: 64px;
+}
+[data-dir="journal"] .section-label {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 32px;
+}
+[data-dir="journal"] .goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+[data-dir="journal"] .goal-row {
+  display: grid;
+  grid-template-columns: 3px 1fr auto;
+  gap: 0 20px;
+  align-items: start;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: opacity 150ms var(--ease-out);
+}
+[data-dir="journal"] .goal-row:first-child { border-top: 1px solid var(--line); }
+[data-dir="journal"] .goal-row:hover { opacity: 0.7; }
+[data-dir="journal"] .goal-rule {
+  width: 3px;
+  height: 100%;
+  min-height: 44px;
+  border-radius: 99px;
+  align-self: stretch;
+}
+[data-dir="journal"] .goal-name {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+[data-dir="journal"] .goal-meta {
+  font-size: 12px;
+  color: var(--dim);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+[data-dir="journal"] .goal-days {
+  font-family: var(--serif);
+  font-size: 42px;
+  font-weight: 300;
+  color: var(--faint);
+  line-height: 1;
+  text-align: right;
+  align-self: center;
+}
+[data-dir="journal"] .goal-days span {
+  display: block;
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  text-align: right;
+  margin-top: 2px;
+}
+[data-dir="journal"] .momentum-bar {
+  height: 2px;
+  background: var(--track);
+  border-radius: 99px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+[data-dir="journal"] .momentum-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 600ms var(--ease-out);
+}
+[data-dir="journal"] .new-goal-btn {
+  margin-top: 52px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: color 120ms ease, opacity 120ms ease;
+}
+[data-dir="journal"] .new-goal-btn:hover { color: var(--ink); }
+[data-dir="journal"] .new-goal-btn:active { opacity: 0.6; }
+[data-dir="journal"] .plus-mark {
+  width: 28px; height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 18px;
+  color: var(--faint);
+  font-style: normal;
+}
+[data-dir="journal"] .log-blob {
+  position: fixed;
+  right: 28px; bottom: 28px;
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, var(--card) 0%, var(--panel) 100%);
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 20px rgba(85,80,92,0.10);
+  color: var(--ink);
+  font-size: 24px;
+  font-weight: 300;
+  display: grid; place-items: center;
+  animation: log-breathe 7s ease-in-out infinite;
+  transition: transform 120ms var(--ease-out), box-shadow 120ms ease;
+}
+[data-dir="journal"] .log-blob:hover { transform: scale(1.08); box-shadow: 0 10px 28px rgba(85,80,92,0.14); }
+[data-dir="journal"] .log-blob:active { transform: scale(0.92); }
+
+/* ═══════════════════════════════════════════════════════════
+   DIRECTION 2 — WARM INSTRUMENT
+   ═══════════════════════════════════════════════════════════ */
+[data-dir="instrument"] .screen {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 40px 28px 100px;
+}
+[data-dir="instrument"] .wordmark {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+[data-dir="instrument"] .wordmark-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+[data-dir="instrument"] .section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+[data-dir="instrument"] .goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+[data-dir="instrument"] .goal-row {
+  display: grid;
+  grid-template-columns: 8px 1fr auto;
+  align-items: center;
+  gap: 0 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background 120ms ease;
+  margin: 0 -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 4px;
+}
+[data-dir="instrument"] .goal-row:hover { background: var(--panel); }
+[data-dir="instrument"] .goal-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+[data-dir="instrument"] .goal-inner {
+  min-width: 0;
+}
+[data-dir="instrument"] .goal-name {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 15px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+[data-dir="instrument"] .goal-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+[data-dir="instrument"] .momentum-bar {
+  height: 3px;
+  background: var(--track);
+  border-radius: 99px;
+  flex: 1;
+  overflow: hidden;
+}
+[data-dir="instrument"] .momentum-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 600ms var(--ease-out);
+}
+[data-dir="instrument"] .goal-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+[data-dir="instrument"] .goal-streak {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+[data-dir="instrument"] .goal-streak small {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-top: 1px;
+}
+[data-dir="instrument"] .mini-year {
+  margin-top: 36px;
+}
+[data-dir="instrument"] .mini-year-grid {
+  display: grid;
+  grid-template-columns: repeat(52, 1fr);
+  gap: 2px;
+}
+[data-dir="instrument"] .mini-week {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+[data-dir="instrument"] .mini-day {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 1px;
+  background: var(--track);
+}
+[data-dir="instrument"] .mini-day.filled { background: var(--cat-health); opacity: 0.7; }
+[data-dir="instrument"] .log-blob {
+  position: fixed;
+  right: 28px; bottom: 28px;
+  padding: 10px 20px;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: var(--pill);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 14px rgba(85,80,92,0.22);
+  transition: transform 120ms var(--ease-out), box-shadow 120ms ease;
+}
+[data-dir="instrument"] .log-blob:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(85,80,92,0.28); }
+[data-dir="instrument"] .log-blob:active { transform: scale(0.97); }
+
+/* ═══════════════════════════════════════════════════════════
+   DIRECTION 3 — LIVING PAPER
+   ═══════════════════════════════════════════════════════════ */
+[data-dir="living"] .screen {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 44px 24px 120px;
+}
+[data-dir="living"] .wordmark {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 18px;
+  color: var(--dim);
+  margin-bottom: 48px;
+  letter-spacing: -0.01em;
+}
+[data-dir="living"] .section-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 20px;
+}
+[data-dir="living"] .goal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+[data-dir="living"] .goal-card {
+  padding: 20px 18px 18px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+  animation: card-enter 360ms var(--ease-out) both;
+}
+[data-dir="living"] .goal-card:nth-child(1) { border-radius: 22px 18px 24px 19px; animation-delay: 0ms; }
+[data-dir="living"] .goal-card:nth-child(2) { border-radius: 18px 23px 17px 22px; animation-delay: 60ms; }
+[data-dir="living"] .goal-card:nth-child(3) { border-radius: 24px 16px 22px 18px; animation-delay: 120ms; }
+[data-dir="living"] .goal-card:nth-child(4) { border-radius: 17px 22px 19px 24px; animation-delay: 180ms; }
+[data-dir="living"] .goal-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  pointer-events: none;
+}
+[data-dir="living"] .goal-card[data-cat="health"]::before        { background: var(--cat-health); }
+[data-dir="living"] .goal-card[data-cat="career"]::before        { background: var(--cat-career); }
+[data-dir="living"] .goal-card[data-cat="reading"]::before       { background: var(--cat-reading); }
+[data-dir="living"] .goal-card[data-cat="relationships"]::before { background: var(--cat-relationships); }
+[data-dir="living"] .goal-card[data-cat="creativity"]::before    { background: var(--cat-creativity); }
+[data-dir="living"] .goal-card[data-cat="ai"]::before            { background: var(--cat-ai); }
+@media (hover: hover) and (pointer: fine) {
+  [data-dir="living"] .goal-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(85,80,92,0.11); }
+}
+[data-dir="living"] .goal-card:active { transform: scale(0.97); box-shadow: none; }
+[data-dir="living"] .orb-wrap {
+  width: 72px; height: 72px;
+  margin-bottom: 16px;
+}
+[data-dir="living"] .orb {
+  width: 100%; height: 100%;
+  border-radius: 58% 42% 55% 45% / 45% 55% 42% 58%;
+  animation: orb-breathe-lg 7s ease-in-out infinite;
+}
+[data-dir="living"] .goal-card:nth-child(2) .orb { animation-delay: -2.3s; }
+[data-dir="living"] .goal-card:nth-child(3) .orb { animation-delay: -4.1s; }
+[data-dir="living"] .goal-card:nth-child(4) .orb { animation-delay: -1.7s; }
+[data-dir="living"] .goal-name {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 15.5px;
+  line-height: 1.25;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+[data-dir="living"] .momentum-bar {
+  height: 4px;
+  background: var(--track);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+[data-dir="living"] .momentum-fill {
+  height: 100%;
+  border-radius: 99px;
+  opacity: 0.7;
+  transition: width 600ms var(--ease-out);
+}
+[data-dir="living"] .goal-meta {
+  font-size: 11px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+[data-dir="living"] .log-blob {
+  position: fixed;
+  right: 24px; bottom: 24px;
+  width: 62px; height: 62px;
+  background: linear-gradient(135deg, var(--card) 0%, var(--panel) 100%);
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 20px rgba(85,80,92,0.12);
+  color: var(--ink);
+  font-size: 28px;
+  font-weight: 300;
+  display: grid; place-items: center;
+  animation: log-breathe 7s ease-in-out infinite;
+  transition: transform 120ms var(--ease-out), box-shadow 120ms ease;
+}
+[data-dir="living"] .log-blob:hover { transform: scale(1.1); box-shadow: 0 12px 32px rgba(85,80,92,0.16); }
+[data-dir="living"] .log-blob:active { transform: scale(0.92); }
+
+/* ── Tweaks Panel ─────────────────────────────────────────── */
+.tweaks-toggle {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  width: 36px; height: 36px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: grid; place-items: center;
+  box-shadow: 0 2px 8px rgba(85,80,92,0.08);
+  z-index: 1000;
+  color: var(--dim);
+  font-size: 14px;
+  transition: transform 120ms var(--ease-out);
+}
+.tweaks-toggle:hover { transform: scale(1.1); }
+.tweaks-toggle:active { transform: scale(0.95); }
+
+.tweaks-panel {
+  position: fixed;
+  bottom: 72px;
+  left: 28px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 8px 28px rgba(85,80,92,0.12);
+  z-index: 999;
+  min-width: 200px;
+  transform-origin: bottom left;
+  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+.tweaks-panel[hidden] {
+  display: block !important;
+  opacity: 0;
+  transform: scale(0.92) translateY(8px);
+  pointer-events: none;
+}
+.tweaks-title {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 14px;
+}
+.tweaks-label {
+  font-size: 12px;
+  color: var(--dim);
+  margin-bottom: 8px;
+  display: block;
+}
+.dir-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dir-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: transparent;
+  font-size: 12px;
+  color: var(--ink);
+  text-align: left;
+  transition: background 120ms ease, border-color 120ms ease;
+  cursor: pointer;
+}
+.dir-btn:hover { background: var(--panel); }
+.dir-btn.active {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+.dir-btn small {
+  display: block;
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 2px;
+}
+</style>
+</head>
+<body data-dir="journal">
+
+<!-- ─── DIRECTION 1: DEEP JOURNAL ─────────────────────────── -->
+<div class="screen" id="dir-journal">
+  <div class="wordmark">Becoming</div>
+  <div class="date-line">Tuesday, August 2026</div>
+  <div class="section-label">Your Goals</div>
+
+  <div class="goal-list">
+
+    <div class="goal-row">
+      <div class="goal-rule" style="background: var(--cat-health);"></div>
+      <div>
+        <div class="goal-name">Run every morning</div>
+        <div class="goal-meta">214 days kept · last: yesterday</div>
+        <div class="momentum-bar" style="margin-top:10px">
+          <div class="momentum-fill" style="width:82%; background:var(--cat-health);"></div>
+        </div>
+      </div>
+      <div class="goal-days">214<span>days</span></div>
+    </div>
+
+    <div class="goal-row">
+      <div class="goal-rule" style="background: var(--cat-career);"></div>
+      <div>
+        <div class="goal-name">Deep work, daily</div>
+        <div class="goal-meta">89 days kept · last: 3 days ago</div>
+        <div class="momentum-bar" style="margin-top:10px">
+          <div class="momentum-fill" style="width:55%; background:var(--cat-career);"></div>
+        </div>
+      </div>
+      <div class="goal-days">89<span>days</span></div>
+    </div>
+
+    <div class="goal-row">
+      <div class="goal-rule" style="background: var(--cat-reading);"></div>
+      <div>
+        <div class="goal-name">Read before bed</div>
+        <div class="goal-meta">41 days kept · last: today</div>
+        <div class="momentum-bar" style="margin-top:10px">
+          <div class="momentum-fill" style="width:70%; background:var(--cat-reading);"></div>
+        </div>
+      </div>
+      <div class="goal-days">41<span>days</span></div>
+    </div>
+
+    <div class="goal-row">
+      <div class="goal-rule" style="background: var(--cat-relationships);"></div>
+      <div>
+        <div class="goal-name">Cook something weekly</div>
+        <div class="goal-meta">18 sessions · last: Sunday</div>
+        <div class="momentum-bar" style="margin-top:10px">
+          <div class="momentum-fill" style="width:38%; background:var(--cat-relationships);"></div>
+        </div>
+      </div>
+      <div class="goal-days">18<span>sessions</span></div>
+    </div>
+
+  </div>
+
+  <button class="new-goal-btn" onclick="alert('New goal flow')">
+    <span class="plus-mark">+</span>
+    begin something new
+  </button>
+
+  <button class="log-blob" onclick="alert('Log sheet')">+</button>
+</div>
+
+
+<!-- ─── DIRECTION 2: WARM INSTRUMENT ──────────────────────── -->
+<div class="screen" id="dir-instrument" style="display:none">
+  <div class="wordmark">
+    <span>BECOMING</span>
+    <span class="wordmark-date">TUE 25 AUG</span>
+  </div>
+
+  <div class="section-label">Active Goals</div>
+
+  <div class="goal-list">
+
+    <div class="goal-row">
+      <div class="goal-dot" style="background:var(--cat-health)"></div>
+      <div class="goal-inner">
+        <div class="goal-name">Run every morning</div>
+        <div class="goal-sub">
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width:82%; background:var(--cat-health);"></div>
+          </div>
+          <span class="goal-date">yesterday</span>
+        </div>
+      </div>
+      <div class="goal-streak">214<small>kept</small></div>
+    </div>
+
+    <div class="goal-row">
+      <div class="goal-dot" style="background:var(--cat-career)"></div>
+      <div class="goal-inner">
+        <div class="goal-name">Deep work, daily</div>
+        <div class="goal-sub">
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width:55%; background:var(--cat-career);"></div>
+          </div>
+          <span class="goal-date">3 days ago</span>
+        </div>
+      </div>
+      <div class="goal-streak">89<small>kept</small></div>
+    </div>
+
+    <div class="goal-row">
+      <div class="goal-dot" style="background:var(--cat-reading)"></div>
+      <div class="goal-inner">
+        <div class="goal-name">Read before bed</div>
+        <div class="goal-sub">
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width:70%; background:var(--cat-reading);"></div>
+          </div>
+          <span class="goal-date">today</span>
+        </div>
+      </div>
+      <div class="goal-streak">41<small>kept</small></div>
+    </div>
+
+    <div class="goal-row">
+      <div class="goal-dot" style="background:var(--cat-relationships)"></div>
+      <div class="goal-inner">
+        <div class="goal-name">Cook something weekly</div>
+        <div class="goal-sub">
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width:38%; background:var(--cat-relationships);"></div>
+          </div>
+          <span class="goal-date">Sunday</span>
+        </div>
+      </div>
+      <div class="goal-streak">18<small>sessions</small></div>
+    </div>
+
+  </div>
+
+  <div class="mini-year">
+    <div class="section-label" style="margin-top:32px">Year to date</div>
+    <div class="mini-year-grid" id="year-grid"></div>
+  </div>
+
+  <button class="log-blob" onclick="alert('Log sheet')">+ log</button>
+</div>
+
+
+<!-- ─── DIRECTION 3: LIVING PAPER ─────────────────────────── -->
+<div class="screen" id="dir-living" style="display:none">
+  <div class="wordmark">becoming</div>
+  <div class="section-label">Your Goals</div>
+
+  <div class="goal-grid">
+
+    <div class="goal-card" data-cat="health">
+      <div class="orb-wrap">
+        <div class="orb" style="background: radial-gradient(circle at 35% 30%, var(--cat-health), #8DBFAB 80%);"></div>
+      </div>
+      <div class="goal-name">Run every morning</div>
+      <div class="momentum-bar">
+        <div class="momentum-fill" style="width:82%; background:var(--cat-health);"></div>
+      </div>
+      <div class="goal-meta">214 days</div>
+    </div>
+
+    <div class="goal-card" data-cat="career">
+      <div class="orb-wrap">
+        <div class="orb" style="background: radial-gradient(circle at 35% 30%, var(--cat-career), #D9989C 80%);"></div>
+      </div>
+      <div class="goal-name">Deep work, daily</div>
+      <div class="momentum-bar">
+        <div class="momentum-fill" style="width:55%; background:var(--cat-career);"></div>
+      </div>
+      <div class="goal-meta">89 days</div>
+    </div>
+
+    <div class="goal-card" data-cat="reading">
+      <div class="orb-wrap">
+        <div class="orb" style="background: radial-gradient(circle at 35% 30%, var(--cat-reading), #AA99D3 80%);"></div>
+      </div>
+      <div class="goal-name">Read before bed</div>
+      <div class="momentum-bar">
+        <div class="momentum-fill" style="width:70%; background:var(--cat-reading);"></div>
+      </div>
+      <div class="goal-meta">41 days</div>
+    </div>
+
+    <div class="goal-card" data-cat="relationships">
+      <div class="orb-wrap">
+        <div class="orb" style="background: radial-gradient(circle at 35% 30%, var(--cat-relationships), #D4A882 80%);"></div>
+      </div>
+      <div class="goal-name">Cook something weekly</div>
+      <div class="momentum-bar">
+        <div class="momentum-fill" style="width:38%; background:var(--cat-relationships);"></div>
+      </div>
+      <div class="goal-meta">18 sessions</div>
+    </div>
+
+  </div>
+
+  <button class="log-blob" onclick="alert('Log sheet')">+</button>
+</div>
+
+
+<!-- ─── Tweaks ─────────────────────────────────────────────── -->
+<button class="tweaks-toggle" id="tweaks-toggle" title="Tweaks">⚙</button>
+
+<div class="tweaks-panel" id="tweaks-panel" hidden>
+  <div class="tweaks-title">Tweaks</div>
+  <span class="tweaks-label">Design direction</span>
+  <div class="dir-btns">
+    <button class="dir-btn active" data-target="journal">
+      Deep Journal
+      <small>Craig Mod · type-first</small>
+    </button>
+    <button class="dir-btn" data-target="instrument">
+      Warm Instrument
+      <small>Tufte · data-dense</small>
+    </button>
+    <button class="dir-btn" data-target="living">
+      Living Paper
+      <small>Orbs · card grid</small>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── Year grid for Warm Instrument ─────────────────────────
+(function buildYearGrid() {
+  const grid = document.getElementById('year-grid');
+  if (!grid) return;
+  const today = new Date();
+  const start = new Date(today.getFullYear(), 0, 1);
+  const dayOfWeek = start.getDay();
+  const weeks = 52;
+  for (let w = 0; w < weeks; w++) {
+    const col = document.createElement('div');
+    col.className = 'mini-week';
+    for (let d = 0; d < 7; d++) {
+      const cell = document.createElement('div');
+      const dayNum = w * 7 + d - dayOfWeek;
+      const cellDate = new Date(start);
+      cellDate.setDate(start.getDate() + dayNum);
+      cell.className = 'mini-day';
+      if (cellDate <= today && dayNum >= 0) {
+        // Pseudo-random fill based on position
+        const rand = (w * 7 + d * 13 + 7) % 10;
+        if (rand > 4) cell.classList.add('filled');
+      }
+      col.appendChild(cell);
+    }
+    grid.appendChild(col);
+  }
+})();
+
+// ── Direction switcher ────────────────────────────────────
+const screens = {
+  journal:    document.getElementById('dir-journal'),
+  instrument: document.getElementById('dir-instrument'),
+  living:     document.getElementById('dir-living'),
+};
+const body = document.body;
+let currentDir = 'journal';
+
+function switchDir(dir) {
+  if (dir === currentDir) return;
+  Object.values(screens).forEach(s => s.style.display = 'none');
+  screens[dir].style.display = '';
+  body.dataset.dir = dir;
+  document.querySelectorAll('.dir-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.target === dir);
+  });
+  currentDir = dir;
+}
+
+document.querySelectorAll('.dir-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchDir(btn.dataset.target));
+});
+
+// ── Tweaks panel ──────────────────────────────────────────
+const tweaksToggle = document.getElementById('tweaks-toggle');
+const tweaksPanel  = document.getElementById('tweaks-panel');
+let tweaksOpen = false;
+
+tweaksToggle.addEventListener('click', () => {
+  tweaksOpen = !tweaksOpen;
+  tweaksPanel.hidden = !tweaksOpen;
+});
+
+document.addEventListener('click', e => {
+  if (tweaksOpen && !tweaksPanel.contains(e.target) && e.target !== tweaksToggle) {
+    tweaksOpen = false;
+    tweaksPanel.hidden = true;
+  }
+});
+</script>
+</body>
+</html>
