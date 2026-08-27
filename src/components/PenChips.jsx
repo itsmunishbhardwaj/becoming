@@ -27,15 +27,17 @@ export default function PenChips({ goals, penId, onPick, penDayCount }) {
               padding: "4px 10px",
               cursor: "pointer",
               fontFamily: "inherit",
+              transition: "background 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease",
             }}
           >
             <span
               style={{
-                width: 10,
-                height: 10,
-                borderRadius: "46% 54% 52% 48%",
-                background: goalColor(g),
-                opacity: dimmed ? 0.3 : 0.8,
+                width: 14,
+                height: 14,
+                borderRadius: "67% 33% 52% 48% / 42% 58% 35% 65%",
+                background: `radial-gradient(circle at 35% 30%, ${goalColor(g)}, ${goalColor(g)}99 80%)`,
+                flexShrink: 0,
+                opacity: dimmed ? 0.3 : 1,
               }}
             />
             {g.name}

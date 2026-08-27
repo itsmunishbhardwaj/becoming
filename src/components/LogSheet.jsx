@@ -109,7 +109,7 @@ export default function LogSheet({ open, onClose, onSaved }) {
             transition={{ type: "spring", duration: 0.3, bounce: 0.2 }}
             onClick={(e) => e.stopPropagation()}
             style={{
-              position: "absolute", left: 0, right: 0, bottom: 0,
+              position: "absolute", insetInline: 0, bottom: 0,
               background: "rgba(251, 251, 249, 0.88)",
               backdropFilter: "blur(20px) saturate(160%)",
               WebkitBackdropFilter: "blur(20px) saturate(160%)",
@@ -214,7 +214,7 @@ export default function LogSheet({ open, onClose, onSaved }) {
                   opacity: saving ? 0.7 : 1,
                 }}
               >
-                Looks right — save
+                Save log
               </button>
             </div>
           </motion.div>

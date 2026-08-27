@@ -225,7 +225,7 @@ export default function Week() {
             <Link to="/year" style={viewPillItem(false)}>M</Link>
             <span style={viewPillItem(true)}>W</span>
           </div>
-          <p style={{ color: PAPER.dim, marginTop: 20 }}>Bad week.</p>
+          <p style={{ color: PAPER.dim, marginTop: 20 }}>Couldn't load this week.</p>
         </div>
       </div>
     );
@@ -336,7 +336,7 @@ export default function Week() {
 
         <footer style={{ marginTop: 48, textAlign: "center", fontSize: 13 }}>
           <Link to="/" style={{ color: PAPER.faint, textDecoration: "none" }}>
-            ← back to Life
+            ← Life
           </Link>
         </footer>
       </div>

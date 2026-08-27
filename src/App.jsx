@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import Lenis from "lenis";
 import Home from "./screens/Home.jsx";
 import Year from "./screens/Year.jsx";
 import Onboard from "./screens/Onboard.jsx";
@@ -7,11 +9,62 @@ import Day from "./screens/Day.jsx";
 import Goal from "./screens/Goal.jsx";
 import Month from "./screens/Month.jsx";
 import Week from "./screens/Week.jsx";
+import SignIn from "./screens/SignIn.jsx";
+import { getSession, onAuthStateChange } from "./lib/auth.js";
+
+function ScrollManager() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+
+    const lenis = new Lenis({
+      duration: 1.1,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      touchMultiplier: 1.4,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    const id = requestAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(id);
+      lenis.destroy();
+    };
+  }, [location.pathname]);
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
+  return null;
+}
 
 export default function App() {
+  // undefined = loading, null = signed out, object = signed in
+  const [session, setSession] = useState(undefined);
+
+  useEffect(() => {
+    getSession().then(setSession);
+    const { data: { subscription } } = onAuthStateChange(setSession);
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (session === undefined) return null; // brief loading — no flash
+
+  if (!session) return <SignIn />;
+
   return (
     <BrowserRouter>
+      <ScrollManager />
       <div className="grain" aria-hidden="true" />
+      <div className="vellum-mist" aria-hidden="true" />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/year" element={<Year />} />

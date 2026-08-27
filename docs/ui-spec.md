@@ -48,8 +48,7 @@ Widths are mockup widths, not breakpoints. Home/Goal/Log are a single column
    one style. Rejecting must cost nothing visually.
 8. **Empty is dignified.** Unmarked day = a 2px `PAPER.faint` dot at 50%.
    Empty day detail = "A quiet day. Rest counts too."
-9. **Only living things move.** Active orbs and the + blob breathe (7s morph);
-   dormant orbs are still. All motion behind `prefers-reduced-motion`.
+9. **Only living things move.** Active orbs and the + blob breathe (11s human-breathing pattern, scale 1→1.17, irregular blob morph); dormant orbs are still. Calendar blobs surface on tap (560ms ease-out, scale 0.84→1). "Becoming" intro plays on Home mount: water-puddle reveal with blurred reflection, mist exit. All motion behind `prefers-reduced-motion`.
 
 ---
 

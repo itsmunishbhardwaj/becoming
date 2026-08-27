@@ -109,10 +109,11 @@ export default function DayCell({
         const ang = (i / Math.max(marks.length, 1)) * Math.PI * 2 + i;
         const off = marks.length > 1 ? 2 : 0;
         const faded = focus && g.id !== focus.id;
-        const op = status === "soft" ? 0.55 : faded ? 0.15 : 0.85;
+        // Compound faded + soft into path opacity so CSS animation on <g> doesn't override SVG attribute
+        const op = (faded ? 0.15 : 1) * (status === "soft" ? 0.55 : 0.85);
         const color = goalColor(g);
         return (
-          <g key={g.id} opacity={faded && status !== "off" ? 0.15 : 1}>
+          <g key={g.id} className="blob-enter">
             <Blob
               cx={c + Math.cos(ang) * off}
               cy={c + Math.sin(ang) * off}
