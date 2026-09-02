@@ -18,6 +18,11 @@ export async function signUpWithEmail(email, password) {
   if (error) throw error;
 }
 
+export async function signInAsGuest() {
+  const { error } = await supabase.auth.signInAnonymously();
+  if (error) throw error;
+}
+
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;

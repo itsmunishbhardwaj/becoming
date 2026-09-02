@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PAPER, FONT } from "../tokens.js";
-import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "../lib/auth.js";
+import { signInWithGoogle, signInWithEmail, signUpWithEmail, signInAsGuest } from "../lib/auth.js";
 
 export default function SignIn() {
   const [mode, setMode] = useState("signin"); // "signin" | "signup"
@@ -17,6 +17,17 @@ export default function SignIn() {
       await signInWithGoogle();
     } catch (e) {
       setErr("Sign-in failed. Try again.");
+      setLoading(false);
+    }
+  }
+
+  async function handleGuest() {
+    setLoading(true);
+    setErr(null);
+    try {
+      await signInAsGuest();
+    } catch (e) {
+      setErr("Couldn't start guest session. Try again.");
       setLoading(false);
     }
   }
@@ -184,6 +195,27 @@ export default function SignIn() {
               Continue with Google
             </button>
           </>
+        )}
+
+        {/* Guest access */}
+        {!confirm && (
+          <button
+            onClick={handleGuest}
+            disabled={loading}
+            style={{
+              background: "none",
+              border: "none",
+              fontFamily: FONT.sans,
+              fontSize: 13,
+              color: PAPER.faint,
+              cursor: loading ? "default" : "pointer",
+              textDecoration: "underline",
+              padding: "4px 0",
+              textAlign: "center",
+            }}
+          >
+            Continue without an account
+          </button>
         )}
 
         {err && (
