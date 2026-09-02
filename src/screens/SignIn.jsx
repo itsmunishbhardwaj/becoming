@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { PAPER, FONT } from "../tokens.js";
-import { signInWithGoogle } from "../lib/auth.js";
+import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "../lib/auth.js";
 
 export default function SignIn() {
+  const [mode, setMode] = useState("signin"); // "signin" | "signup"
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
+  const [confirm, setConfirm] = useState(false);
 
   async function handleGoogle() {
     setLoading(true);
@@ -17,6 +21,52 @@ export default function SignIn() {
     }
   }
 
+  async function handleEmail(e) {
+    e.preventDefault();
+    if (!email || !password) return;
+    setLoading(true);
+    setErr(null);
+    try {
+      if (mode === "signup") {
+        await signUpWithEmail(email, password);
+        setConfirm(true);
+      } else {
+        await signInWithEmail(email, password);
+      }
+    } catch (err) {
+      setErr(err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const inputStyle = {
+    width: "100%",
+    padding: "10px 14px",
+    background: PAPER.card,
+    border: `1px solid ${PAPER.line}`,
+    borderRadius: 10,
+    fontFamily: FONT.sans,
+    fontSize: 14,
+    color: PAPER.ink,
+    outline: "none",
+    boxSizing: "border-box",
+  };
+
+  const btnStyle = {
+    width: "100%",
+    padding: "11px 0",
+    background: PAPER.ink,
+    border: "none",
+    borderRadius: 10,
+    fontFamily: FONT.sans,
+    fontSize: 14,
+    color: PAPER.bg,
+    cursor: loading ? "default" : "pointer",
+    opacity: loading ? 0.5 : 1,
+    transition: "opacity 120ms ease, transform 120ms ease",
+  };
+
   return (
     <div style={{
       minHeight: "100dvh",
@@ -25,12 +75,13 @@ export default function SignIn() {
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      gap: 40,
+      padding: "0 24px",
     }}>
       <div className="grain" aria-hidden="true" />
       <div className="vellum-mist" aria-hidden="true" />
 
-      <div style={{ textAlign: "center", position: "relative" }}>
+      {/* Wordmark */}
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
         <div style={{
           fontFamily: FONT.serif,
           fontWeight: 300,
@@ -53,35 +104,90 @@ export default function SignIn() {
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-        <button
-          onClick={handleGoogle}
-          disabled={loading}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "12px 24px",
-            background: PAPER.card,
-            border: `1px solid ${PAPER.line}`,
-            borderRadius: 999,
-            fontFamily: FONT.sans,
-            fontSize: 14,
-            color: PAPER.ink,
-            cursor: loading ? "default" : "pointer",
-            opacity: loading ? 0.5 : 1,
-            transition: "opacity 120ms ease, transform 120ms ease",
-          }}
-          onMouseDown={e => { e.currentTarget.style.transform = "scale(0.96)"; }}
-          onMouseUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
-        >
-          <GoogleIcon />
-          {loading ? "Redirecting…" : "Continue with Google"}
-        </button>
+      <div style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12 }}>
+
+        {confirm ? (
+          <p style={{ fontFamily: FONT.sans, fontSize: 14, color: PAPER.dim, textAlign: "center", margin: 0 }}>
+            Check your email to confirm your account, then sign in.
+          </p>
+        ) : (
+          <>
+            {/* Email form */}
+            <form onSubmit={handleEmail} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                style={inputStyle}
+                autoComplete="email"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                style={inputStyle}
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              />
+              <button type="submit" disabled={loading} style={btnStyle}>
+                {loading ? "…" : mode === "signup" ? "Create account" : "Sign in"}
+              </button>
+            </form>
+
+            {/* Toggle sign in / sign up */}
+            <p style={{ fontFamily: FONT.sans, fontSize: 13, color: PAPER.dim, textAlign: "center", margin: 0 }}>
+              {mode === "signin" ? "No account? " : "Already have one? "}
+              <button
+                onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setErr(null); }}
+                style={{ background: "none", border: "none", fontFamily: FONT.sans, fontSize: 13, color: PAPER.ink, cursor: "pointer", padding: 0, textDecoration: "underline" }}
+              >
+                {mode === "signin" ? "Create one" : "Sign in"}
+              </button>
+            </p>
+
+            {/* Divider */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "4px 0" }}>
+              <div style={{ flex: 1, height: 1, background: PAPER.line }} />
+              <span style={{ fontFamily: FONT.sans, fontSize: 12, color: PAPER.faint }}>or</span>
+              <div style={{ flex: 1, height: 1, background: PAPER.line }} />
+            </div>
+
+            {/* Google */}
+            <button
+              onClick={handleGoogle}
+              disabled={loading}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                padding: "11px 0",
+                background: PAPER.card,
+                border: `1px solid ${PAPER.line}`,
+                borderRadius: 10,
+                fontFamily: FONT.sans,
+                fontSize: 14,
+                color: PAPER.ink,
+                cursor: loading ? "default" : "pointer",
+                opacity: loading ? 0.5 : 1,
+                width: "100%",
+                transition: "opacity 120ms ease, transform 120ms ease",
+              }}
+              onMouseDown={e => { e.currentTarget.style.transform = "scale(0.97)"; }}
+              onMouseUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+            >
+              <GoogleIcon />
+              Continue with Google
+            </button>
+          </>
+        )}
 
         {err && (
-          <p style={{ fontFamily: FONT.sans, fontSize: 13, color: PAPER.whisper, margin: 0 }}>
+          <p style={{ fontFamily: FONT.sans, fontSize: 13, color: "#C0392B", textAlign: "center", margin: 0 }}>
             {err}
           </p>
         )}
