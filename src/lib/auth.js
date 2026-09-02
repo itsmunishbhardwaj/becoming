@@ -8,6 +8,16 @@ export async function signInWithGoogle() {
   if (error) throw error;
 }
 
+export async function signInWithEmail(email, password) {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+}
+
+export async function signUpWithEmail(email, password) {
+  const { error } = await supabase.auth.signUp({ email, password });
+  if (error) throw error;
+}
+
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
