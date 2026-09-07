@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams, useNavigate } from "react-router-dom"
 import { PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
-import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
+import { planDayTap } from "../data/dayTap.js";
 import { projectedDates } from "../data/projection.js";
 import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
 import { classifySwipe } from "../lib/swipe.js";
@@ -112,24 +112,10 @@ export default function Week() {
 
   const onDayTap = useCallback(async ({ dateISO }) => {
     if (!pen) return;
-    if (pen.endDate && dateISO > pen.endDate) return;
-    if (pen.baseline?.intervalDays != null) {
-      const round = pen.rounds.find((r) => dateISO >= r.startDate && dateISO <= r.endDate);
-      if (round && cadenceIsScheduledDay({ date: dateISO, currentRound: round })) return;
-    }
-    const existing = penEventByDate[dateISO];
-    if (existing) {
-      await deleteLogEvent(dateISO, existing);
-      await refreshLogs();
-      return;
-    }
-    const event =
-      typeof pen.baseline === "string"
-        ? { verb: "wake", time: "07:00", goalId: pen.id }
-        : pen.baseline?.intervalDays != null
-          ? { verb: "session", durationMin: 10, goalId: pen.id }
-          : { verb: "done", goalId: pen.id };
-    await appendLog(dateISO, event);
+    const plan = planDayTap({ goal: pen, dateISO, existingEvent: penEventByDate[dateISO] });
+    if (!plan) return;
+    if (plan.type === "delete") await deleteLogEvent(dateISO, plan.event);
+    else await appendLog(dateISO, plan.event);
     await refreshLogs();
   }, [pen, penEventByDate, refreshLogs]);
 

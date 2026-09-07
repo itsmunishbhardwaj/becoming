@@ -1,22 +1,21 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { Link, useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { centroidOf, distanceOf, classifyPinch } from "../lib/pinchGesture.js";
 import { PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
-import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
+import { planDayTap } from "../data/dayTap.js";
 import { projectedDates } from "../data/projection.js";
 import { todayLocalISO } from "../lib/date.js";
 import { classifySwipe } from "../lib/swipe.js";
-import DayCell from "../components/DayCell.jsx";
 import PenChips from "../components/PenChips.jsx";
+import MonthGrid from "../components/MonthGrid.jsx";
+import { daysInMonth, isoAtDay } from "../lib/calendarMonth.js";
 
 const MONTH_NAMES = [
   "January","February","March","April","May","June",
   "July","August","September","October","November","December",
 ];
-const DAY_LETTERS = ["S","M","T","W","T","F","S"];
-
 const YM_RE = /^(\d{4})-(\d{2})$/;
 
 function parseYm(param) {
@@ -40,28 +39,21 @@ function stepMonth({ year, monthIdx }, delta) {
   return { year: y, monthIdx: m };
 }
 
-function daysIn(year, monthIdx) {
-  return new Date(year, monthIdx + 1, 0).getDate();
-}
-
-function isoAt(year, monthIdx, dayIdx) {
-  return `${year}-${String(monthIdx + 1).padStart(2, "0")}-${String(dayIdx + 1).padStart(2, "0")}`;
-}
-
 export default function Month() {
   const nav = useNavigate();
   const { yyyymm } = useParams();
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
   const parsed = parseYm(yyyymm);
 
-  const [goals, setGoals] = useState(null);
-  const [logs, setLogs] = useState([]);
+  const [goals, setGoals] = useState(() => location.state?.goals ?? null);
+  const [logs, setLogs] = useState(() => location.state?.logs ?? []);
   const [penId, setPenId] = useState(() => params.get("pen") || null);
   const [transition, setTransition] = useState(null); // "next" | "prev" | null
   const [projecting, setProjecting] = useState(false);
 
-  const rangeFrom = parsed ? isoAt(parsed.year, parsed.monthIdx, 0) : null;
-  const rangeTo   = parsed ? isoAt(parsed.year, parsed.monthIdx, daysIn(parsed.year, parsed.monthIdx) - 1) : null;
+  const rangeFrom = parsed ? isoAtDay(parsed.year, parsed.monthIdx, 0) : null;
+  const rangeTo   = parsed ? isoAtDay(parsed.year, parsed.monthIdx, daysInMonth(parsed.year, parsed.monthIdx) - 1) : null;
 
   useEffect(() => {
     if (!parsed) return;
@@ -127,24 +119,10 @@ export default function Month() {
 
   const onDayTap = useCallback(async ({ dateISO }) => {
     if (!pen) return;
-    if (pen.endDate && dateISO > pen.endDate) return;
-    if (pen.baseline?.intervalDays != null) {
-      const round = pen.rounds.find((r) => dateISO >= r.startDate && dateISO <= r.endDate);
-      if (round && cadenceIsScheduledDay({ date: dateISO, currentRound: round })) return;
-    }
-    const existing = penEventByDate[dateISO];
-    if (existing) {
-      await deleteLogEvent(dateISO, existing);
-      await refreshLogs();
-      return;
-    }
-    const event =
-      typeof pen.baseline === "string"
-        ? { verb: "wake", time: "07:00", goalId: pen.id }
-        : pen.baseline?.intervalDays != null
-          ? { verb: "session", durationMin: 10, goalId: pen.id }
-          : { verb: "done", goalId: pen.id };
-    await appendLog(dateISO, event);
+    const plan = planDayTap({ goal: pen, dateISO, existingEvent: penEventByDate[dateISO] });
+    if (!plan) return;
+    if (plan.type === "delete") await deleteLogEvent(dateISO, plan.event);
+    else await appendLog(dateISO, plan.event);
     await refreshLogs();
   }, [pen, penEventByDate, refreshLogs]);
 
@@ -267,8 +245,6 @@ export default function Month() {
 
   const { year, monthIdx } = parsed;
   const monthName = MONTH_NAMES[monthIdx];
-  const dayCount = daysIn(year, monthIdx);
-  const leadOffset = new Date(year, monthIdx, 1).getDay();
 
   return (
     <div style={pageStyle} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
@@ -276,29 +252,6 @@ export default function Month() {
         .month-shell { max-width: 720px; margin: 0 auto; }
         @media (min-width: 900px)  { .month-shell { max-width: 960px; } }
         @media (min-width: 1200px) { .month-shell { max-width: 1120px; } }
-        .month-days {
-          display: grid;
-          grid-template-columns: repeat(7, 1fr) 28px;
-          gap: clamp(6px, 1vw, 14px);
-          justify-items: center;
-          align-items: center;
-        }
-        .month-dow {
-          display: grid;
-          grid-template-columns: repeat(7, 1fr) 28px;
-          gap: clamp(6px, 1vw, 14px);
-          justify-items: center;
-          margin-bottom: 6px;
-        }
-        .month-dow-cell {
-          font-family: 'Instrument Sans', 'Inter', system-ui, sans-serif;
-          font-size: 11px;
-          font-weight: 500;
-          letter-spacing: 0.08em;
-          color: ${PAPER.ink};
-          opacity: 0.32;
-        }
-        .month-cell { width: 100%; max-width: clamp(44px, 8vw, 64px); }
         @keyframes month-slide-in-next  { from { opacity: 0; transform: translateX(24px); }  to { opacity: 1; transform: translateX(0); } }
         @keyframes month-slide-in-prev  { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: translateX(0); } }
         .month-slide-next { animation: month-slide-in-next 180ms ease-out; }
@@ -331,58 +284,26 @@ export default function Month() {
           <PenChips goals={goals} penId={penId} onPick={pickPen} onLongPress={longPressPen} />
         )}
 
-        <div className="month-dow">
-          {DAY_LETTERS.map((l, i) => (
-            <span key={i} className="month-dow-cell">{l}</span>
-          ))}
-          <span aria-hidden="true" />
-        </div>
-        <div className={`month-days ${transition ? `month-slide-${transition}` : ""}`} ref={daysShellRef}>
-          {Array.from({ length: Math.ceil((leadOffset + dayCount) / 7) }, (_, r) => {
-            const dayNum = r * 7 - leadOffset + 1;
-            const d = new Date(year, monthIdx, dayNum);
-            const sundayISO = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        <MonthGrid
+          year={year}
+          monthIdx={monthIdx}
+          goals={goals ?? []}
+          adherenceMaps={adherenceMaps}
+          focus={focus}
+          pen={pen}
+          onDayTap={(iso) => onDayTap({ dateISO: iso })}
+          onOpenDay={(iso) => nav(`/day/${iso}`)}
+          todayISO={todayISO}
+          blobScale={1.6}
+          projectedDates={projectedSet}
+          showWeekPills
+          onWeekPillClick={(sundayISO) => {
             const q = params.toString();
-            return (
-              <React.Fragment key={r}>
-                {Array.from({ length: 7 }, (_, col) => {
-                  const pos = r * 7 + col;
-                  const i = pos - leadOffset;
-                  if (i < 0 || i >= dayCount) return <span key={`e-${r}-${col}`} aria-hidden="true" />;
-                  const iso = isoAt(year, monthIdx, i);
-                  return (
-                    <div key={iso} className="month-cell">
-                      <DayCell
-                        monthIdx={monthIdx}
-                        monthName={monthName}
-                        dayIdx={i}
-                        isoDate={iso}
-                        goals={goals ?? []}
-                        adherenceMaps={adherenceMaps}
-                        focus={focus}
-                        pen={pen}
-                        onToggle={() => onDayTap({ dateISO: iso })}
-                        onOpen={() => nav(`/day/${iso}`)}
-                        isToday={iso === todayISO}
-                        showHalo={false}
-                        blobScale={1.6}
-                        projectedDates={projectedSet}
-                      />
-                    </div>
-                  );
-                })}
-                <button
-                  type="button"
-                  onClick={() => nav(`/week/${sundayISO}${q ? `?${q}` : ""}`)}
-                  aria-label={`Week of ${sundayISO}`}
-                  style={weekPillStyle}
-                >
-                  ›
-                </button>
-              </React.Fragment>
-            );
-          })}
-        </div>
+            nav(`/week/${sundayISO}${q ? `?${q}` : ""}`);
+          }}
+          transitionClassName={transition ? `month-slide-${transition}` : ""}
+          gridRef={daysShellRef}
+        />
 
         <footer style={{ marginTop: 40, textAlign: "center", fontSize: 13 }}>
           <Link to="/" style={{ color: PAPER.faint, textDecoration: "none" }}>
@@ -426,12 +347,4 @@ const navBtn = {
   color: PAPER.ink, fontSize: 18, cursor: "pointer",
   display: "grid", placeItems: "center",
   fontFamily: "inherit",
-};
-const weekPillStyle = {
-  width: 22, height: 22, borderRadius: 999,
-  border: `1px solid ${PAPER.line}`, background: "transparent",
-  color: PAPER.dim, fontSize: 12, cursor: "pointer",
-  display: "grid", placeItems: "center",
-  padding: 0, flexShrink: 0,
-  lineHeight: 1,
 };

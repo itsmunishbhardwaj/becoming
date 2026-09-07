@@ -57,3 +57,17 @@ describe("DayCell halo", () => {
     }
   });
 });
+
+describe("DayCell view transition", () => {
+  it("sets view-transition-name when viewTransitionId is provided", () => {
+    const { container } = render(<DayCell {...baseProps} viewTransitionId="cal-cell-2026-08-18" />);
+    const svg = container.querySelector("svg");
+    expect(svg.getAttribute("style")).toContain("view-transition-name: cal-cell-2026-08-18");
+  });
+
+  it("omits view-transition-name when viewTransitionId is not provided", () => {
+    const { container } = render(<DayCell {...baseProps} />);
+    const svg = container.querySelector("svg");
+    expect(svg.getAttribute("style")).not.toContain("view-transition-name");
+  });
+});

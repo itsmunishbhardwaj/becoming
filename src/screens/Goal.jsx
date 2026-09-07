@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { motion, useDragControls } from "motion/react";
 import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
-import { getGoal, readLogsInRange, saveGoal } from "../data/store.js";
-import { momentum } from "../data/adherence.js";
+import { getGoal, readLogsInRange, saveGoal, appendLog, deleteLogEvent } from "../data/store.js";
+import { momentum, dailyAdherence } from "../data/adherence.js";
 import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
+import { daysInMonth, isoAtDay } from "../lib/calendarMonth.js";
+import { planDayTap } from "../data/dayTap.js";
 import Orb from "../components/Orb.jsx";
+import MonthGrid from "../components/MonthGrid.jsx";
 import { goalColor, PALETTE } from "../lib/goalColor.js";
 
 function formatTarget(goal, r) {
@@ -28,12 +32,31 @@ function humanDay(iso) {
   });
 }
 
+function prefersReducedMotion() {
+  return typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+async function waitForCells(timeoutMs = 400) {
+  const start = performance.now();
+  while (performance.now() - start < timeoutMs) {
+    if (document.querySelector('[aria-label^="Week of"]')) return;
+    await new Promise((r) => requestAnimationFrame(r));
+  }
+}
+
 export default function Goal() {
   const { id } = useParams();
+  const nav = useNavigate();
+  const today = todayLocalISO();
+  const [todayY, todayM] = today.split("-").map(Number);
+  const calMonthIdx = todayM - 1;
+  const calMonthEndISO = isoAtDay(todayY, calMonthIdx, daysInMonth(todayY, calMonthIdx) - 1);
+  const calYyyymm = `${todayY}-${String(todayM).padStart(2, "0")}`;
   const [goal, setGoal] = useState(undefined);
   const [logs, setLogs] = useState([]);
   const [editingColor, setEditingColor] = useState(false);
   const [savingColor, setSavingColor] = useState(false);
+  const dragControls = useDragControls();
 
   async function pickColor(color) {
     if (!goal || savingColor) return;
@@ -45,11 +68,47 @@ export default function Goal() {
     finally { setSavingColor(false); setEditingColor(false); }
   }
 
+  const refreshMonthLogs = useCallback(async () => {
+    const start = addDaysLocalISO(today, -365);
+    const l = await readLogsInRange({ from: start, to: calMonthEndISO });
+    setLogs(l);
+  }, [today, calMonthEndISO]);
+
+  const handleMiniDayTap = useCallback(async (iso) => {
+    if (!goal) return;
+    const existingEvent = logs.find((l) => l.date === iso)?.events.find((e) => e.goalId === goal.id);
+    const plan = planDayTap({ goal, dateISO: iso, existingEvent });
+    if (!plan) return;
+    if (plan.type === "delete") await deleteLogEvent(iso, plan.event);
+    else await appendLog(iso, plan.event);
+    await refreshMonthLogs();
+  }, [goal, logs, refreshMonthLogs]);
+
+  const expandToCalendar = useCallback(() => {
+    if (!goal) return;
+    const path = `/month/${calYyyymm}?pen=${goal.id}`;
+    const monthStart = isoAtDay(todayY, calMonthIdx, 0);
+    const state = { goals: [goal], logs: logs.filter((l) => l.date >= monthStart) };
+    if (prefersReducedMotion() || typeof document.startViewTransition !== "function") {
+      nav(path, { state });
+      return;
+    }
+    document.startViewTransition(() => {
+      nav(path, { state });
+      return waitForCells();
+    });
+  }, [goal, logs, calYyyymm, todayY, calMonthIdx, nav]);
+
+  const miniAdherenceMaps = useMemo(() => {
+    if (!goal) return {};
+    const monthStart = isoAtDay(todayY, calMonthIdx, 0);
+    return { [goal.id]: dailyAdherence({ goal, logs, from: monthStart, to: calMonthEndISO }) };
+  }, [goal, logs, calMonthEndISO, todayY, calMonthIdx]);
+
   useEffect(() => {
     let alive = true;
-    const end = todayLocalISO();
-    const start = addDaysLocalISO(end, -365);
-    Promise.all([getGoal(id), readLogsInRange({ from: start, to: end })])
+    const start = addDaysLocalISO(today, -365);
+    Promise.all([getGoal(id), readLogsInRange({ from: start, to: calMonthEndISO })])
       .then(([g, l]) => { if (!alive) return; setGoal(g); setLogs(l); })
       .catch(() => { if (alive) { setGoal(null); setLogs([]); } });
     return () => { alive = false; };
@@ -258,9 +317,6 @@ export default function Goal() {
               <Link to={`/onboard?goalId=${goal.id}&turn=roundsPreview`} style={actionLink}>
                 Adjust rounds →
               </Link>
-              <Link to={`/year?pen=${goal.id}`} style={actionLink}>
-                See on calendar →
-              </Link>
             </div>
           </aside>
 
@@ -311,6 +367,57 @@ export default function Goal() {
                 </div>
               </section>
             )}
+
+            {/* Calendar — mini month, scoped to this goal; tap or drag up to expand */}
+            <section style={{ marginTop: 36 }}>
+              <motion.div
+                drag="y"
+                dragControls={dragControls}
+                dragListener={false}
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0.15, bottom: 0 }}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y < -60 || info.velocity.y < -400) expandToCalendar();
+                }}
+                style={{
+                  background: PAPER.card,
+                  border: `1px solid ${PAPER.line}`,
+                  borderRadius: RADIUS.r1,
+                  padding: "16px 18px 20px",
+                }}
+              >
+                <button
+                  type="button"
+                  onPointerDown={(e) => dragControls.start(e)}
+                  onClick={expandToCalendar}
+                  style={{
+                    background: "none", border: 0, padding: 0, textAlign: "left",
+                    font: "inherit", cursor: "grab", marginBottom: 14,
+                    touchAction: "none", display: "block", width: "100%",
+                  }}
+                >
+                  <div style={kicker}>Calendar</div>
+                  <div style={{ fontSize: 12.5, color: PAPER.dim, marginTop: 4 }}>
+                    This month · tap or swipe up ↑
+                  </div>
+                </button>
+                <MonthGrid
+                  year={todayY}
+                  monthIdx={calMonthIdx}
+                  goals={[goal]}
+                  adherenceMaps={miniAdherenceMaps}
+                  focus={goal}
+                  pen={goal}
+                  onDayTap={handleMiniDayTap}
+                  onOpenDay={(iso) => nav(`/day/${iso}`)}
+                  todayISO={today}
+                  blobScale={1}
+                  cellMaxWidth="clamp(24px, 6vw, 34px)"
+                  gap="6px"
+                  showWeekPills={false}
+                />
+              </motion.div>
+            </section>
           </main>
         </div>
       </div>

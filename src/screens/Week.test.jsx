@@ -9,22 +9,22 @@ vi.mock("../data/store.js", () => ({
   deleteLogEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
-import Month from "./Month.jsx";
+import Week from "./Week.jsx";
 import { listGoals, readLogsInRange, appendLog } from "../data/store.js";
 
 const GOAL = {
   id: "gym", name: "Gym", cat: "health", type: "tracker",
   baseline: null,
-  endDate: "2026-09-15",
+  endDate: "2026-09-09",
   state: "active", currentRound: 1,
   rounds: [],
 };
 
-function renderMonth() {
+function renderWeek() {
   return render(
-    <MemoryRouter initialEntries={["/month/2026-09"]}>
+    <MemoryRouter initialEntries={["/week/2026-09-06"]}>
       <Routes>
-        <Route path="/month/:yyyymm" element={<Month />} />
+        <Route path="/week/:yyyymmdd" element={<Week />} />
       </Routes>
     </MemoryRouter>
   );
@@ -36,15 +36,15 @@ beforeEach(() => {
   appendLog.mockClear();
 });
 
-describe("Month respects goal end date", () => {
+describe("Week respects goal end date", () => {
   it("does not log a day past the goal's end date", async () => {
     listGoals.mockResolvedValue([GOAL]);
     readLogsInRange.mockResolvedValue([]);
-    renderMonth();
+    renderWeek();
     await waitFor(() => expect(screen.getByText("Gym")).toBeInTheDocument());
     fireEvent.click(screen.getByText("Gym"));
 
-    const dayPastEnd = document.querySelector('[data-iso="2026-09-20"]');
+    const dayPastEnd = document.querySelector('[data-iso="2026-09-12"]');
     expect(dayPastEnd).toBeTruthy();
     fireEvent.click(dayPastEnd);
     expect(appendLog).not.toHaveBeenCalled();
@@ -53,33 +53,13 @@ describe("Month respects goal end date", () => {
   it("logs a day within the goal's end date", async () => {
     listGoals.mockResolvedValue([GOAL]);
     readLogsInRange.mockResolvedValue([]);
-    renderMonth();
+    renderWeek();
     await waitFor(() => expect(screen.getByText("Gym")).toBeInTheDocument());
     fireEvent.click(screen.getByText("Gym"));
 
-    const dayWithinEnd = document.querySelector('[data-iso="2026-09-10"]');
+    const dayWithinEnd = document.querySelector('[data-iso="2026-09-08"]');
     expect(dayWithinEnd).toBeTruthy();
     fireEvent.click(dayWithinEnd);
     await waitFor(() => expect(appendLog).toHaveBeenCalled());
-  });
-});
-
-describe("Month seeds initial state from location.state", () => {
-  it("renders the seeded goal immediately, without waiting for listGoals", async () => {
-    // Never resolves — proves the initial render didn't depend on this promise.
-    listGoals.mockReturnValue(new Promise(() => {}));
-    readLogsInRange.mockReturnValue(new Promise(() => {}));
-
-    render(
-      <MemoryRouter
-        initialEntries={[{ pathname: "/month/2026-09", state: { goals: [GOAL], logs: [] } }]}
-      >
-        <Routes>
-          <Route path="/month/:yyyymm" element={<Month />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    expect(screen.getByText("Gym")).toBeInTheDocument();
   });
 });

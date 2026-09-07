@@ -1,14 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { MemoryRouter, Route, Routes, useSearchParams } from "react-router-dom";
 
 vi.mock("../data/store.js", () => ({
   getGoal: vi.fn(),
   readLogsInRange: vi.fn().mockResolvedValue([]),
+  appendLog: vi.fn().mockResolvedValue(undefined),
+  deleteLogEvent: vi.fn().mockResolvedValue(undefined),
+  saveGoal: vi.fn().mockResolvedValue(undefined),
 }));
 
 import Goal from "./Goal.jsx";
-import { getGoal, readLogsInRange } from "../data/store.js";
+import { getGoal, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 
 const WAKE_GOAL = {
   id: "wake-6am",
@@ -31,11 +34,17 @@ const WAKE_GOAL = {
   indicators: { right: [], wrong: [], stall: [] },
 };
 
+function MonthStub() {
+  const [params] = useSearchParams();
+  return <div data-testid="month-page">pen={params.get("pen")}</div>;
+}
+
 function renderGoal(id = "wake-6am") {
   return render(
     <MemoryRouter initialEntries={[`/goal/${id}`]}>
       <Routes>
         <Route path="/goal/:id" element={<Goal />} />
+        <Route path="/month/:yyyymm" element={<MonthStub />} />
       </Routes>
     </MemoryRouter>
   );
@@ -44,6 +53,8 @@ function renderGoal(id = "wake-6am") {
 beforeEach(() => {
   getGoal.mockReset();
   readLogsInRange.mockReset().mockResolvedValue([]);
+  appendLog.mockClear();
+  deleteLogEvent.mockClear();
 });
 
 describe("Goal workspace", () => {
@@ -54,7 +65,6 @@ describe("Goal workspace", () => {
     expect(screen.getByText(/Own the morning\./)).toBeInTheDocument();
     expect(screen.getByText(/round 2/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /adjust rounds/i })).toHaveAttribute("href", "/onboard?goalId=wake-6am&turn=roundsPreview");
-    expect(screen.getByRole("link", { name: /see on calendar/i })).toHaveAttribute("href", "/year?pen=wake-6am");
     expect(screen.getByRole("link", { name: /life/i })).toHaveAttribute("href", "/");
   });
 
@@ -86,5 +96,57 @@ describe("Goal workspace", () => {
     renderGoal();
     const orbWrap = await screen.findByTestId("goal-orb-wrap");
     expect(Number(orbWrap.dataset.momentum)).toBeGreaterThan(0);
+  });
+});
+
+describe("Goal mini calendar", () => {
+  it("renders a calendar section instead of the old 'see on calendar' link", async () => {
+    getGoal.mockResolvedValue(WAKE_GOAL);
+    renderGoal();
+    await waitFor(() => expect(screen.getByText(/this month/i)).toBeInTheDocument());
+    expect(screen.queryByRole("link", { name: /see on calendar/i })).not.toBeInTheDocument();
+  });
+
+  it("logs a tap on a mini-calendar day cell", async () => {
+    getGoal.mockResolvedValue(WAKE_GOAL);
+    renderGoal();
+    await waitFor(() => expect(screen.getByText(/this month/i)).toBeInTheDocument());
+
+    const todayCell = document.querySelector("[data-iso]");
+    expect(todayCell).toBeTruthy();
+    fireEvent.click(todayCell);
+    await waitFor(() => expect(appendLog).toHaveBeenCalled());
+  });
+});
+
+describe("Goal calendar expansion", () => {
+  it("navigates to the scoped Month view when the calendar header is clicked", async () => {
+    getGoal.mockResolvedValue(WAKE_GOAL);
+    renderGoal();
+    await waitFor(() => expect(screen.getByText(/this month/i)).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText(/this month/i));
+
+    await waitFor(() => expect(screen.getByTestId("month-page")).toBeInTheDocument());
+    expect(screen.getByTestId("month-page")).toHaveTextContent("pen=wake-6am");
+  });
+
+  it("still navigates when document.startViewTransition is available", async () => {
+    const startViewTransition = vi.fn((cb) => {
+      cb();
+      return { finished: Promise.resolve(), ready: Promise.resolve(), updateCallbackDone: Promise.resolve() };
+    });
+    document.startViewTransition = startViewTransition;
+
+    getGoal.mockResolvedValue(WAKE_GOAL);
+    renderGoal();
+    await waitFor(() => expect(screen.getByText(/this month/i)).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText(/this month/i));
+
+    expect(startViewTransition).toHaveBeenCalled();
+    await waitFor(() => expect(screen.getByTestId("month-page")).toBeInTheDocument());
+
+    delete document.startViewTransition;
   });
 });
