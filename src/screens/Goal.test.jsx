@@ -1,14 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 vi.mock("../data/store.js", () => ({
   getGoal: vi.fn(),
   readLogsInRange: vi.fn().mockResolvedValue([]),
+  appendLog: vi.fn().mockResolvedValue(undefined),
+  deleteLogEvent: vi.fn().mockResolvedValue(undefined),
+  saveGoal: vi.fn().mockResolvedValue(undefined),
 }));
 
 import Goal from "./Goal.jsx";
-import { getGoal, readLogsInRange } from "../data/store.js";
+import { getGoal, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 
 const WAKE_GOAL = {
   id: "wake-6am",
@@ -44,6 +47,8 @@ function renderGoal(id = "wake-6am") {
 beforeEach(() => {
   getGoal.mockReset();
   readLogsInRange.mockReset().mockResolvedValue([]);
+  appendLog.mockClear();
+  deleteLogEvent.mockClear();
 });
 
 describe("Goal workspace", () => {
@@ -54,7 +59,6 @@ describe("Goal workspace", () => {
     expect(screen.getByText(/Own the morning\./)).toBeInTheDocument();
     expect(screen.getByText(/round 2/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /adjust rounds/i })).toHaveAttribute("href", "/onboard?goalId=wake-6am&turn=roundsPreview");
-    expect(screen.getByRole("link", { name: /see on calendar/i })).toHaveAttribute("href", "/year?pen=wake-6am");
     expect(screen.getByRole("link", { name: /life/i })).toHaveAttribute("href", "/");
   });
 
@@ -86,5 +90,25 @@ describe("Goal workspace", () => {
     renderGoal();
     const orbWrap = await screen.findByTestId("goal-orb-wrap");
     expect(Number(orbWrap.dataset.momentum)).toBeGreaterThan(0);
+  });
+});
+
+describe("Goal mini calendar", () => {
+  it("renders a calendar section instead of the old 'see on calendar' link", async () => {
+    getGoal.mockResolvedValue(WAKE_GOAL);
+    renderGoal();
+    await waitFor(() => expect(screen.getByText(/this month/i)).toBeInTheDocument());
+    expect(screen.queryByRole("link", { name: /see on calendar/i })).not.toBeInTheDocument();
+  });
+
+  it("logs a tap on a mini-calendar day cell", async () => {
+    getGoal.mockResolvedValue(WAKE_GOAL);
+    renderGoal();
+    await waitFor(() => expect(screen.getByText(/this month/i)).toBeInTheDocument());
+
+    const todayCell = document.querySelector("[data-iso]");
+    expect(todayCell).toBeTruthy();
+    fireEvent.click(todayCell);
+    await waitFor(() => expect(appendLog).toHaveBeenCalled());
   });
 });
