@@ -112,10 +112,14 @@ export default function Month() {
     setProjecting(false);
   }, []);
 
-  const longPressPen = useCallback((id) => {
+  const onHoldStart = useCallback((id) => {
     setPenId(id);
-    setProjecting((prev) => (penId === id ? !prev : true));
-  }, [penId]);
+    setProjecting(true);
+  }, []);
+
+  const onHoldEnd = useCallback(() => {
+    setProjecting(false);
+  }, []);
 
   const onDayTap = useCallback(async ({ dateISO }) => {
     if (!pen) return;
@@ -281,7 +285,7 @@ export default function Month() {
         </header>
 
         {goals && goals.length > 0 && (
-          <PenChips goals={goals} penId={penId} onPick={pickPen} onLongPress={longPressPen} />
+          <PenChips goals={goals} penId={penId} onPick={pickPen} onHoldStart={onHoldStart} onHoldEnd={onHoldEnd} />
         )}
 
         <MonthGrid

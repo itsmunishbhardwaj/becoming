@@ -2,12 +2,16 @@ import { useRef } from "react";
 import { PAPER } from "../tokens.js";
 import { goalColor } from "../lib/goalColor.js";
 
-const LONG_PRESS_MS = 500;
+const HOLD_MS = 500;
 
 // Row of goal chips — pick a goal to hold its pen for tap-to-mark.
 // penDayCount: optional callback returning a day count for the pen chip label.
-// onLongPress: optional (goalId) => void — hold a chip to reveal its projection.
-export default function PenChips({ goals, penId, onPick, penDayCount, onLongPress }) {
+// onHoldStart/onHoldEnd: optional (goalId) => void / () => void — press and
+// hold a chip to preview its projection on the same calendar; releasing
+// hides it again. touchAction:"none" on the chip stops a real touchscreen
+// from handing the gesture off to the browser's native scroll/pull-to-refresh
+// mid-hold (which, on a route without SPA fallback, hard-reloads into a 404).
+export default function PenChips({ goals, penId, onPick, penDayCount, onHoldStart, onHoldEnd }) {
   const timerRef = useRef(null);
   const firedRef = useRef(false);
 
@@ -16,10 +20,13 @@ export default function PenChips({ goals, penId, onPick, penDayCount, onLongPres
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       firedRef.current = true;
-      onLongPress?.(id);
-    }, LONG_PRESS_MS);
+      onHoldStart?.(id);
+    }, HOLD_MS);
   };
-  const cancelPress = () => clearTimeout(timerRef.current);
+  const endPress = () => {
+    clearTimeout(timerRef.current);
+    if (firedRef.current) onHoldEnd?.();
+  };
 
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", margin: "20px 0 10px" }}>
@@ -31,8 +38,9 @@ export default function PenChips({ goals, penId, onPick, penDayCount, onLongPres
           <button
             key={g.id}
             onPointerDown={() => startPress(g.id)}
-            onPointerUp={cancelPress}
-            onPointerLeave={cancelPress}
+            onPointerUp={endPress}
+            onPointerLeave={endPress}
+            onPointerCancel={endPress}
             onClick={() => {
               if (firedRef.current) { firedRef.current = false; return; }
               onPick(isPen ? null : g.id);
@@ -50,6 +58,7 @@ export default function PenChips({ goals, penId, onPick, penDayCount, onLongPres
               padding: "4px 10px",
               cursor: "pointer",
               fontFamily: "inherit",
+              touchAction: "none",
               transition: "background 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease",
             }}
           >
