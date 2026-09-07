@@ -5,6 +5,7 @@ import { PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
 import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
+import { projectedDates } from "../data/projection.js";
 import { todayLocalISO } from "../lib/date.js";
 import { classifySwipe } from "../lib/swipe.js";
 import DayCell from "../components/DayCell.jsx";
@@ -57,6 +58,7 @@ export default function Month() {
   const [logs, setLogs] = useState([]);
   const [penId, setPenId] = useState(() => params.get("pen") || null);
   const [transition, setTransition] = useState(null); // "next" | "prev" | null
+  const [projecting, setProjecting] = useState(false);
 
   const rangeFrom = parsed ? isoAt(parsed.year, parsed.monthIdx, 0) : null;
   const rangeTo   = parsed ? isoAt(parsed.year, parsed.monthIdx, daysIn(parsed.year, parsed.monthIdx) - 1) : null;
@@ -105,8 +107,27 @@ export default function Month() {
     setLogs(ls);
   }, [rangeFrom, rangeTo]);
 
+  const projectedSet = useMemo(() => {
+    if (!projecting || !pen?.endDate || !rangeFrom || !rangeTo) return null;
+    const from = todayLocalISO() > rangeFrom ? todayLocalISO() : rangeFrom;
+    const to = pen.endDate < rangeTo ? pen.endDate : rangeTo;
+    if (to < from) return new Set();
+    return new Set(projectedDates({ goal: pen, from, to }));
+  }, [projecting, pen, rangeFrom, rangeTo]);
+
+  const pickPen = useCallback((id) => {
+    setPenId(id);
+    setProjecting(false);
+  }, []);
+
+  const longPressPen = useCallback((id) => {
+    setPenId(id);
+    setProjecting((prev) => (penId === id ? !prev : true));
+  }, [penId]);
+
   const onDayTap = useCallback(async ({ dateISO }) => {
     if (!pen) return;
+    if (pen.endDate && dateISO > pen.endDate) return;
     if (pen.baseline?.intervalDays != null) {
       const round = pen.rounds.find((r) => dateISO >= r.startDate && dateISO <= r.endDate);
       if (round && cadenceIsScheduledDay({ date: dateISO, currentRound: round })) return;
@@ -307,7 +328,7 @@ export default function Month() {
         </header>
 
         {goals && goals.length > 0 && (
-          <PenChips goals={goals} penId={penId} onPick={setPenId} />
+          <PenChips goals={goals} penId={penId} onPick={pickPen} onLongPress={longPressPen} />
         )}
 
         <div className="month-dow">
@@ -345,6 +366,7 @@ export default function Month() {
                         isToday={iso === todayISO}
                         showHalo={false}
                         blobScale={1.6}
+                        projectedDates={projectedSet}
                       />
                     </div>
                   );
