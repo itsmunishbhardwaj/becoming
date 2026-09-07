@@ -39,7 +39,7 @@ function prefersReducedMotion() {
 async function waitForCells(timeoutMs = 400) {
   const start = performance.now();
   while (performance.now() - start < timeoutMs) {
-    if (document.querySelector("[data-iso]")) return;
+    if (window.location.pathname.startsWith("/month/") && document.querySelector("[data-iso]")) return;
     await new Promise((r) => requestAnimationFrame(r));
   }
 }
