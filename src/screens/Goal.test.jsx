@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useSearchParams } from "react-router-dom";
 
 vi.mock("../data/store.js", () => ({
   getGoal: vi.fn(),
@@ -34,11 +34,17 @@ const WAKE_GOAL = {
   indicators: { right: [], wrong: [], stall: [] },
 };
 
+function MonthStub() {
+  const [params] = useSearchParams();
+  return <div data-testid="month-page">pen={params.get("pen")}</div>;
+}
+
 function renderGoal(id = "wake-6am") {
   return render(
     <MemoryRouter initialEntries={[`/goal/${id}`]}>
       <Routes>
         <Route path="/goal/:id" element={<Goal />} />
+        <Route path="/month/:yyyymm" element={<MonthStub />} />
       </Routes>
     </MemoryRouter>
   );
@@ -110,5 +116,37 @@ describe("Goal mini calendar", () => {
     expect(todayCell).toBeTruthy();
     fireEvent.click(todayCell);
     await waitFor(() => expect(appendLog).toHaveBeenCalled());
+  });
+});
+
+describe("Goal calendar expansion", () => {
+  it("navigates to the scoped Month view when the calendar header is clicked", async () => {
+    getGoal.mockResolvedValue(WAKE_GOAL);
+    renderGoal();
+    await waitFor(() => expect(screen.getByText(/this month/i)).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText(/this month/i));
+
+    await waitFor(() => expect(screen.getByTestId("month-page")).toBeInTheDocument());
+    expect(screen.getByTestId("month-page")).toHaveTextContent("pen=wake-6am");
+  });
+
+  it("still navigates when document.startViewTransition is available", async () => {
+    const startViewTransition = vi.fn((cb) => {
+      cb();
+      return { finished: Promise.resolve(), ready: Promise.resolve(), updateCallbackDone: Promise.resolve() };
+    });
+    document.startViewTransition = startViewTransition;
+
+    getGoal.mockResolvedValue(WAKE_GOAL);
+    renderGoal();
+    await waitFor(() => expect(screen.getByText(/this month/i)).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText(/this month/i));
+
+    expect(startViewTransition).toHaveBeenCalled();
+    await waitFor(() => expect(screen.getByTestId("month-page")).toBeInTheDocument());
+
+    delete document.startViewTransition;
   });
 });

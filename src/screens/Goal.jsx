@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import { motion, useDragControls } from "motion/react";
 import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
 import { getGoal, readLogsInRange, saveGoal, appendLog, deleteLogEvent } from "../data/store.js";
 import { momentum, dailyAdherence } from "../data/adherence.js";
@@ -31,6 +32,18 @@ function humanDay(iso) {
   });
 }
 
+function prefersReducedMotion() {
+  return typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+async function waitForCells(timeoutMs = 400) {
+  const start = performance.now();
+  while (performance.now() - start < timeoutMs) {
+    if (document.querySelector("[data-iso]")) return;
+    await new Promise((r) => requestAnimationFrame(r));
+  }
+}
+
 export default function Goal() {
   const { id } = useParams();
   const nav = useNavigate();
@@ -43,6 +56,7 @@ export default function Goal() {
   const [logs, setLogs] = useState([]);
   const [editingColor, setEditingColor] = useState(false);
   const [savingColor, setSavingColor] = useState(false);
+  const dragControls = useDragControls();
 
   async function pickColor(color) {
     if (!goal || savingColor) return;
@@ -69,6 +83,20 @@ export default function Goal() {
     else await appendLog(iso, plan.event);
     await refreshMonthLogs();
   }, [goal, logs, refreshMonthLogs]);
+
+  const expandToCalendar = useCallback(() => {
+    if (!goal) return;
+    const path = `/month/${calYyyymm}?pen=${goal.id}`;
+    const state = { goals: [goal], logs };
+    if (prefersReducedMotion() || typeof document.startViewTransition !== "function") {
+      nav(path, { state });
+      return;
+    }
+    document.startViewTransition(() => {
+      nav(path, { state });
+      return waitForCells();
+    });
+  }, [goal, logs, calYyyymm, nav]);
 
   useEffect(() => {
     let alive = true;
@@ -335,16 +363,30 @@ export default function Goal() {
 
             {/* Calendar — mini month, scoped to this goal; tap or drag up to expand */}
             <section style={{ marginTop: 36 }}>
-              <div style={{
-                background: PAPER.card,
-                border: `1px solid ${PAPER.line}`,
-                borderRadius: RADIUS.r1,
-                padding: "16px 18px 20px",
-              }}>
-                <div onClick={() => nav(`/month/${calYyyymm}?pen=${goal.id}`)} style={{ cursor: "pointer", marginBottom: 14 }}>
+              <motion.div
+                drag="y"
+                dragControls={dragControls}
+                dragListener={false}
+                dragConstraints={{ top: -9999, bottom: 0 }}
+                dragElastic={{ top: 0.15, bottom: 0 }}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y < -60 || info.velocity.y < -400) expandToCalendar();
+                }}
+                style={{
+                  background: PAPER.card,
+                  border: `1px solid ${PAPER.line}`,
+                  borderRadius: RADIUS.r1,
+                  padding: "16px 18px 20px",
+                }}
+              >
+                <div
+                  onPointerDown={(e) => dragControls.start(e)}
+                  onClick={expandToCalendar}
+                  style={{ cursor: "grab", marginBottom: 14, touchAction: "none" }}
+                >
                   <div style={kicker}>Calendar</div>
                   <div style={{ fontSize: 12.5, color: PAPER.dim, marginTop: 4 }}>
-                    This month · tap to open →
+                    This month · tap or swipe up ↑
                   </div>
                 </div>
                 <MonthGrid
@@ -364,7 +406,7 @@ export default function Goal() {
                   gap="6px"
                   showWeekPills={false}
                 />
-              </div>
+              </motion.div>
             </section>
           </main>
         </div>
