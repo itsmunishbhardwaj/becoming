@@ -4,6 +4,7 @@ import { PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
 import { dailyAdherence } from "../data/adherence.js";
 import { isScheduledDay as cadenceIsScheduledDay } from "../data/goalTypes/cadence.js";
+import { projectedDates } from "../data/projection.js";
 import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
 import { classifySwipe } from "../lib/swipe.js";
 import { centroidOf, distanceOf, classifyPinch } from "../lib/pinchGesture.js";
@@ -42,6 +43,7 @@ export default function Week() {
   const [logs, setLogs] = useState([]);
   const [penId, setPenId] = useState(() => params.get("pen") || null);
   const [transition, setTransition] = useState(null);
+  const [projecting, setProjecting] = useState(false);
 
   const rangeFrom = anchor;
   const rangeTo = anchor ? addDaysLocalISO(anchor, 6) : null;
@@ -90,8 +92,27 @@ export default function Week() {
     setLogs(ls);
   }, [rangeFrom, rangeTo]);
 
+  const projectedSet = useMemo(() => {
+    if (!projecting || !pen?.endDate || !rangeFrom || !rangeTo) return null;
+    const from = todayLocalISO() > rangeFrom ? todayLocalISO() : rangeFrom;
+    const to = pen.endDate < rangeTo ? pen.endDate : rangeTo;
+    if (to < from) return new Set();
+    return new Set(projectedDates({ goal: pen, from, to }));
+  }, [projecting, pen, rangeFrom, rangeTo]);
+
+  const pickPen = useCallback((id) => {
+    setPenId(id);
+    setProjecting(false);
+  }, []);
+
+  const longPressPen = useCallback((id) => {
+    setPenId(id);
+    setProjecting((prev) => (penId === id ? !prev : true));
+  }, [penId]);
+
   const onDayTap = useCallback(async ({ dateISO }) => {
     if (!pen) return;
+    if (pen.endDate && dateISO > pen.endDate) return;
     if (pen.baseline?.intervalDays != null) {
       const round = pen.rounds.find((r) => dateISO >= r.startDate && dateISO <= r.endDate);
       if (round && cadenceIsScheduledDay({ date: dateISO, currentRound: round })) return;
@@ -300,7 +321,7 @@ export default function Week() {
         </header>
 
         {goals && goals.length > 0 && (
-          <PenChips goals={goals} penId={penId} onPick={setPenId} />
+          <PenChips goals={goals} penId={penId} onPick={pickPen} onLongPress={longPressPen} />
         )}
 
         <div className={`week-days ${transition ? `week-slide-${transition}` : ""}`} style={{ marginTop: 20 }} ref={daysRowRef}>
@@ -326,6 +347,7 @@ export default function Week() {
                     isToday={isToday}
                     showHalo={false}
                     blobScale={1.4}
+                    projectedDates={projectedSet}
                     hideDayNumber
                   />
                 </div>

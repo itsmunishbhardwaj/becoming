@@ -34,6 +34,7 @@ export default function DayCell({
   blobScale = 1,
   cellRef,
   hideDayNumber = false,
+  projectedDates,
 }) {
   const size = 26;
   const c = size / 2;
@@ -44,11 +45,14 @@ export default function DayCell({
       .map((g) => {
         const map = adherenceMaps[g.id] || {};
         const status = map[isoDate] || "none";
+        if ((status === "none" || status === "clean") && g.id === pen?.id && projectedDates?.has(isoDate)) {
+          return { g, status: "projected", style: {} };
+        }
         const style = markStyleFor(status, goalColor(g));
         return { g, status, style };
       })
       .filter(({ style }) => style !== null);
-  }, [goals, adherenceMaps, isoDate, pen]);
+  }, [goals, adherenceMaps, isoDate, pen, projectedDates]);
 
   const hasContent = marks.length > 0;
   const showText = !hasContent && !hideDayNumber;
@@ -110,7 +114,7 @@ export default function DayCell({
         const off = marks.length > 1 ? 2 : 0;
         const faded = focus && g.id !== focus.id;
         // Compound faded + soft into path opacity so CSS animation on <g> doesn't override SVG attribute
-        const op = (faded ? 0.15 : 1) * (status === "soft" ? 0.55 : 0.85);
+        const op = status === "projected" ? 0.1 : (faded ? 0.15 : 1) * (status === "soft" ? 0.55 : 0.85);
         const color = goalColor(g);
         return (
           <g key={g.id} className="blob-enter">

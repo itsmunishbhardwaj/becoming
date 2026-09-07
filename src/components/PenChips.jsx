@@ -1,9 +1,26 @@
+import { useRef } from "react";
 import { PAPER } from "../tokens.js";
 import { goalColor } from "../lib/goalColor.js";
 
+const LONG_PRESS_MS = 500;
+
 // Row of goal chips — pick a goal to hold its pen for tap-to-mark.
 // penDayCount: optional callback returning a day count for the pen chip label.
-export default function PenChips({ goals, penId, onPick, penDayCount }) {
+// onLongPress: optional (goalId) => void — hold a chip to reveal its projection.
+export default function PenChips({ goals, penId, onPick, penDayCount, onLongPress }) {
+  const timerRef = useRef(null);
+  const firedRef = useRef(false);
+
+  const startPress = (id) => {
+    firedRef.current = false;
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      firedRef.current = true;
+      onLongPress?.(id);
+    }, LONG_PRESS_MS);
+  };
+  const cancelPress = () => clearTimeout(timerRef.current);
+
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", margin: "20px 0 10px" }}>
       {goals.map((g) => {
@@ -13,7 +30,13 @@ export default function PenChips({ goals, penId, onPick, penDayCount }) {
         return (
           <button
             key={g.id}
-            onClick={() => onPick(isPen ? null : g.id)}
+            onPointerDown={() => startPress(g.id)}
+            onPointerUp={cancelPress}
+            onPointerLeave={cancelPress}
+            onClick={() => {
+              if (firedRef.current) { firedRef.current = false; return; }
+              onPick(isPen ? null : g.id);
+            }}
             aria-pressed={isPen}
             style={{
               display: "flex",
