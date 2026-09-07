@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion, useDragControls } from "motion/react";
 import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
@@ -39,7 +39,7 @@ function prefersReducedMotion() {
 async function waitForCells(timeoutMs = 400) {
   const start = performance.now();
   while (performance.now() - start < timeoutMs) {
-    if (window.location.pathname.startsWith("/month/") && document.querySelector("[data-iso]")) return;
+    if (document.querySelector('[aria-label^="Week of"]')) return;
     await new Promise((r) => requestAnimationFrame(r));
   }
 }
@@ -87,7 +87,8 @@ export default function Goal() {
   const expandToCalendar = useCallback(() => {
     if (!goal) return;
     const path = `/month/${calYyyymm}?pen=${goal.id}`;
-    const state = { goals: [goal], logs };
+    const monthStart = isoAtDay(todayY, calMonthIdx, 0);
+    const state = { goals: [goal], logs: logs.filter((l) => l.date >= monthStart) };
     if (prefersReducedMotion() || typeof document.startViewTransition !== "function") {
       nav(path, { state });
       return;
@@ -96,7 +97,13 @@ export default function Goal() {
       nav(path, { state });
       return waitForCells();
     });
-  }, [goal, logs, calYyyymm, nav]);
+  }, [goal, logs, calYyyymm, todayY, calMonthIdx, nav]);
+
+  const miniAdherenceMaps = useMemo(() => {
+    if (!goal) return {};
+    const monthStart = isoAtDay(todayY, calMonthIdx, 0);
+    return { [goal.id]: dailyAdherence({ goal, logs, from: monthStart, to: calMonthEndISO }) };
+  }, [goal, logs, calMonthEndISO, todayY, calMonthIdx]);
 
   useEffect(() => {
     let alive = true;
@@ -367,7 +374,7 @@ export default function Goal() {
                 drag="y"
                 dragControls={dragControls}
                 dragListener={false}
-                dragConstraints={{ top: -9999, bottom: 0 }}
+                dragConstraints={{ top: 0, bottom: 0 }}
                 dragElastic={{ top: 0.15, bottom: 0 }}
                 onDragEnd={(_, info) => {
                   if (info.offset.y < -60 || info.velocity.y < -400) expandToCalendar();
@@ -379,23 +386,26 @@ export default function Goal() {
                   padding: "16px 18px 20px",
                 }}
               >
-                <div
+                <button
+                  type="button"
                   onPointerDown={(e) => dragControls.start(e)}
                   onClick={expandToCalendar}
-                  style={{ cursor: "grab", marginBottom: 14, touchAction: "none" }}
+                  style={{
+                    background: "none", border: 0, padding: 0, textAlign: "left",
+                    font: "inherit", cursor: "grab", marginBottom: 14,
+                    touchAction: "none", display: "block", width: "100%",
+                  }}
                 >
                   <div style={kicker}>Calendar</div>
                   <div style={{ fontSize: 12.5, color: PAPER.dim, marginTop: 4 }}>
                     This month · tap or swipe up ↑
                   </div>
-                </div>
+                </button>
                 <MonthGrid
                   year={todayY}
                   monthIdx={calMonthIdx}
                   goals={[goal]}
-                  adherenceMaps={{
-                    [goal.id]: dailyAdherence({ goal, logs, from: addDaysLocalISO(today, -365), to: calMonthEndISO }),
-                  }}
+                  adherenceMaps={miniAdherenceMaps}
                   focus={goal}
                   pen={goal}
                   onDayTap={handleMiniDayTap}
