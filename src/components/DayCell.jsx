@@ -34,6 +34,7 @@ export default function DayCell({
   blobScale = 1,
   cellRef,
   hideDayNumber = false,
+  viewTransitionId,
   projectedDates,
 }) {
   const size = 26;
@@ -74,6 +75,7 @@ export default function DayCell({
         display: "block", width: "100%", height: "auto",
         cursor: "pointer",
         overflow: (haloOn || blobScale > 1) ? "visible" : undefined,
+        viewTransitionName: viewTransitionId || undefined,
       }}
     >
       {haloOn && (
