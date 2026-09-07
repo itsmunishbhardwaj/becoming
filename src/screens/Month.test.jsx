@@ -63,3 +63,23 @@ describe("Month respects goal end date", () => {
     await waitFor(() => expect(appendLog).toHaveBeenCalled());
   });
 });
+
+describe("Month seeds initial state from location.state", () => {
+  it("renders the seeded goal immediately, without waiting for listGoals", async () => {
+    // Never resolves — proves the initial render didn't depend on this promise.
+    listGoals.mockReturnValue(new Promise(() => {}));
+    readLogsInRange.mockReturnValue(new Promise(() => {}));
+
+    render(
+      <MemoryRouter
+        initialEntries={[{ pathname: "/month/2026-09", state: { goals: [GOAL], logs: [] } }]}
+      >
+        <Routes>
+          <Route path="/month/:yyyymm" element={<Month />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Gym")).toBeInTheDocument();
+  });
+});

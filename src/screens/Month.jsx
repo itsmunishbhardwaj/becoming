@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { Link, useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { centroidOf, distanceOf, classifyPinch } from "../lib/pinchGesture.js";
 import { PAPER, FONT } from "../tokens.js";
 import { listGoals, readLogsInRange, appendLog, deleteLogEvent } from "../data/store.js";
@@ -43,10 +43,11 @@ export default function Month() {
   const nav = useNavigate();
   const { yyyymm } = useParams();
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
   const parsed = parseYm(yyyymm);
 
-  const [goals, setGoals] = useState(null);
-  const [logs, setLogs] = useState([]);
+  const [goals, setGoals] = useState(() => location.state?.goals ?? null);
+  const [logs, setLogs] = useState(() => location.state?.logs ?? []);
   const [penId, setPenId] = useState(() => params.get("pen") || null);
   const [transition, setTransition] = useState(null); // "next" | "prev" | null
   const [projecting, setProjecting] = useState(false);
