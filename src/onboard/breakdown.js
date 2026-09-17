@@ -12,6 +12,22 @@ export async function breakdownGoal({ ambition, baseline, target, today, existin
 
   const classified = await callParseClassify({ ambition, baseline, target, existingGoals, llmChat });
   const horizon = decideHorizon(classified.type, classified.baseline, classified.target, today);
+
+  if (horizon.unreachable) {
+    return {
+      name: classified.name,
+      cat: classified.cat,
+      type: classified.type,
+      baseline: classified.baseline,
+      target: classified.target,
+      endDate: horizon.endDate,
+      horizonReason: horizon.horizonReason,
+      unreachable: horizon.unreachable,
+      rounds: [],
+      indicators: templateIndicators(classified.type),
+    };
+  }
+
   const type = getType(classified.type);
   const boundaries = type.buildRounds(classified.baseline, classified.target, today, horizon.endDate);
 

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { breakdownGoal } from "./breakdown.js";
+import { templateIndicators } from "./breakdownCalls.js";
 
 function makeLlmChat(responses) {
   let i = 0;
@@ -60,6 +61,22 @@ describe("breakdownGoal", () => {
       expect(Date.parse(round.startDate)).toBeLessThanOrEqual(Date.parse(round.endDate));
     }
     expect(result.rounds[result.rounds.length - 1].endDate).toBe(result.endDate);
+  });
+
+  it("skips round generation and narrative when the horizon is unreachable", async () => {
+    let calls = 0;
+    const llmChat = async () => {
+      calls += 1;
+      return JSON.stringify({ name: "Wake way earlier", cat: "health", type: "wake", baseline: "23:00", target: "05:00" });
+    };
+    const result = await breakdownGoal(
+      { ambition: "wake way earlier", baseline: "23:00", target: "05:00", today: "2026-09-17", existingGoals: [] },
+      { llmChat }
+    );
+    expect(result.unreachable).toBe(true);
+    expect(result.rounds).toEqual([]);
+    expect(result.indicators).toEqual(templateIndicators("wake"));
+    expect(calls).toBe(1);
   });
 
   it("throws when classification never returns valid JSON", async () => {
