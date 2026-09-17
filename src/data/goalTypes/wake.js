@@ -18,6 +18,14 @@ function addDays(iso, n) {
 
 const STEP_MIN = 30;
 
+const SAFE_MIN_PER_WEEK = 30; // conservative ceiling: circadian shift shouldn't exceed this per week
+
+export function safeRateCeiling(baseline, target) {
+  const delta = Math.abs(toMin(baseline) - toMin(target));
+  const minDays = Math.ceil((delta / SAFE_MIN_PER_WEEK) * 7);
+  return { minDays };
+}
+
 export function buildRounds(baseline, target, startDate, endDate) {
   const b = toMin(baseline);
   const t = toMin(target);
