@@ -6,6 +6,9 @@ export async function breakdownGoal({ ambition, baseline, target, today, existin
   if (typeof llmChat !== "function") {
     throw new Error("breakdownGoal requires an llmChat function");
   }
+  if (typeof today !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(today)) {
+    throw new Error("breakdownGoal requires a valid ISO today date");
+  }
 
   const classified = await callParseClassify({ ambition, baseline, target, existingGoals, llmChat });
   const horizon = decideHorizon(classified.type, classified.baseline, classified.target, today);
@@ -28,6 +31,7 @@ export async function breakdownGoal({ ambition, baseline, target, today, existin
     target: classified.target,
     endDate: horizon.endDate,
     horizonReason: horizon.horizonReason,
+    unreachable: horizon.unreachable,
     rounds,
     indicators,
   };

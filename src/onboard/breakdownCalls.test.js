@@ -37,6 +37,29 @@ describe("callParseClassify", () => {
       existingGoals: [], llmChat,
     })).rejects.toThrow(/valid JSON/);
   });
+
+  it("throws when both attempts return syntactically valid JSON with an invalid shape", async () => {
+    const llmChat = async () => JSON.stringify({ type: "habit" });
+    await expect(callParseClassify({
+      ambition: "wake up earlier", baseline: "08:30", target: "07:30",
+      existingGoals: [], llmChat,
+    })).rejects.toThrow(/valid JSON/);
+  });
+
+  it("retries once when the first response has an invalid shape, then succeeds on a valid retry", async () => {
+    let calls = 0;
+    const llmChat = async () => {
+      calls += 1;
+      if (calls === 1) return JSON.stringify({ type: "habit" });
+      return JSON.stringify({ name: "Wake earlier", cat: "health", type: "wake", baseline: "08:30", target: "07:30" });
+    };
+    const result = await callParseClassify({
+      ambition: "wake up earlier", baseline: "08:30", target: "07:30",
+      existingGoals: [], llmChat,
+    });
+    expect(calls).toBe(2);
+    expect(result.type).toBe("wake");
+  });
 });
 
 describe("callRoundNarrative", () => {
@@ -59,6 +82,12 @@ describe("callRoundNarrative", () => {
     expect(result).toBeNull();
     expect(calls).toBe(1);
   });
+
+  it("returns null (does not reject) when llmChat throws/rejects", async () => {
+    const llmChat = async () => { throw new Error("network down"); };
+    const result = await callRoundNarrative({ ambition: "wake up earlier", rounds, horizonReason: null, llmChat });
+    expect(result).toBeNull();
+  });
 });
 
 describe("templateIndicators", () => {
@@ -68,7 +97,10 @@ describe("templateIndicators", () => {
   it("returns the cadence template", () => {
     expect(templateIndicators("cadence").stall).toContain("No logs at all for 14+ days");
   });
-  it("returns a simple fallback for any other type", () => {
+  it("returns the simple template", () => {
     expect(templateIndicators("simple").stall).toEqual(["7+ days with no log"]);
+  });
+  it("falls through to the generic default template for an unrecognized type", () => {
+    expect(templateIndicators("nonsense").stall).toEqual(["7+ days with no log"]);
   });
 });

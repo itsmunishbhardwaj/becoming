@@ -13,10 +13,15 @@ export function decideHorizon(type, baseline, target, today) {
   const ceiling = getType(type).safeRateCeiling(baseline, target);
   if (ceiling && ceiling.minDays > QUARTER_DAYS) {
     const cappedDays = Math.min(ceiling.minDays, HALF_YEAR_DAYS);
+    const unreachable = ceiling.minDays > HALF_YEAR_DAYS;
+    const horizonReason = unreachable
+      ? `Safe pace needs ${ceiling.minDays} days — even 6 months isn't enough at a safe pace; consider softening the target.`
+      : `Safe pace needs ${ceiling.minDays} days — closing this in one quarter would exceed a sane rate of change.`;
     return {
       endDate: addDays(today, cappedDays),
-      horizonReason: `Safe pace needs ${ceiling.minDays} days — closing this in one quarter would exceed a sane rate of change.`,
+      horizonReason,
+      unreachable,
     };
   }
-  return { endDate: addDays(today, QUARTER_DAYS), horizonReason: null };
+  return { endDate: addDays(today, QUARTER_DAYS), horizonReason: null, unreachable: false };
 }

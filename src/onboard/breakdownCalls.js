@@ -9,6 +9,17 @@ function parseJSON(text) {
   }
 }
 
+function isValidClassification(obj) {
+  return Boolean(
+    obj &&
+    typeof obj.name === "string" && obj.name.trim().length > 0 &&
+    CATS.includes(obj.cat) &&
+    TYPE_KEYS.includes(obj.type) &&
+    obj.baseline !== undefined &&
+    obj.target !== undefined
+  );
+}
+
 const PARSE_SYSTEM = "You are the reasoning core of Balboa Breakdown, a goal-onboarding ritual inside a personal-goals app called Becoming. Given a person's own words about a goal, extract structure without flattening their voice. Never rewrite their ambition — preserve it verbatim in your response's `ambition` field.";
 
 function parseUserPrompt({ ambition, baseline, target, existingGoals }) {
@@ -31,14 +42,14 @@ export async function callParseClassify({ ambition, baseline, target, existingGo
   ];
   const raw = await llmChat(messages);
   const parsed = parseJSON(raw);
-  if (parsed) return parsed;
+  if (parsed && isValidClassification(parsed)) return parsed;
 
   const retry = await llmChat([
     ...messages,
     { role: "user", content: "Return valid JSON only — no prose, no markdown fences." },
   ]);
   const retried = parseJSON(retry);
-  if (retried) return retried;
+  if (retried && isValidClassification(retried)) return retried;
 
   throw new Error("callParseClassify: LLM did not return valid JSON after retry");
 }
@@ -56,10 +67,15 @@ function narrativeUserPrompt({ ambition, rounds, horizonReason }) {
 }
 
 export async function callRoundNarrative({ ambition, rounds, horizonReason, llmChat }) {
-  const raw = await llmChat([
-    { role: "system", content: NARRATIVE_SYSTEM },
-    { role: "user", content: narrativeUserPrompt({ ambition, rounds, horizonReason }) },
-  ]);
+  let raw;
+  try {
+    raw = await llmChat([
+      { role: "system", content: NARRATIVE_SYSTEM },
+      { role: "user", content: narrativeUserPrompt({ ambition, rounds, horizonReason }) },
+    ]);
+  } catch {
+    return null;
+  }
   return parseJSON(raw);
 }
 
