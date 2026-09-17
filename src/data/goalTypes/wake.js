@@ -18,12 +18,11 @@ function addDays(iso, n) {
 
 const STEP_MIN = 30;
 
-const SAFE_MIN_PER_WEEK = 30; // conservative ceiling: circadian shift shouldn't exceed this per week
+const MIN_DAYS_PER_STEP = 10; // must match the perRound floor in buildRounds — keep these in sync
 
 export function safeRateCeiling(baseline, target) {
-  const delta = Math.abs(toMin(baseline) - toMin(target));
-  const minDays = Math.ceil((delta / SAFE_MIN_PER_WEEK) * 7);
-  return { minDays };
+  const steps = Math.max(1, Math.round(Math.abs(toMin(baseline) - toMin(target)) / STEP_MIN));
+  return { minDays: steps * MIN_DAYS_PER_STEP };
 }
 
 export function buildRounds(baseline, target, startDate, endDate) {

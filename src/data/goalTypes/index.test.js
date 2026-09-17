@@ -95,14 +95,14 @@ describe("cadence.adherenceForDay", () => {
 
 describe("wake.safeRateCeiling", () => {
   const wake = getType("wake");
-  it("computes minimum safe days at 30min/week for a given delta", () => {
-    // 08:30 -> 07:30 is a 60min delta; 60/30 * 7 = 14 days
-    expect(wake.safeRateCeiling("08:30", "07:30")).toEqual({ minDays: 14 });
+  it("computes minimum safe days as steps * MIN_DAYS_PER_STEP (matches buildRounds' 10-day floor)", () => {
+    // 08:30 -> 07:30 is a 60min delta; steps = round(60/30) = 2; 2 * 10 = 20 days
+    expect(wake.safeRateCeiling("08:30", "07:30")).toEqual({ minDays: 20 });
   });
 
   it("handles a large delta needing far more than a quarter", () => {
-    // 23:00 -> 14:00 is a 540min delta; 540/30 * 7 = 126 days
-    expect(wake.safeRateCeiling("23:00", "14:00")).toEqual({ minDays: 126 });
+    // 23:00 -> 14:00 is a 540min delta; steps = round(540/30) = 18; 18 * 10 = 180 days
+    expect(wake.safeRateCeiling("23:00", "14:00")).toEqual({ minDays: 180 });
   });
 });
 
