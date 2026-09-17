@@ -42,3 +42,45 @@ export async function callParseClassify({ ambition, baseline, target, existingGo
 
   throw new Error("callParseClassify: LLM did not return valid JSON after retry");
 }
+
+const NARRATIVE_SYSTEM = "You are the reasoning core of Balboa Breakdown. You're given the deterministic round schedule already computed — your job is to explain what each round is actually building (not restate the math) and draft indicators of the person going right, wrong, or stalling. Never scold. Never use emoji. Spare, warm voice.";
+
+function narrativeUserPrompt({ ambition, rounds, horizonReason }) {
+  return [
+    `Ambition: "${ambition}"`,
+    `Rounds (boundaries already fixed): ${JSON.stringify(rounds)}`,
+    `Horizon reason: ${horizonReason || "none — 3mo default"}`,
+    "",
+    `Return JSON: { "rounds": [{ "n": number, "why": string }], "indicators": { "right": string[], "wrong": string[], "stall": string[] } }`,
+  ].join("\n");
+}
+
+export async function callRoundNarrative({ ambition, rounds, horizonReason, llmChat }) {
+  const raw = await llmChat([
+    { role: "system", content: NARRATIVE_SYSTEM },
+    { role: "user", content: narrativeUserPrompt({ ambition, rounds, horizonReason }) },
+  ]);
+  return parseJSON(raw);
+}
+
+export function templateIndicators(type) {
+  if (type === "wake") {
+    return {
+      right: ["Wake within 15 min of round target 5+ days a week", "Bedtime moves earlier without effort"],
+      wrong: ["Snoozing past round target by 45+ min two days in a row"],
+      stall: ["7+ days no wake logged", "Same wake time held across 3 rounds"],
+    };
+  }
+  if (type === "cadence") {
+    return {
+      right: ["Green days matched", "Non-green days clean"],
+      wrong: ["Multiple sessions on non-green days across a week"],
+      stall: ["No logs at all for 14+ days"],
+    };
+  }
+  return {
+    right: ["Logged consistently across the week"],
+    wrong: [],
+    stall: ["7+ days with no log"],
+  };
+}
