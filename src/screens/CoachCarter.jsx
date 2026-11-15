@@ -4,6 +4,8 @@ import { listGoals, listContracts, saveContract, retireContract } from "../data/
 import { getSession } from "../lib/auth.js";
 import { goalColor } from "../lib/goalColor.js";
 import { todayLocalISO } from "../lib/date.js";
+import PageWrapper from "../components/PageWrapper.jsx";
+import { StaggerList, StaggerItem } from "../components/StaggerList.jsx";
 
 function longDate(iso) {
   return new Date(iso + "T00:00:00").toLocaleDateString("en-US", {
@@ -65,13 +67,7 @@ export default function CoachCarter() {
   }
 
   if (loading) {
-    return (
-      <div style={pageStyle}>
-        <div style={containerStyle}>
-          <p style={{ color: PAPER.faint, fontFamily: FONT.sans, fontSize: TYPE.body, marginTop: 24 }}>Loading…</p>
-        </div>
-      </div>
-    );
+    return <div style={pageStyle}><div style={containerStyle} /></div>;
   }
 
   if (view === "compose" && composingForGoal) {
@@ -106,7 +102,7 @@ export default function CoachCarter() {
   // ── Main view ───────────────────────────────────────────────────────────
 
   return (
-    <div style={pageStyle}>
+    <PageWrapper style={pageStyle}>
       <div style={containerStyle}>
         <h1 style={h1Style}>Coach Carter</h1>
 
@@ -163,12 +159,14 @@ export default function CoachCarter() {
                   <button
                     onClick={() => { setReadingContract(goalContract); setView("read"); }}
                     style={viewContractBtn}
+                    className="press"
                   >
                     View
                   </button>
                   <button
                     onClick={() => handleRetire(goalContract.id)}
                     style={retireBtn}
+                    className="press"
                   >
                     Retire
                   </button>
@@ -177,6 +175,7 @@ export default function CoachCarter() {
                 <button
                   onClick={() => { setComposingForGoal(selectedGoal); setView("compose"); }}
                   style={signBtn}
+                  className="press"
                 >
                   Sign a contract for this goal
                 </button>
@@ -189,15 +188,16 @@ export default function CoachCarter() {
         {contracts.length > 0 && (
           <section>
             <div style={sectionKicker}>All contracts</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 10 }}>
+            <StaggerList style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 10 }}>
               {contracts.map((c) => {
                 const g = goals.find((g) => g.id === c.goalId);
                 const color = g ? goalColor(g) : PAPER.faint;
                 const retired = !!c.retiredAt;
                 return (
+                  <StaggerItem key={c.id}>
                   <button
-                    key={c.id}
                     onClick={() => { setReadingContract(c); setView("read"); }}
+                    className="press"
                     style={{ ...allContractRow, opacity: retired ? 0.45 : 1 }}
                   >
                     <span style={{ width: 8, height: 8, borderRadius: 999, background: color, flexShrink: 0 }} />
@@ -209,13 +209,14 @@ export default function CoachCarter() {
                       {shortDate((c.signedAt || c.createdAt).slice(0, 10))}
                     </span>
                   </button>
+                  </StaggerItem>
                 );
               })}
-            </div>
+            </StaggerList>
           </section>
         )}
       </div>
-    </div>
+    </PageWrapper>
   );
 }
 
@@ -251,9 +252,9 @@ function ContractComposer({ goal, userName, onSave, onCancel }) {
   }
 
   return (
-    <div style={pageStyle}>
+    <PageWrapper style={pageStyle}>
       <div style={{ ...containerStyle, maxWidth: 640 }}>
-        <button onClick={onCancel} style={backBtn}>← Coach Carter</button>
+        <button onClick={onCancel} style={backBtn} className="press">← Coach Carter</button>
 
         {/* Document preview */}
         <ContractDocument
@@ -279,6 +280,7 @@ function ContractComposer({ goal, userName, onSave, onCancel }) {
           <button
             onClick={() => setSigning(true)}
             disabled={!canSign}
+            className="press"
             style={{ ...signBtn, marginTop: 24, opacity: canSign ? 1 : 0.4 }}
           >
             Sign this contract
@@ -291,18 +293,19 @@ function ContractComposer({ goal, userName, onSave, onCancel }) {
               <button
                 onClick={handleConfirmSign}
                 disabled={!capturedSvg || saving}
+                className="press"
                 style={{ ...signBtn, opacity: capturedSvg && !saving ? 1 : 0.4 }}
               >
                 {saving ? "Saving…" : "Confirm signature"}
               </button>
-              <button onClick={() => { setSigning(false); setCapturedSvg(null); }} style={cancelBtn}>
+              <button onClick={() => { setSigning(false); setCapturedSvg(null); }} style={cancelBtn} className="press">
                 Cancel
               </button>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </PageWrapper>
   );
 }
 
@@ -314,7 +317,7 @@ function ContractReader({ contract, goal, userName, onRetire, onBack }) {
   const today = todayLocalISO();
 
   return (
-    <div style={pageStyle}>
+    <PageWrapper style={pageStyle}>
       <style>{`
         @media print {
           .grain, .vellum-mist, [class*="nav"], nav { display: none !important; }
@@ -335,10 +338,10 @@ function ContractReader({ contract, goal, userName, onRetire, onBack }) {
 
       <div style={{ ...containerStyle, maxWidth: 640 }}>
         <div className="contract-print-hide" style={{ display: "flex", gap: 10, marginBottom: 20, alignItems: "center" }}>
-          <button onClick={onBack} style={backBtn}>← Coach Carter</button>
-          <button onClick={() => window.print()} style={printBtn}>Print this contract</button>
+          <button onClick={onBack} style={backBtn} className="press">← Coach Carter</button>
+          <button onClick={() => window.print()} style={printBtn} className="press">Print this contract</button>
           {!contract.retiredAt && (
-            <button onClick={onRetire} style={retireBtn}>Retire</button>
+            <button onClick={onRetire} style={retireBtn} className="press">Retire</button>
           )}
         </div>
 
@@ -355,7 +358,7 @@ function ContractReader({ contract, goal, userName, onRetire, onBack }) {
           editable={false}
         />
       </div>
-    </div>
+    </PageWrapper>
   );
 }
 
@@ -783,6 +786,7 @@ const docWrap = {
   padding: "40px 44px",
   marginTop: 24,
   fontFamily: FONT.sans,
+  boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 6px 20px rgba(0,0,0,0.05)",
 };
 
 const docHeader = {

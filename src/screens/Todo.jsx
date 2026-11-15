@@ -7,6 +7,8 @@ import {
 } from "../data/store.js";
 import { goalColor } from "../lib/goalColor.js";
 import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
+import PageWrapper from "../components/PageWrapper.jsx";
+import { StaggerList, StaggerItem } from "../components/StaggerList.jsx";
 
 const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -134,28 +136,23 @@ export default function Todo() {
   }
 
   if (loading) {
-    return (
-      <div style={pageStyle}>
-        <div style={containerStyle}>
-          <p style={{ color: PAPER.faint, marginTop: 60, fontFamily: FONT.sans, fontSize: TYPE.body }}>Loading…</p>
-        </div>
-      </div>
-    );
+    // Render the frame but no text — removes the "Loading…" → content snap.
+    return <div style={pageStyle}><div style={containerStyle} /></div>;
   }
 
   const activeTasks = tasks.filter((t) => !t.done);
 
   return (
-    <div style={pageStyle}>
+    <PageWrapper style={pageStyle}>
       <div style={containerStyle}>
 
         {/* Date switcher */}
         <div style={switcherRow}>
-          <button onClick={() => navDate(-1)} style={navBtn} aria-label="Previous day">‹</button>
+          <button onClick={() => navDate(-1)} style={navBtn} aria-label="Previous day" className="press">‹</button>
           <span style={dateLabel}>{humanDate(date)}</span>
-          <button onClick={() => navDate(1)} style={navBtn} aria-label="Next day">›</button>
+          <button onClick={() => navDate(1)} style={navBtn} aria-label="Next day" className="press">›</button>
           {!isToday && (
-            <button onClick={() => navigate("/todo")} style={todayBtn}>Today</button>
+            <button onClick={() => navigate("/todo")} style={todayBtn} className="press">Today</button>
           )}
         </div>
 
@@ -184,22 +181,23 @@ export default function Todo() {
               No active goals. Add one from Goals.
             </p>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 10 }}>
+            <StaggerList style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 10 }}>
               {goals.map((g) => {
                 const marked = markedGoalIds.has(g.id);
                 const color = goalColor(g);
                 return (
-                  <GoalRow
-                    key={g.id}
-                    goal={g}
-                    color={color}
-                    marked={marked}
-                    disabled={busy || (isPast && !isToday && date !== todayLocalISO())}
-                    onToggle={() => toggleGoal(g)}
-                  />
+                  <StaggerItem key={g.id}>
+                    <GoalRow
+                      goal={g}
+                      color={color}
+                      marked={marked}
+                      disabled={busy || (isPast && !isToday && date !== todayLocalISO())}
+                      onToggle={() => toggleGoal(g)}
+                    />
+                  </StaggerItem>
                 );
               })}
-            </div>
+            </StaggerList>
           )}
         </section>
 
@@ -217,7 +215,7 @@ export default function Todo() {
               placeholder="Add a task for today…"
               style={taskInputStyle}
             />
-            <button type="submit" style={addTaskBtn} disabled={!taskInput.trim()}>Add</button>
+            <button type="submit" style={addTaskBtn} disabled={!taskInput.trim()} className="press">Add</button>
           </form>
 
           {activeTasks.length === 0 && taskLog.length === 0 ? (
@@ -225,20 +223,21 @@ export default function Todo() {
               Nothing on the list. Add a goal or a task, or just log something in the journal.
             </p>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <StaggerList style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {activeTasks.map((t, i) => (
-                <TaskRow
-                  key={t.id}
-                  task={t}
-                  goals={goals}
-                  onToggle={() => toggleTask(t)}
-                  draggable
-                  onDragStart={() => onDragStart(i)}
-                  onDragEnter={() => onDragEnter(i)}
-                  onDragEnd={onDragEnd}
-                />
+                <StaggerItem key={t.id}>
+                  <TaskRow
+                    task={t}
+                    goals={goals}
+                    onToggle={() => toggleTask(t)}
+                    draggable
+                    onDragStart={() => onDragStart(i)}
+                    onDragEnter={() => onDragEnter(i)}
+                    onDragEnd={onDragEnd}
+                  />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerList>
           )}
         </section>
 
@@ -271,7 +270,7 @@ export default function Todo() {
           </section>
         )}
       </div>
-    </div>
+    </PageWrapper>
   );
 }
 
@@ -280,6 +279,7 @@ function GoalRow({ goal, color, marked, disabled, onToggle }) {
     <button
       onClick={onToggle}
       disabled={disabled}
+      className="press"
       style={{
         display: "flex", alignItems: "center", gap: 12,
         padding: "14px 16px",
@@ -289,7 +289,6 @@ function GoalRow({ goal, color, marked, disabled, onToggle }) {
         cursor: disabled ? "default" : "pointer",
         textAlign: "left",
         width: "100%",
-        transition: "background 0.15s, border-color 0.15s",
       }}
     >
       <span style={{

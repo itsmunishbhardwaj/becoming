@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "motion/react";
 import Lenis from "lenis";
 import Home from "./screens/Home.jsx";
 import Year from "./screens/Year.jsx";
@@ -61,6 +62,30 @@ function ScrollManager() {
   return null;
 }
 
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<Year />} />
+        <Route path="/goals" element={<Home />} />
+        <Route path="/year" element={<Year />} />
+        <Route path="/onboard" element={<Onboard />} />
+        <Route path="/create" element={<QuickCreate />} />
+        <Route path="/day/:date" element={<Day />} />
+        <Route path="/goal/:id" element={<Goal />} />
+        <Route path="/month/:yyyymm" element={<Month />} />
+        <Route path="/week/:yyyymmdd" element={<Week />} />
+        <Route path="/todo" element={<Todo />} />
+        <Route path="/todo/:date" element={<Todo />} />
+        <Route path="/journal" element={<Journal />} />
+        <Route path="/insights" element={<Insights />} />
+        <Route path="/coach-carter" element={<CoachCarter />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 export default function App() {
   const [session, setSession] = useState(undefined);
 
@@ -80,22 +105,7 @@ export default function App() {
       <div className="grain" aria-hidden="true" />
       <div className="vellum-mist" aria-hidden="true" />
       <NavShell />
-      <Routes>
-        <Route path="/" element={<Year />} />
-        <Route path="/goals" element={<Home />} />
-        <Route path="/year" element={<Year />} />
-        <Route path="/onboard" element={<Onboard />} />
-        <Route path="/create" element={<QuickCreate />} />
-        <Route path="/day/:date" element={<Day />} />
-        <Route path="/goal/:id" element={<Goal />} />
-        <Route path="/month/:yyyymm" element={<Month />} />
-        <Route path="/week/:yyyymmdd" element={<Week />} />
-        <Route path="/todo" element={<Todo />} />
-        <Route path="/todo/:date" element={<Todo />} />
-        <Route path="/journal" element={<Journal />} />
-        <Route path="/insights" element={<Insights />} />
-        <Route path="/coach-carter" element={<CoachCarter />} />
-      </Routes>
+      <AnimatedRoutes />
     </BrowserRouter>
   );
 }
