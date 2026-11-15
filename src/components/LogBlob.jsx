@@ -38,6 +38,12 @@ export default function LogBlob({ onLog }) {
         {open && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
             <button
+              onClick={() => { setOpen(false); navigate("/onboard"); }}
+              style={menuItemStyle}
+            >
+              coach carter breakdown
+            </button>
+            <button
               onClick={handleNewGoal}
               style={menuItemStyle}
             >
