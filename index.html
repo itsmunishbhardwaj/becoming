@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Becoming</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Instrument+Sans:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Self-hosted fonts: preload the two most critical WOFF2 files so text paints
+         in the right face on first frame; no Google Fonts round-trip, no FOUT swap. -->
+    <link rel="preload" href="/fonts/fraunces-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- PWA -->
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -25,9 +23,70 @@
     <link rel="icon" href="/icon-192.png" type="image/png" />
 
     <style>
+      /* ── Fonts: self-hosted, same origin, no CSS round-trip ────────── */
+      @font-face {
+        font-family: 'Fraunces';
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('/fonts/fraunces-latin-wght-normal.woff2') format('woff2-variations');
+      }
+      @font-face {
+        font-family: 'Fraunces';
+        font-style: italic;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('/fonts/fraunces-latin-wght-italic.woff2') format('woff2-variations');
+      }
+      @font-face {
+        font-family: 'Instrument Sans';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/instrument-sans-latin-400-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Instrument Sans';
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url('/fonts/instrument-sans-latin-500-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Instrument Sans';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/instrument-sans-latin-600-normal.woff2') format('woff2');
+      }
+
+      /* Size-adjusted fallbacks tuned so the swap from system font → web font
+         produces no perceptible layout shift. Values approximated from the
+         Fraunces / Instrument Sans metrics tables. */
+      @font-face {
+        font-family: 'Fraunces Fallback';
+        src: local('Georgia');
+        size-adjust: 100%;
+        ascent-override: 92%;
+        descent-override: 24%;
+        line-gap-override: 0%;
+      }
+      @font-face {
+        font-family: 'Instrument Sans Fallback';
+        src: local('Arial');
+        size-adjust: 97%;
+        ascent-override: 95%;
+        descent-override: 22%;
+        line-gap-override: 0%;
+      }
+
       html, body, #root { margin: 0; min-height: 100%; }
       html, body { overflow-x: hidden; }
-      body { background: #F0F0F0; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+      body {
+        background: #F0F0F0;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        font-family: 'Instrument Sans', 'Instrument Sans Fallback', 'Inter', system-ui, sans-serif;
+      }
       * { box-sizing: border-box; }
     </style>
   </head>
