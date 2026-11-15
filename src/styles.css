@@ -83,6 +83,21 @@ button, a { -webkit-tap-highlight-color: transparent; }
               0 4px 14px rgba(0, 0, 0, 0.045);
 }
 
+/* ── Skeleton pulse ─────────────────────────────────────────── */
+/* Gentle breath between two neighbouring paper tones. Slow enough that   */
+/* the eye reads it as "waiting," not "busy." 1.6s matches the tempo of   */
+/* the orb breathe elsewhere in the app.                                  */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 0.95; }
+}
+.skeleton-pulse {
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-pulse { animation: none; opacity: 0.7; }
+}
+
 /* ── Orb breathe ───────────────────────────────────────────── */
 /* Calm human breathing: inhale ~3s, hold ~1s, exhale ~6s, rest ~1s. */
 /* Shape morphs between distinct irregular blobs — never approaches round. */

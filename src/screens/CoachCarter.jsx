@@ -6,6 +6,7 @@ import { goalColor } from "../lib/goalColor.js";
 import { todayLocalISO } from "../lib/date.js";
 import PageWrapper from "../components/PageWrapper.jsx";
 import { StaggerList, StaggerItem } from "../components/StaggerList.jsx";
+import { SkeletonBlock, SkeletonList } from "../components/Skeleton.jsx";
 
 function longDate(iso) {
   return new Date(iso + "T00:00:00").toLocaleDateString("en-US", {
@@ -67,7 +68,19 @@ export default function CoachCarter() {
   }
 
   if (loading) {
-    return <div style={pageStyle}><div style={containerStyle} /></div>;
+    return (
+      <PageWrapper style={pageStyle}>
+        <div style={containerStyle}>
+          <SkeletonBlock height={48} width={280} radius={6} style={{ marginBottom: 32 }} />
+          <SkeletonBlock height={12} width={60} radius={6} style={{ marginBottom: 10 }} />
+          <SkeletonBlock height={44} width={220} radius={999} style={{ marginBottom: 28 }} />
+          <SkeletonBlock height={12} width={120} radius={6} style={{ marginBottom: 10 }} />
+          <SkeletonBlock height={80} />
+          <div style={{ height: 20 }} />
+          <SkeletonList count={3} rowHeight={48} gap={2} />
+        </div>
+      </PageWrapper>
+    );
   }
 
   if (view === "compose" && composingForGoal) {
