@@ -1,4 +1,4 @@
-# Balboa Breakdown — Phase 4 Implementation Plan
+# Coach Carter Breakdown — Phase 4 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -1240,7 +1240,7 @@ Run: `npm run dev`.
 - [ ] **Step 3: Push + PR**
 
 ```bash
-git push -u origin balboa-breakdown-phase-4
+git push -u origin coach-carter-phase-4
 gh pr create --title "phase 4: goal workspace + auto-advance + LLM log parser + insights" --body "$(cat <<'EOF'
 ## Summary
 Phase 4 makes each goal a place, not just a card.

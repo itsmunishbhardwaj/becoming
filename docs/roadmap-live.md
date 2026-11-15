@@ -23,7 +23,7 @@ Related docs:
 ## Next up (near-term, in rough priority order)
 
 - [ ] **Goal state controls** — pause / complete / retire / wake buttons on the Goal workspace. Today the seasons system is display-only; nothing writes `state: dormant` + `dormantNote`, `retro`, etc. Origin obligation #3 (Result reflection at completion). See `docs/superpowers/plans/phase-6-goal-lifecycle.md` for the deferred plan; pick it up when ready.
-- [ ] **Balboa breakdown refinement** — the guided flow feels "extensive". Shorter, warmer, less like an interview. Fewer required turns; more skip-friendly defaults; LLM prompts polished with the new Groq/Llama model.
+- [ ] **Coach Carter breakdown refinement** — the guided flow feels "extensive". Shorter, warmer, less like an interview. Fewer required turns; more skip-friendly defaults; LLM prompts polished with the new Groq/Llama model.
 - [ ] **Home page enrichment** — "add more meaning and useful information" per user. Ideas: weekly summary strip, recent-momentum trend chart, next scheduled check-in, streak surfacing without shame.
 - [ ] **Persistence hardening confirmed** — vault now lives in iCloud (`VAULT_ROOT`). Verify auto-sync works cross-device once the app is on a phone. Consider Obsidian Git plugin as an extra backup layer.
 
@@ -74,7 +74,7 @@ Chronological, most recent first. Truncate when this list passes ~20 entries.
 - **2026-08-12** — PWA install: manifest + icons + iOS Add-to-Home-Screen meta (PR #11 → merged)
 - **2026-08-12** — Home intro animation ("Becoming" fades in/out) (PR #9 → merged)
 - **2026-08-12** — Simple goal type: dropped the wake/cadence type binary in QuickCreate; goals are name+category, every day is a tap (PR #9 → merged)
-- **2026-08-11** — QuickCreate route: bypass Balboa breakdown for users who already know their goal (PR #8 → merged)
+- **2026-08-11** — QuickCreate route: bypass Coach Carter breakdown for users who already know their goal (PR #8 → merged)
 - **2026-08-11** — Day detail page (`/day/:date`): double-click Year cell to see all events, per-event delete, per-goal quick-add (PR #8 → merged)
 - **2026-08-11** — Year: tap-again unmarks; log-presence-based (not adherence-status-based) so future status renames don't break it (PR #8 → merged)
 - **2026-08-11** — Omniroute LLM gateway wired via existing `/api/llm` middleware (`stream: false` fix for Groq)

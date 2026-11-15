@@ -1,8 +1,8 @@
-# Balboa Breakdown — Phase 2 Implementation Plan
+# Coach Carter Breakdown — Phase 2 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship the Balboa Breakdown onboarding ritual. Empty Home's `+ Set your first goal` CTA now leads to a real chat that turns intent into a `wake` or `cadence` goal `.md` in the vault. Provider-agnostic LLM adapter; scripted fallback when no API key is set.
+**Goal:** Ship the Coach Carter Breakdown onboarding ritual. Empty Home's `+ Set your first goal` CTA now leads to a real chat that turns intent into a `wake` or `cadence` goal `.md` in the vault. Provider-agnostic LLM adapter; scripted fallback when no API key is set.
 
 **Architecture:** Vite dev middleware (`/api/llm`) proxies the browser's `chat()` calls to any OpenAI-compatible endpoint using env-supplied credentials — the key never leaves the server. A pure turn-state machine (`src/onboard/turns.js`) advances an 8-turn ritual. A prompting layer (`src/onboard/prompting.js`) builds turn-specific messages and parses assistant responses into structured state updates, with a deterministic scripted fallback that ignores the LLM entirely. The `/onboard` React screen is a chat panel above a sticky input; drafts live in `localStorage` until confirmation writes `vault/goals/<id>.md` via `store.saveGoal`.
 
@@ -426,7 +426,7 @@ Keep the vault middleware ordering above; it uses distinct route prefixes so ord
 
 Create `.env.example`:
 ```
-# Balboa Breakdown LLM proxy — leave unset to use the scripted fallback wizard.
+# Coach Carter Breakdown LLM proxy — leave unset to use the scripted fallback wizard.
 # Any OpenAI-compatible endpoint works. Defaults target OpenRouter.
 LLM_BASE_URL=https://openrouter.ai/api/v1
 LLM_MODEL=anthropic/claude-3.5-sonnet
@@ -1048,7 +1048,7 @@ prose is softened by the model — extractions and math never are."
 
 Component behavior:
 - On mount: read draft from `localStorage['becoming.onboard.draft']`; if none, `initialState()`.
-- Renders: header (kicker "STEP ZERO — THE BALBOA BREAKDOWN", H1 "One step. One punch. One round."), chat transcript, sticky input at bottom, "Skip" pill next to send.
+- Renders: header (kicker "STEP ZERO — THE COACH_CARTER BREAKDOWN", H1 "One step. One punch. One round."), chat transcript, sticky input at bottom, "Skip" pill next to send.
 - Send button applies input via `applyInput`, appends assistant reply, persists draft. Errors (invalid input) surface as a whisper-colored line under the input.
 - Skip fills the current turn with a sensible default via `scriptedTurn` (no user text), advances, persists.
 - On the last turn (`confirm`), user typing "yes" / clicking send / clicking Skip all trigger `finalize` + `saveGoal` + clear draft + `navigate("/")`.
@@ -1272,7 +1272,7 @@ export default function Onboard() {
     <div style={pageStyle}>
       <div style={{ maxWidth: 560, margin: "0 auto", display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <header style={{ padding: "36px 26px 12px" }}>
-          <div style={kickerStyle}>STEP ZERO — THE BALBOA BREAKDOWN</div>
+          <div style={kickerStyle}>STEP ZERO — THE COACH_CARTER BREAKDOWN</div>
           <h1 style={h1Style}>One step. One punch. One round.</h1>
           {!llmOn && (
             <p style={{ color: PAPER.faint, fontSize: 12, marginTop: 8 }}>
@@ -1388,7 +1388,7 @@ Kill the server, restore any deleted seed files.
 
 ```bash
 git add src/screens/Onboard.jsx src/screens/Onboard.test.jsx src/App.jsx
-git commit -m "feat: /onboard screen — the Balboa Breakdown ritual
+git commit -m "feat: /onboard screen — the Coach Carter Breakdown ritual
 
 Chat-style walk through the 8 turns; sticky input + Skip.
 LocalStorage draft persistence; on confirm, writes a goal .md
@@ -1417,8 +1417,8 @@ Run: `npm run dev`
 - [ ] **Step 3: Push + PR**
 
 ```bash
-git push -u origin balboa-breakdown-phase-2
-gh pr create --title "phase 2: Balboa Breakdown onboarding — LLM proxy + /onboard ritual" --body "$(cat <<'EOF'
+git push -u origin coach-carter-phase-2
+gh pr create --title "phase 2: Coach Carter Breakdown onboarding — LLM proxy + /onboard ritual" --body "$(cat <<'EOF'
 ## Summary
 - Provider-agnostic OpenAI-compatible LLM adapter (`src/lib/llm.js`) with a Vite dev proxy at `/api/llm`. Key stays server-side. `.env.example` documents the three env vars; leaving `LLM_API_KEY` unset falls back to the scripted wizard.
 - Pure 8-turn state machine (`src/onboard/turns.js`): ambition → type → baseline → target → endDate → roundsPreview → indicators → confirm.

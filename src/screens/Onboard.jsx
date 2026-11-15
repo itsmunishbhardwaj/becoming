@@ -202,7 +202,7 @@ export default function Onboard() {
             <div style={wordmarkStyle}>Becoming</div>
             <Link to="/" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>← Life</Link>
           </div>
-          <div style={kickerStyle}>Step zero — the Balboa breakdown</div>
+          <div style={kickerStyle}>Step zero — the Coach Carter breakdown</div>
           <h1 style={h1Style}>One step. One punch. One round.</h1>
         </header>
 

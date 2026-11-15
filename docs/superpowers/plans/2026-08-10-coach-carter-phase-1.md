@@ -1,4 +1,4 @@
-# Balboa Breakdown — Phase 1 Implementation Plan
+# Coach Carter Breakdown — Phase 1 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -2153,7 +2153,7 @@ Expected: everything above holds. If not, do not close Phase 1.
 - [ ] **Step 3: Open PR for Phase 1**
 
 ```bash
-git push -u origin balboa-breakdown
+git push -u origin coach-carter
 gh pr create --title "phase 1: vault-backed store + empty-state Home + two real goals" --body "$(cat <<'EOF'
 ## Summary
 - Adds vitest + tiny hand-rolled markdown codec (front-matter + fixed-section body).

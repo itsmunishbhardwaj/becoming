@@ -1,4 +1,4 @@
-# Balboa Breakdown — Phase 5 Implementation Plan
+# Coach Carter Breakdown — Phase 5 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -673,7 +673,7 @@ Run: `npm run dev`.
 - [ ] **Step 3: Push + PR**
 
 ```bash
-git push -u origin balboa-breakdown-phase-5
+git push -u origin coach-carter-phase-5
 gh pr create --title "phase 5: polish — tokens, tap-unmark, real momentum, indicator insights" --body "$(cat <<'EOF'
 ## Summary
 Phase 5 retires the polish backlog and closes the last of the ledger's deferred items.

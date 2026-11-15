@@ -52,7 +52,7 @@ logged — the plan is the commitment. Off-schedule days with a logged session
 are `off` (you broke the rest). Off-schedule days with no session are `clean`.
 
 **simple:** One round, entire span. Any logged event = `hit`. No schedule,
-no frequency target. Created via QuickCreate (not Balboa Breakdown).
+no frequency target. Created via QuickCreate (not Coach Carter Breakdown).
 
 ### 2b. Confirmed redesign (migration target)
 
@@ -254,7 +254,7 @@ will move to `insights_dismissed` table in Supabase.
 | `/week/:yyyymmdd` | Week | — | goals, logs (week) |
 | `/day/:date` | Day | log events, log notes | goals, single-day log |
 | `/goal/:id` | Goal workspace | color edits | goal, 365-day logs |
-| `/onboard` | Balboa Breakdown | goals (wake/cadence) | draft in localStorage |
+| `/onboard` | Coach Carter Breakdown | goals (wake/cadence) | draft in localStorage |
 | `/create` | QuickCreate | goals (simple) | existing goals (color check) |
 
 ### Home
@@ -273,7 +273,7 @@ Per-goal detail: ambition, period chip, habits strip (planned), projects
 ### Day
 List of events for the day. Per-goal quick-add and delete. Per-goal note text.
 
-### Onboard (Balboa Breakdown)
+### Onboard (Coach Carter Breakdown)
 Multi-turn guided creation for wake and cadence goals. Turns: ambition →
 type → baseline → target → endDate → roundsPreview → indicators → confirm.
 LLM optionally rewrites non-round responses (falls back to scripted).

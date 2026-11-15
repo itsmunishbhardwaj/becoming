@@ -63,7 +63,7 @@ Everything built now should survive migration. Two invariants:
 
 Anything visual, philosophical, or logic-only:
 
-- Balboa breakdown refinement (prompts, flow, LLM chaining)
+- Coach Carter breakdown refinement (prompts, flow, LLM chaining)
 - Insight logic + new flavors
 - Goal state controls (pause / wake / retire / complete + ceremonies)
 - Habits, projects, sub-targets
