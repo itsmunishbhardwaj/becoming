@@ -37,10 +37,10 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, onDa
     <div
       className="year-month-card"
       style={{
-        background: PAPER.card,
-        borderRadius: radii[monthIdx % 2],
+        background: "transparent",
+        borderRadius: 0,
         padding: "16px 13px 14px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.04)",
+        boxShadow: "none",
         display: "flex",
         flexDirection: "column",
         gap: 8,
@@ -329,14 +329,10 @@ export default function Year() {
 
         /* ── Month card ─────────────────────── */
         .year-month-card {
-          transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
-                      box-shadow 200ms ease;
+          transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
         }
         @media (hover: hover) and (pointer: fine) {
-          .year-month-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.09), 0 0 0 1px rgba(0,0,0,0.04);
-          }
+          .year-month-card:hover { transform: translateY(-2px); }
         }
 
         /* Staggered entrance */
