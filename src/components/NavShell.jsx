@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { motion } from "motion/react";
 import { PAPER, FONT, TYPE } from "../tokens.js";
 
 const TABS = [
@@ -41,6 +42,8 @@ const TABS = [
   },
 ];
 
+const SPRING = { type: "spring", stiffness: 420, damping: 36 };
+
 export default function NavShell() {
   const { pathname } = useLocation();
   const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.innerWidth >= 768);
@@ -59,7 +62,7 @@ export default function NavShell() {
 function TopNav({ pathname }) {
   return (
     <nav style={topBarStyle}>
-      <NavLink to="/" style={logoStyle}>Becoming</NavLink>
+      <NavLink to="/" style={logoStyle} className="press">Becoming</NavLink>
       <div style={topTabsStyle}>
         {TABS.map((tab) => {
           const active = tab.matches(pathname);
@@ -67,9 +70,17 @@ function TopNav({ pathname }) {
             <NavLink
               key={tab.path}
               to={tab.path}
-              style={{ ...topTabStyle, ...(active ? topTabActive : {}) }}
+              className="press"
+              style={{ ...topTabStyle, ...(active ? topTabActiveText : {}) }}
             >
-              {tab.label}
+              <span style={{ position: "relative", zIndex: 1 }}>{tab.label}</span>
+              {active && (
+                <motion.span
+                  layoutId="nav-top-indicator"
+                  transition={SPRING}
+                  style={topActivePill}
+                />
+              )}
             </NavLink>
           );
         })}
@@ -87,9 +98,17 @@ function BottomNav({ pathname }) {
           <NavLink
             key={tab.path}
             to={tab.path}
-            style={{ ...bottomTabStyle, ...(active ? bottomTabActive : {}) }}
+            className="press"
+            style={bottomTabStyle}
           >
             <span style={active ? bottomLabelActive : bottomLabel}>{tab.short}</span>
+            {active && (
+              <motion.span
+                layoutId="nav-bottom-indicator"
+                transition={SPRING}
+                style={bottomActiveDot}
+              />
+            )}
           </NavLink>
         );
       })}
@@ -114,6 +133,8 @@ const topBarStyle = {
   gap: 32,
   zIndex: 190,
   boxSizing: "border-box",
+  backdropFilter: "saturate(1.4) blur(10px)",
+  WebkitBackdropFilter: "saturate(1.4) blur(10px)",
 };
 
 const logoStyle = {
@@ -139,16 +160,25 @@ const topTabStyle = {
   fontSize: 13,
   color: PAPER.faint,
   textDecoration: "none",
-  padding: "6px 10px",
-  borderRadius: 6,
-  transition: "color 0.12s, background 0.12s",
+  padding: "6px 12px",
+  borderRadius: 999,
   whiteSpace: "nowrap",
+  position: "relative",
+  display: "inline-flex",
+  alignItems: "center",
 };
 
-const topTabActive = {
+const topTabActiveText = {
   color: PAPER.ink,
   fontWeight: 500,
+};
+
+const topActivePill = {
+  position: "absolute",
+  inset: 0,
   background: PAPER.panel,
+  borderRadius: 999,
+  zIndex: 0,
 };
 
 const bottomBarStyle = {
@@ -163,19 +193,19 @@ const bottomBarStyle = {
   display: "flex",
   alignItems: "stretch",
   zIndex: 190,
+  backdropFilter: "saturate(1.4) blur(10px)",
+  WebkitBackdropFilter: "saturate(1.4) blur(10px)",
 };
 
 const bottomTabStyle = {
   flex: 1,
   display: "flex",
+  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
+  gap: 4,
   textDecoration: "none",
-  transition: "background 0.12s",
-};
-
-const bottomTabActive = {
-  background: PAPER.panel,
+  position: "relative",
 };
 
 const bottomLabel = {
@@ -183,6 +213,7 @@ const bottomLabel = {
   fontSize: 10.5,
   letterSpacing: "0.04em",
   color: PAPER.faint,
+  transition: "color 180ms ease",
 };
 
 const bottomLabelActive = {
@@ -191,4 +222,13 @@ const bottomLabelActive = {
   letterSpacing: "0.04em",
   color: PAPER.ink,
   fontWeight: 600,
+};
+
+const bottomActiveDot = {
+  position: "absolute",
+  top: 8,
+  width: 4,
+  height: 4,
+  borderRadius: 999,
+  background: PAPER.ink,
 };

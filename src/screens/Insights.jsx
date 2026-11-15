@@ -6,6 +6,8 @@ import { generateInsights } from "../data/insights.js";
 import { goalColor } from "../lib/goalColor.js";
 import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
 import InsightCard from "../components/InsightCard.jsx";
+import PageWrapper from "../components/PageWrapper.jsx";
+import { StaggerList, StaggerItem } from "../components/StaggerList.jsx";
 
 const YEAR = new Date().getFullYear();
 const YEAR_FROM = `${YEAR}-01-01`;
@@ -77,17 +79,11 @@ export default function Insights() {
   const activeInsight = aiQuestions.find((q) => !dismissedIds.has(q.id));
 
   if (loading) {
-    return (
-      <div style={pageStyle}>
-        <div style={containerStyle}>
-          <p style={{ color: PAPER.faint, fontFamily: FONT.sans, fontSize: TYPE.body, marginTop: 24 }}>Loading…</p>
-        </div>
-      </div>
-    );
+    return <div style={pageStyle}><div style={containerStyle} /></div>;
   }
 
   return (
-    <div style={pageStyle}>
+    <PageWrapper style={pageStyle}>
       <div style={containerStyle}>
 
         <h1 style={h1Style}>Insights</h1>
@@ -98,24 +94,25 @@ export default function Insights() {
             No active goals. Add one to see your stats.
           </p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 40 }}>
+          <StaggerList style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 40 }}>
             {goalStats.map(({ goal, streaks, progress, first, daysFollowing, longestEnded }) => {
               const color = goalColor(goal);
               return (
-                <GoalStatCard
-                  key={goal.id}
-                  goal={goal}
-                  color={color}
-                  streaks={streaks}
-                  progress={progress}
-                  first={first}
-                  daysFollowing={daysFollowing}
-                  longestEnded={longestEnded}
-                  today={today}
-                />
+                <StaggerItem key={goal.id}>
+                  <GoalStatCard
+                    goal={goal}
+                    color={color}
+                    streaks={streaks}
+                    progress={progress}
+                    first={first}
+                    daysFollowing={daysFollowing}
+                    longestEnded={longestEnded}
+                    today={today}
+                  />
+                </StaggerItem>
               );
             })}
-          </div>
+          </StaggerList>
         )}
 
         {/* AI observations */}
@@ -128,7 +125,7 @@ export default function Insights() {
           </section>
         )}
       </div>
-    </div>
+    </PageWrapper>
   );
 }
 

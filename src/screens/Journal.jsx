@@ -4,6 +4,8 @@ import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
 import { listGoals, listJournal, saveJournal, deleteJournal } from "../data/store.js";
 import { goalColor } from "../lib/goalColor.js";
 import { todayLocalISO } from "../lib/date.js";
+import PageWrapper from "../components/PageWrapper.jsx";
+import { StaggerList, StaggerItem } from "../components/StaggerList.jsx";
 
 const PROMPTS = [
   { key: "highlight", label: "Highlight of the day" },
@@ -125,11 +127,11 @@ export default function Journal() {
   const promptLabel = prompt ? PROMPTS.find((p) => p.key === prompt)?.label : null;
 
   return (
-    <div style={pageStyle}>
+    <PageWrapper style={pageStyle}>
       <div style={containerStyle}>
 
         {/* Composer */}
-        <section style={composerCard}>
+        <section style={composerCard} className="card-depth">
           {promptLabel && (
             <div style={promptLabelStyle}>{promptLabel}</div>
           )}
@@ -149,6 +151,7 @@ export default function Journal() {
               <button
                 key={p.key}
                 onClick={() => setPrompt((prev) => prev === p.key ? null : p.key)}
+                className="press"
                 style={{ ...chip, ...(prompt === p.key ? chipActive : {}) }}
               >
                 {p.label}
@@ -179,6 +182,7 @@ export default function Journal() {
                     <button
                       key={g.id}
                       onClick={() => toggleGoalTag(g.id)}
+                      className="press"
                       style={{
                         ...chip,
                         ...(sel ? { background: color + "22", border: `1px solid ${color}66`, color: PAPER.ink } : {}),
@@ -195,7 +199,7 @@ export default function Journal() {
           )}
 
           <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
-            <button onClick={handleSave} disabled={!text.trim() || saving} style={saveBtn}>
+            <button onClick={handleSave} disabled={!text.trim() || saving} style={saveBtn} className="press">
               {saving ? "Saving…" : "Save"}
             </button>
           </div>
@@ -235,25 +239,26 @@ export default function Journal() {
 
         {/* Entry list */}
         {loading ? (
-          <p style={{ color: PAPER.faint, fontFamily: FONT.sans, fontSize: TYPE.body, marginTop: 24 }}>Loading…</p>
+          <div style={{ height: 40 }} />
         ) : entries.length === 0 ? (
           <p style={{ fontFamily: FONT.serif, fontStyle: "italic", fontSize: TYPE.ambition, color: PAPER.dim, marginTop: 24 }}>
             No entries yet. Write something above.
           </p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 24 }}>
+          <StaggerList style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 24 }}>
             {entries.map((entry) => (
-              <EntryCard
-                key={entry.id}
-                entry={entry}
-                goals={goals}
-                onDelete={() => handleDelete(entry.id)}
-              />
+              <StaggerItem key={entry.id}>
+                <EntryCard
+                  entry={entry}
+                  goals={goals}
+                  onDelete={() => handleDelete(entry.id)}
+                />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerList>
         )}
       </div>
-    </div>
+    </PageWrapper>
   );
 }
 
