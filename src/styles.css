@@ -80,6 +80,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .orb-breathe { animation: orb-breathe 11s linear infinite; }
 
+/* border-radius is paint-only (not GPU-composited) — pausing during scroll */
+/* keeps that repaint cost off the main thread exactly when it's competing */
+/* with scroll compositing, which is where mobile jank comes from. */
+.is-scrolling .orb-breathe,
+.is-scrolling .log-blob {
+  animation-play-state: paused;
+}
+
 /* ── GoalCard (synthesis row) ──────────────────────────────── */
 .goal-card {
   transition: opacity 150ms var(--ease-out);
