@@ -283,7 +283,7 @@ export default function Year() {
         <div style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}>
           <p style={{ color: PAPER.dim }}>
             Nothing to look back on yet — set your first goal on{" "}
-            <Link to="/" style={{ color: PAPER.ink }}>Life</Link>.
+            <Link to="/goals" style={{ color: PAPER.ink }}>Goals</Link>.
           </p>
         </div>
       </div>
@@ -469,21 +469,11 @@ export default function Year() {
           padding: "44px 0 0",
           gap: 16,
         }}>
-          <div style={{
-            fontFamily: FONT.serif,
-            fontWeight: 600,
-            fontSize: 13,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: PAPER.dim,
-          }}>
-            Becoming
-          </div>
-          <Link to="/" style={{ fontSize: 12, color: PAPER.faint, textDecoration: "none", transition: "color 120ms ease" }}
+          <Link to="/goals" style={{ fontSize: 12, color: PAPER.faint, textDecoration: "none", transition: "color 120ms ease" }}
             onMouseEnter={e => e.currentTarget.style.color = PAPER.dim}
             onMouseLeave={e => e.currentTarget.style.color = PAPER.faint}
           >
-            ← Life
+            Goals →
           </Link>
         </nav>
 

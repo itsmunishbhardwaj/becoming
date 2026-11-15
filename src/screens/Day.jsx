@@ -131,7 +131,6 @@ export default function Day() {
 
         <header style={{ marginTop: 16, marginBottom: 36 }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 24 }}>
-            <div style={wordmarkStyle}>Becoming</div>
             <div style={{ fontSize: 12, color: PAPER.faint }}>{humanDate(date).split(",")[0]}</div>
           </div>
           <div style={kickerStyle}>{humanDate(date).replace(/^[^,]+,\s*/, "")}</div>

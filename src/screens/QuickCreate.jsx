@@ -71,7 +71,6 @@ export default function QuickCreate() {
     <div style={pageStyle}>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "44px 26px 80px" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 40 }}>
-          <div style={wordmarkStyle}>Becoming</div>
           <Link to="/" style={backLink}>← Life</Link>
         </div>
 
