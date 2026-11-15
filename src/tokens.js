@@ -42,8 +42,10 @@ export const PAPER = {
 };
 
 export const FONT = {
-  serif: "'Fraunces', Georgia, serif", // IDENTITY: goal names, headlines, ambitions
-  sans: "'Instrument Sans', 'Inter', system-ui, sans-serif", // DATA: numbers, labels, UI
+  // Self-hosted — preloaded in index.html. Fallback faces are size-adjusted so the
+  // swap from system font to web font produces no perceptible layout shift.
+  serif: "'Fraunces', 'Fraunces Fallback', Georgia, serif", // IDENTITY: goal names, headlines, ambitions
+  sans: "'Instrument Sans', 'Instrument Sans Fallback', 'Inter', system-ui, sans-serif", // DATA: numbers, labels, UI
 };
 
 // Type scale (px) — serif for who you are, sans for what you did.

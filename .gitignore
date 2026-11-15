@@ -24,3 +24,10 @@ vault/
 
 .vercel
 .env*
+
+# Playwright MCP + diagnostic screenshots
+.playwright-mcp/
+*-empty.png
+*-mobile.png
+journal.png
+todo.png
