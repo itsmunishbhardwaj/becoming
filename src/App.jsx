@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Lenis from "lenis";
-import { PAPER, FONT } from "./tokens.js";
 import Home from "./screens/Home.jsx";
 import Year from "./screens/Year.jsx";
 import Onboard from "./screens/Onboard.jsx";
@@ -12,7 +11,10 @@ import Month from "./screens/Month.jsx";
 import Week from "./screens/Week.jsx";
 import Todo from "./screens/Todo.jsx";
 import Journal from "./screens/Journal.jsx";
+import Insights from "./screens/Insights.jsx";
+import CoachCarter from "./screens/CoachCarter.jsx";
 import SignIn from "./screens/SignIn.jsx";
+import NavShell from "./components/NavShell.jsx";
 import { getSession, onAuthStateChange } from "./lib/auth.js";
 
 function ScrollManager() {
@@ -35,10 +37,6 @@ function ScrollManager() {
     }
     const id = requestAnimationFrame(raf);
 
-    // Pause decorative border-radius breathing (orb-breathe, log-blob) while
-    // scrolling — that property paints every frame and competes with scroll
-    // compositing on mobile, which is what reads as "choppy". Shape morph
-    // resumes the instant scrolling settles; imperceptible either way.
     let idleTimer;
     function onScroll() {
       document.body.classList.add("is-scrolling");
@@ -56,7 +54,6 @@ function ScrollManager() {
     };
   }, [location.pathname]);
 
-  // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
@@ -65,7 +62,6 @@ function ScrollManager() {
 }
 
 export default function App() {
-  // undefined = loading, null = signed out, object = signed in
   const [session, setSession] = useState(undefined);
 
   useEffect(() => {
@@ -74,7 +70,7 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (session === undefined) return null; // brief loading — no flash
+  if (session === undefined) return null;
 
   if (!session) return <SignIn />;
 
@@ -83,24 +79,7 @@ export default function App() {
       <ScrollManager />
       <div className="grain" aria-hidden="true" />
       <div className="vellum-mist" aria-hidden="true" />
-      <Link
-        to="/"
-        style={{
-          position: "fixed",
-          top: 20,
-          left: "max(22px, calc(env(safe-area-inset-left) + 16px))",
-          zIndex: 200,
-          fontFamily: FONT.serif,
-          fontWeight: 600,
-          fontSize: 13,
-          letterSpacing: "0.14em",
-          textTransform: "uppercase",
-          color: PAPER.dim,
-          textDecoration: "none",
-        }}
-      >
-        Becoming
-      </Link>
+      <NavShell />
       <Routes>
         <Route path="/" element={<Year />} />
         <Route path="/goals" element={<Home />} />
@@ -114,6 +93,8 @@ export default function App() {
         <Route path="/todo" element={<Todo />} />
         <Route path="/todo/:date" element={<Todo />} />
         <Route path="/journal" element={<Journal />} />
+        <Route path="/insights" element={<Insights />} />
+        <Route path="/coach-carter" element={<CoachCarter />} />
       </Routes>
     </BrowserRouter>
   );
