@@ -195,3 +195,240 @@ export async function saveNote(date, goalId, text) {
     }, { onConflict: "user_id,date,goal_id" });
   }
 }
+
+// ── Journal ────────────────────────────────────────────────────────────────
+
+function rowToJournal(row) {
+  return {
+    id: row.id,
+    date: row.date,
+    text: row.text,
+    prompt: row.prompt ?? null,
+    goalIds: row.goal_ids ?? [],
+    createdAt: row.created_at,
+    editedAt: row.edited_at ?? null,
+  };
+}
+
+export async function listJournal({ from, to, goalId, prompt } = {}) {
+  const userId = await uid();
+  let q = supabase
+    .from("journal_entries")
+    .select("*")
+    .eq("user_id", userId)
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (from) q = q.gte("date", from);
+  if (to) q = q.lte("date", to);
+  if (prompt) q = q.eq("prompt", prompt);
+  const { data, error } = await q;
+  if (error) throw new Error(`listJournal: ${error.message}`);
+  let rows = data || [];
+  if (goalId) rows = rows.filter((r) => (r.goal_ids ?? []).includes(goalId));
+  return rows.map(rowToJournal);
+}
+
+export async function saveJournal(entry) {
+  const userId = await uid();
+  const now = new Date().toISOString();
+  const row = {
+    user_id: userId,
+    date: entry.date,
+    text: entry.text,
+    prompt: entry.prompt ?? null,
+    goal_ids: entry.goalIds ?? [],
+    ...(entry.id ? { id: entry.id, edited_at: now } : { created_at: now }),
+  };
+  const { data, error } = await supabase
+    .from("journal_entries")
+    .upsert(row, { onConflict: "id" })
+    .select()
+    .single();
+  if (error) throw new Error(`saveJournal: ${error.message}`);
+  return rowToJournal(data);
+}
+
+export async function deleteJournal(id) {
+  const userId = await uid();
+  const { error } = await supabase
+    .from("journal_entries")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id);
+  if (error) throw new Error(`deleteJournal ${id}: ${error.message}`);
+}
+
+// ── Tasks ──────────────────────────────────────────────────────────────────
+
+function rowToTask(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    date: row.date,
+    order: row.order,
+    done: row.done,
+    doneAt: row.done_at ?? null,
+    dueTime: row.due_time ?? null,
+    goalId: row.goal_id ?? null,
+    carriedFrom: row.carried_from ?? null,
+  };
+}
+
+export async function listTasks(date) {
+  const userId = await uid();
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("date", date)
+    .order("order");
+  if (error) throw new Error(`listTasks: ${error.message}`);
+  return (data || []).map(rowToTask);
+}
+
+export async function addTask(date, title, goalId = null) {
+  const userId = await uid();
+  const { data: existing } = await supabase
+    .from("tasks")
+    .select("order")
+    .eq("user_id", userId)
+    .eq("date", date)
+    .order("order", { ascending: false })
+    .limit(1);
+  const nextOrder = existing?.length ? (existing[0].order + 1) : 0;
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert({ user_id: userId, title, date, order: nextOrder, goal_id: goalId })
+    .select()
+    .single();
+  if (error) throw new Error(`addTask: ${error.message}`);
+  return rowToTask(data);
+}
+
+export async function setTaskDone(id, done) {
+  const userId = await uid();
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({ done, done_at: done ? new Date().toISOString() : null })
+    .eq("user_id", userId)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw new Error(`setTaskDone ${id}: ${error.message}`);
+  return rowToTask(data);
+}
+
+export async function reorderTasks(date, ids) {
+  const userId = await uid();
+  await Promise.all(
+    ids.map((id, i) =>
+      supabase.from("tasks").update({ order: i }).eq("user_id", userId).eq("id", id).eq("date", date)
+    )
+  );
+}
+
+export async function carryTask(id, toDate) {
+  const userId = await uid();
+  const { data: orig, error: fetchErr } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", id)
+    .single();
+  if (fetchErr) throw new Error(`carryTask fetch: ${fetchErr.message}`);
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert({
+      user_id: userId,
+      title: orig.title,
+      date: toDate,
+      order: 0,
+      goal_id: orig.goal_id,
+      carried_from: orig.date,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(`carryTask insert: ${error.message}`);
+  return rowToTask(data);
+}
+
+export async function listTaskLog(date) {
+  const userId = await uid();
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("date", date)
+    .eq("done", true)
+    .order("done_at");
+  if (error) throw new Error(`listTaskLog: ${error.message}`);
+  return (data || []).map(rowToTask);
+}
+
+// ── Contracts ──────────────────────────────────────────────────────────────
+
+function rowToContract(row) {
+  return {
+    id: row.id,
+    goalId: row.goal_id,
+    change: row.change,
+    terms: row.terms,
+    signatureSvg: row.signature_svg ?? null,
+    signedAt: row.signed_at ?? null,
+    retiredAt: row.retired_at ?? null,
+    createdAt: row.created_at,
+  };
+}
+
+export async function listContracts() {
+  const userId = await uid();
+  const { data, error } = await supabase
+    .from("contracts")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`listContracts: ${error.message}`);
+  return (data || []).map(rowToContract);
+}
+
+export async function getContract(id) {
+  const userId = await uid();
+  const { data, error } = await supabase
+    .from("contracts")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", id)
+    .single();
+  if (error) return null;
+  return rowToContract(data);
+}
+
+export async function saveContract(contract) {
+  const userId = await uid();
+  const row = {
+    user_id: userId,
+    goal_id: contract.goalId,
+    change: contract.change ?? "",
+    terms: contract.terms ?? "",
+    signature_svg: contract.signatureSvg ?? null,
+    signed_at: contract.signedAt ?? null,
+    ...(contract.id ? { id: contract.id } : {}),
+  };
+  const { data, error } = await supabase
+    .from("contracts")
+    .upsert(row, { onConflict: "id" })
+    .select()
+    .single();
+  if (error) throw new Error(`saveContract: ${error.message}`);
+  return rowToContract(data);
+}
+
+export async function retireContract(id) {
+  const userId = await uid();
+  const { error } = await supabase
+    .from("contracts")
+    .update({ retired_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .eq("id", id);
+  if (error) throw new Error(`retireContract ${id}: ${error.message}`);
+}
