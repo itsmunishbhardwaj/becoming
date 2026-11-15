@@ -167,7 +167,7 @@ export default function Goal() {
             position: sticky;
             top: 52px;
           }
-          .goal-main { flex: 1; max-width: 520px; }
+          .goal-main { flex: 1; }
         }
       `}</style>
 
@@ -432,7 +432,7 @@ const pageStyle = {
   fontFamily: FONT.sans,
   padding: "clamp(28px, 4vw, 52px) clamp(20px, 4vw, 64px) 96px",
 };
-const container = { maxWidth: 760, margin: "0 auto" };
+const container = {};
 const backLink = { color: PAPER.dim, fontSize: 13, textDecoration: "none" };
 const kicker = {
   fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
