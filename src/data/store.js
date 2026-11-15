@@ -106,6 +106,16 @@ export async function saveGoal(goal) {
   if (error) throw new Error(`saveGoal ${goal.id}: ${error.message}`);
 }
 
+export async function deleteGoal(id) {
+  const userId = await uid();
+  const { error } = await supabase
+    .from("goals")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id);
+  if (error) throw new Error(`deleteGoal ${id}: ${error.message}`);
+}
+
 export async function readLog(date) {
   const [{ data: evtRows }, { data: noteRows }] = await Promise.all([
     supabase.from("log_events").select("*").eq("date", date).order("created_at"),

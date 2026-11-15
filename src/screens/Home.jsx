@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS, SPACE } from "../tokens.js";
-import { listGoals, readLogsInRange, saveGoal } from "../data/store.js";
+import { listGoals, readLogsInRange, saveGoal, deleteGoal } from "../data/store.js";
 import { advanceGoal } from "../data/rounds.js";
 import { momentum } from "../data/adherence.js";
 import { generateInsights } from "../data/insights.js";
@@ -350,7 +350,10 @@ export default function Home() {
               <div style={sectionLabel}>Your goals</div>
               <div style={{ marginTop: 4 }}>
                 {enriched.map((g, i) => (
-                  <GoalCard key={g.id} goal={g} index={i} />
+                  <GoalCard key={g.id} goal={g} index={i} onDelete={async (id) => {
+                    await deleteGoal(id);
+                    setGoals((prev) => prev.filter((x) => x.id !== id));
+                  }} />
                 ))}
               </div>
               <div style={{ marginTop: 40 }}>
