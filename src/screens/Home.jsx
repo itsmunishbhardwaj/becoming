@@ -356,17 +356,6 @@ export default function Home() {
                   }} />
                 ))}
               </div>
-              <div style={{ marginTop: 40 }}>
-                <Link to="/create" className="home-cta" style={newGoalBtn}>
-                  <span style={plusRing}>+</span>
-                  begin something new
-                </Link>
-                <div style={{ marginTop: 10 }}>
-                  <Link to="/onboard" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>
-                    or walk it out with the Coach Carter breakdown →
-                  </Link>
-                </div>
-              </div>
             </>
           )}
         </main>
@@ -391,9 +380,9 @@ export default function Home() {
         </footer>
       </div>
 
-      {goals && goals.length > 0 && (
+      {goals !== null && (
         <>
-          <LogBlob onClick={() => setSheetOpen(true)} />
+          <LogBlob onLog={() => setSheetOpen(true)} />
           <LogSheet
             open={sheetOpen}
             onClose={() => setSheetOpen(false)}
@@ -428,17 +417,8 @@ function EmptyHome() {
         "One step, one punch, one round at a time."
       </p>
       <p style={{ color: PAPER.dim, fontSize: TYPE.body, margin: "0 0 28px" }}>
-        No goals yet. Start with one.
+        No goals yet. Tap + to start one.
       </p>
-      <Link to="/create" style={newGoalBtn}>
-        <span style={plusRing}>+</span>
-        begin something new
-      </Link>
-      <div style={{ marginTop: 10 }}>
-        <Link to="/onboard" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>
-          or walk it out with the Coach Carter breakdown →
-        </Link>
-      </div>
     </div>
   );
 }
