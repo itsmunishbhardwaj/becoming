@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import Home from "./Home.jsx";
 
 vi.mock("../data/store.js", () => ({
@@ -27,13 +27,20 @@ beforeEach(() => {
 });
 
 describe("Home empty state", () => {
-  it("shows the CTA when no goals exist", async () => {
+  it("offers goal creation through the add menu when no goals exist", async () => {
     listGoals.mockResolvedValue([]);
-    renderHome();
-    await waitFor(() =>
-      expect(screen.getByText(/begin something new/i)).toBeInTheDocument()
+    render(
+      <MemoryRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/create" element={<div>create goal page</div>} />
+        </Routes>
+      </MemoryRouter>
     );
-    expect(screen.getByText(/no goals yet/i)).toBeInTheDocument();
+    expect(await screen.findByText(/no goals yet/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "add" }));
+    fireEvent.click(screen.getByRole("button", { name: "new goal" }));
+    expect(screen.getByText("create goal page")).toBeInTheDocument();
   });
 });
 
