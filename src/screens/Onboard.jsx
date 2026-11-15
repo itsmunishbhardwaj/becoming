@@ -199,7 +199,6 @@ export default function Onboard() {
       <div style={{ maxWidth: 560, margin: "0 auto", display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <header style={{ padding: "44px 26px 16px" }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 32 }}>
-            <div style={wordmarkStyle}>Becoming</div>
             <Link to="/" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>← Life</Link>
           </div>
           <div style={kickerStyle}>Step zero — the Coach Carter breakdown</div>

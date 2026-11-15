@@ -37,10 +37,10 @@ function MonthBlock({ monthIdx, goals, adherenceMaps, focus, pen, onDayTap, onDa
     <div
       className="year-month-card"
       style={{
-        background: PAPER.card,
-        borderRadius: radii[monthIdx % 2],
+        background: "transparent",
+        borderRadius: 0,
         padding: "16px 13px 14px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.04)",
+        boxShadow: "none",
         display: "flex",
         flexDirection: "column",
         gap: 8,
@@ -283,7 +283,7 @@ export default function Year() {
         <div style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}>
           <p style={{ color: PAPER.dim }}>
             Nothing to look back on yet — set your first goal on{" "}
-            <Link to="/" style={{ color: PAPER.ink }}>Life</Link>.
+            <Link to="/goals" style={{ color: PAPER.ink }}>Goals</Link>.
           </p>
         </div>
       </div>
@@ -329,14 +329,10 @@ export default function Year() {
 
         /* ── Month card ─────────────────────── */
         .year-month-card {
-          transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
-                      box-shadow 200ms ease;
+          transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
         }
         @media (hover: hover) and (pointer: fine) {
-          .year-month-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.09), 0 0 0 1px rgba(0,0,0,0.04);
-          }
+          .year-month-card:hover { transform: translateY(-2px); }
         }
 
         /* Staggered entrance */
@@ -469,21 +465,11 @@ export default function Year() {
           padding: "44px 0 0",
           gap: 16,
         }}>
-          <div style={{
-            fontFamily: FONT.serif,
-            fontWeight: 600,
-            fontSize: 13,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: PAPER.dim,
-          }}>
-            Becoming
-          </div>
-          <Link to="/" style={{ fontSize: 12, color: PAPER.faint, textDecoration: "none", transition: "color 120ms ease" }}
+          <Link to="/goals" style={{ fontSize: 12, color: PAPER.faint, textDecoration: "none", transition: "color 120ms ease" }}
             onMouseEnter={e => e.currentTarget.style.color = PAPER.dim}
             onMouseLeave={e => e.currentTarget.style.color = PAPER.faint}
           >
-            ← Life
+            Goals →
           </Link>
         </nav>
 

@@ -31,9 +31,9 @@ describe("Home empty state", () => {
     listGoals.mockResolvedValue([]);
     renderHome();
     await waitFor(() =>
-      expect(screen.getByText(/begin something new/i)).toBeInTheDocument()
+      expect(screen.getByText(/no goals yet/i)).toBeInTheDocument()
     );
-    expect(screen.getByText(/no goals yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/tap \+ to start one/i)).toBeInTheDocument();
   });
 });
 
