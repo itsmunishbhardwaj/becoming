@@ -6,6 +6,7 @@ import { goalColor } from "../lib/goalColor.js";
 import { todayLocalISO } from "../lib/date.js";
 import PageWrapper from "../components/PageWrapper.jsx";
 import { StaggerList, StaggerItem } from "../components/StaggerList.jsx";
+import { SkeletonList } from "../components/Skeleton.jsx";
 
 const PROMPTS = [
   { key: "highlight", label: "Highlight of the day" },
@@ -239,7 +240,9 @@ export default function Journal() {
 
         {/* Entry list */}
         {loading ? (
-          <div style={{ height: 40 }} />
+          <div style={{ marginTop: 24 }}>
+            <SkeletonList count={3} rowHeight={96} gap={12} />
+          </div>
         ) : entries.length === 0 ? (
           <p style={{ fontFamily: FONT.serif, fontStyle: "italic", fontSize: TYPE.ambition, color: PAPER.dim, marginTop: 24 }}>
             No entries yet. Write something above.

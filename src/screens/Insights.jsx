@@ -8,6 +8,7 @@ import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
 import InsightCard from "../components/InsightCard.jsx";
 import PageWrapper from "../components/PageWrapper.jsx";
 import { StaggerList, StaggerItem } from "../components/StaggerList.jsx";
+import { SkeletonBlock, SkeletonList } from "../components/Skeleton.jsx";
 
 const YEAR = new Date().getFullYear();
 const YEAR_FROM = `${YEAR}-01-01`;
@@ -79,7 +80,14 @@ export default function Insights() {
   const activeInsight = aiQuestions.find((q) => !dismissedIds.has(q.id));
 
   if (loading) {
-    return <div style={pageStyle}><div style={containerStyle} /></div>;
+    return (
+      <PageWrapper style={pageStyle}>
+        <div style={containerStyle}>
+          <SkeletonBlock height={48} width={200} radius={6} style={{ marginBottom: 28 }} />
+          <SkeletonList count={3} rowHeight={140} gap={12} />
+        </div>
+      </PageWrapper>
+    );
   }
 
   return (

@@ -9,6 +9,7 @@ import { goalColor } from "../lib/goalColor.js";
 import { todayLocalISO, addDaysLocalISO } from "../lib/date.js";
 import PageWrapper from "../components/PageWrapper.jsx";
 import { StaggerList, StaggerItem } from "../components/StaggerList.jsx";
+import { SkeletonBlock, SkeletonList } from "../components/Skeleton.jsx";
 
 const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -136,8 +137,19 @@ export default function Todo() {
   }
 
   if (loading) {
-    // Render the frame but no text — removes the "Loading…" → content snap.
-    return <div style={pageStyle}><div style={containerStyle} /></div>;
+    return (
+      <PageWrapper style={pageStyle}>
+        <div style={containerStyle}>
+          <SkeletonBlock height={28} width={180} radius={999} style={{ margin: "8px auto 32px" }} />
+          <SkeletonBlock height={12} width={120} radius={6} style={{ marginBottom: 10 }} />
+          <SkeletonList count={3} rowHeight={54} gap={2} />
+          <div style={{ height: 1, background: PAPER.line, margin: "24px 0" }} />
+          <SkeletonBlock height={12} width={100} radius={6} style={{ marginBottom: 10 }} />
+          <SkeletonBlock height={40} radius={999} style={{ marginBottom: 14 }} />
+          <SkeletonList count={2} rowHeight={46} gap={2} />
+        </div>
+      </PageWrapper>
+    );
   }
 
   const activeTasks = tasks.filter((t) => !t.done);
