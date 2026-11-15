@@ -11,6 +11,7 @@ import Goal from "./screens/Goal.jsx";
 import Month from "./screens/Month.jsx";
 import Week from "./screens/Week.jsx";
 import Todo from "./screens/Todo.jsx";
+import Journal from "./screens/Journal.jsx";
 import SignIn from "./screens/SignIn.jsx";
 import { getSession, onAuthStateChange } from "./lib/auth.js";
 
@@ -112,6 +113,7 @@ export default function App() {
         <Route path="/week/:yyyymmdd" element={<Week />} />
         <Route path="/todo" element={<Todo />} />
         <Route path="/todo/:date" element={<Todo />} />
+        <Route path="/journal" element={<Journal />} />
       </Routes>
     </BrowserRouter>
   );
