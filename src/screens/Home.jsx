@@ -392,7 +392,7 @@ export default function Home() {
 
       {goals && goals.length > 0 && (
         <>
-          <LogBlob onClick={() => setSheetOpen(true)} />
+          <LogBlob onLog={() => setSheetOpen(true)} />
           <LogSheet
             open={sheetOpen}
             onClose={() => setSheetOpen(false)}
