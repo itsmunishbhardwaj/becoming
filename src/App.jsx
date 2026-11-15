@@ -16,6 +16,7 @@ import Insights from "./screens/Insights.jsx";
 import CoachCarter from "./screens/CoachCarter.jsx";
 import SignIn from "./screens/SignIn.jsx";
 import NavShell from "./components/NavShell.jsx";
+import ProfileMenu from "./components/ProfileMenu.jsx";
 import { getSession, onAuthStateChange } from "./lib/auth.js";
 
 function ScrollManager() {
@@ -105,6 +106,7 @@ export default function App() {
       <div className="grain" aria-hidden="true" />
       <div className="vellum-mist" aria-hidden="true" />
       <NavShell />
+      <ProfileMenu />
       <AnimatedRoutes />
     </BrowserRouter>
   );
