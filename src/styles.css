@@ -46,6 +46,13 @@ body {
   font-optical-sizing: auto;
 }
 
+/* ── Nav shell clearance ───────────────────────────────────── */
+@media (min-width: 768px) {
+  /* Top nav is 48px; push page content below it */
+  body { padding-top: 48px; }
+}
+/* Mobile bottom nav is 60px; existing screens pad 96–120px so it clears already */
+
 /* ── Tap highlight ─────────────────────────────────────────── */
 button, a { -webkit-tap-highlight-color: transparent; }
 
