@@ -317,7 +317,7 @@ export default function Home() {
 
       <div className="home-layout">
         <div className="home-header">
-          <div style={wordmarkStyle}>Becoming</div>
+          <Link to="/" style={{ ...wordmarkStyle, textDecoration: "none" }}>Becoming</Link>
           <div style={dateLine}>{today}</div>
         </div>
 
