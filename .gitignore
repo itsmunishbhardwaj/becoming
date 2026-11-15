@@ -22,3 +22,5 @@ coverage/
 # In-repo vault/ is a dev fallback only — never commit user data.
 vault/
 
+.vercel
+.env*
