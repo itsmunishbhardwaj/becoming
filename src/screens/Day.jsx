@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { PAPER, FONT, TYPE, RADIUS } from "../tokens.js";
 import { listGoals, readLog, appendLog, deleteLogEvent, saveNote } from "../data/store.js";
 import { goalColor } from "../lib/goalColor.js";
+import TimeGrid from "../components/TimeGrid.jsx";
 
 const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -122,6 +123,24 @@ export default function Day() {
   }
 
   const goalById = Object.fromEntries(goals.map((g) => [g.id, g]));
+  const markedGoalIds = new Set((events || []).map((e) => e.goalId));
+  const activeGoals = goals.filter((g) => g.state === "active" || g.state === "drift");
+
+  async function onTimeGridToggle(goal, wasMarked) {
+    setBusy(true);
+    try {
+      if (wasMarked) {
+        // Remove every event for this goal on this date (any verb/payload)
+        const toRemove = (events || []).filter((e) => e.goalId === goal.id);
+        for (const evt of toRemove) await deleteLogEvent(date, evt);
+      } else {
+        await appendLog(date, { verb: "tap", goalId: goal.id, payload: "" });
+      }
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <div style={pageStyle}>
@@ -138,6 +157,14 @@ export default function Day() {
             {new Date(date + "T00:00:00").getDate()}
           </h1>
         </header>
+
+        {/* Time-of-day grid */}
+        <TimeGrid
+          date={date}
+          goals={activeGoals}
+          markedGoalIds={markedGoalIds}
+          onToggleGoal={onTimeGridToggle}
+        />
 
         {events.length === 0 ? (
           <p className="day-empty" style={{ fontFamily: FONT.serif, fontStyle: "italic", fontSize: TYPE.ambition, color: PAPER.dim }}>

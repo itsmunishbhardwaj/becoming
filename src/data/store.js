@@ -39,6 +39,7 @@ function rowToGoal(row) {
     rounds: row.rounds || [],
     howWeGetThere: row.how_we_get_there || "",
     indicators: row.indicators || { right: [], wrong: [], stall: [] },
+    goalTime: row.goal_time ?? null,
   };
 }
 
@@ -60,6 +61,7 @@ function goalToRow(g, userId) {
     rounds: g.rounds || [],
     how_we_get_there: g.howWeGetThere || "",
     indicators: g.indicators || { right: [], wrong: [], stall: [] },
+    goal_time: g.goalTime ?? null,
   };
 }
 

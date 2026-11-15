@@ -68,6 +68,14 @@ export default function Goal() {
     finally { setSavingColor(false); setEditingColor(false); }
   }
 
+  async function updateGoalTime(timeStr) {
+    if (!goal) return;
+    const next = { ...goal, goalTime: timeStr || null };
+    setGoal(next);
+    try { await saveGoal(next); }
+    catch { setGoal(goal); }
+  }
+
   const refreshMonthLogs = useCallback(async () => {
     const start = addDaysLocalISO(today, -365);
     const l = await readLogsInRange({ from: start, to: calMonthEndISO });
@@ -309,6 +317,34 @@ export default function Goal() {
                     R{r.n} · {formatTarget(goal, r)} · {r.endDate}
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Time of day */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={kicker}>Time of day</div>
+              <input
+                type="time"
+                value={goal.goalTime || ""}
+                onChange={(e) => updateGoalTime(e.target.value)}
+                style={{
+                  marginTop: 8,
+                  padding: "8px 10px",
+                  borderRadius: 10,
+                  border: `1px solid ${PAPER.line}`,
+                  background: PAPER.card,
+                  color: PAPER.ink,
+                  fontFamily: FONT.sans,
+                  fontSize: 13,
+                  width: "100%",
+                  maxWidth: 160,
+                  boxSizing: "border-box",
+                }}
+              />
+              <div style={{ fontSize: 11, color: PAPER.faint, marginTop: 6, lineHeight: 1.4 }}>
+                {goal.goalTime
+                  ? "Shows on the day view at this time."
+                  : "Optional. When you want to do this each day."}
               </div>
             </div>
 

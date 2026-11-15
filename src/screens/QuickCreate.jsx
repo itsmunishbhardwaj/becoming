@@ -20,6 +20,7 @@ export default function QuickCreate() {
   const [cat, setCat] = useState("health");
   const [endDate, setEndDate] = useState(endOfYearISO());
   const [ambition, setAmbition] = useState("");
+  const [goalTime, setGoalTime] = useState("");
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [colorMode, setColorMode] = useState("auto"); // "auto" | hex string
@@ -55,6 +56,7 @@ export default function QuickCreate() {
       rounds,
       howWeGetThere: "",
       indicators: { right: [], wrong: [], stall: [] },
+      goalTime: goalTime || null,
     };
 
     setSaving(true);
@@ -131,6 +133,18 @@ export default function QuickCreate() {
 
           <Field label="End date">
             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={inputStyle} />
+          </Field>
+
+          <Field label="Time of day (optional)">
+            <input
+              type="time"
+              value={goalTime}
+              onChange={(e) => setGoalTime(e.target.value)}
+              style={inputStyle}
+            />
+            <span style={{ fontSize: 11.5, color: PAPER.faint, marginTop: 4, lineHeight: 1.5 }}>
+              When you want to do this each day. Shows up on the day view at this time.
+            </span>
           </Field>
 
           <Field label="Ambition (optional)">
