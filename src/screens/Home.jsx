@@ -360,7 +360,7 @@ export default function Home() {
                 </Link>
                 <div style={{ marginTop: 10 }}>
                   <Link to="/onboard" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>
-                    or walk it out with the Balboa breakdown →
+                    or walk it out with the Coach Carter breakdown →
                   </Link>
                 </div>
               </div>
@@ -433,7 +433,7 @@ function EmptyHome() {
       </Link>
       <div style={{ marginTop: 10 }}>
         <Link to="/onboard" style={{ color: PAPER.faint, fontSize: 12, textDecoration: "none" }}>
-          or walk it out with the Balboa breakdown →
+          or walk it out with the Coach Carter breakdown →
         </Link>
       </div>
     </div>

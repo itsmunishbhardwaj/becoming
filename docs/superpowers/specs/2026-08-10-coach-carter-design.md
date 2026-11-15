@@ -1,4 +1,4 @@
-# The Balboa Breakdown — Design Spec
+# The Coach Carter Breakdown — Design Spec
 
 > "One step, one punch, one round at a time." — Rocky Balboa, *Creed* (2015)
 
@@ -130,7 +130,7 @@ New type = new module in `src/data/goalTypes/<type>.js` exporting `{ classify, b
 
 ---
 
-## 5. The Balboa Breakdown flow
+## 5. The Coach Carter Breakdown flow
 
 Route: `/onboard` (new) or `/onboard/:goalId` (edit rounds).
 
@@ -253,7 +253,7 @@ Ship each phase before starting next. Verify with real markdown roundtrip.
 - Hand-write `vault/goals/wake-6am.md` + `cadence-reset.md` to verify pipeline.
 - Home renders empty state when no goals.
 
-### Phase 2 — Balboa Breakdown
+### Phase 2 — Coach Carter Breakdown
 - `src/lib/llm.js` OpenAI-compat adapter.
 - Vite middleware `/api/llm` proxy to OpenRouter.
 - `/onboard` route with chat UI.
@@ -276,7 +276,7 @@ Ship each phase before starting next. Verify with real markdown roundtrip.
 
 ## 10. Definition of done (whole feature)
 
-- User with no goals lands on empty Home, taps CTA, completes Balboa Breakdown for both goals via LLM chat, sees them on Home + Year.
+- User with no goals lands on empty Home, taps CTA, completes Coach Carter Breakdown for both goals via LLM chat, sees them on Home + Year.
 - Both `.md` files exist in `/vault/goals/`, hand-editable in Obsidian, and app re-reads them on reload with no data loss.
 - Logging via sheet writes to `vault/logs/YYYY-MM-DD.md`; Home momentum reflects within one render.
 - LLM adapter works against OpenRouter with any model; swapping `LLM_MODEL` env var requires no code change.

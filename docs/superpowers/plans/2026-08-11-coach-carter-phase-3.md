@@ -1,4 +1,4 @@
-# Balboa Breakdown — Phase 3 Implementation Plan
+# Coach Carter Breakdown — Phase 3 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -1030,7 +1030,7 @@ Run: `npm run dev`.
 - [ ] **Step 3: Push + PR**
 
 ```bash
-git push -u origin balboa-breakdown-phase-3
+git push -u origin coach-carter-phase-3
 gh pr create --title "phase 3: log sheet + real adherence — momentum, marks, and the loop closed" --body "$(cat <<'EOF'
 ## Summary
 Phase 3 closes the observation loop for Becoming.
