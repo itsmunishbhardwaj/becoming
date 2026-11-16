@@ -517,7 +517,7 @@ const topBarStyle = {
 };
 
 const desktopSidebarStyle = {
-  width: 268, flexShrink: 0,
+  width: 248, flexShrink: 0,
   background: PAPER.bg,
   overflow: "hidden",
   display: "flex", flexDirection: "column",
