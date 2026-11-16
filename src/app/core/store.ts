@@ -264,6 +264,13 @@ function rowToContract(row: Record<string, unknown>): Contract {
   };
 }
 
+export async function listTaskLog(date: string): Promise<Task[]> {
+  const userId = await uid();
+  const { data, error } = await supabase.from('tasks').select('*').eq('user_id', userId).eq('date', date).eq('done', true).order('done_at', { ascending: false });
+  if (error) throw new Error(`listTaskLog: ${error.message}`);
+  return (data || []).map((r) => rowToTask(r as Record<string, unknown>));
+}
+
 export async function listContracts(): Promise<Contract[]> {
   const userId = await uid();
   const { data, error } = await supabase.from('contracts').select('*').eq('user_id', userId).order('created_at', { ascending: false });

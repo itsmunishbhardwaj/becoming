@@ -1,0 +1,53 @@
+<div class="onboard-page">
+  <div class="onboard-inner">
+
+    <header class="onboard-header">
+      <a routerLink="/" class="back-link">← Life</a>
+      <div class="kicker">Step zero — the Coach Carter breakdown</div>
+      <h1 class="onboard-h1">One step. One punch. One round.</h1>
+    </header>
+
+    <div class="chat-scroll" #chatScroll>
+      @for (bubble of transcript(); track $index) {
+        <div class="bubble" [class.bubble--assistant]="bubble.role === 'assistant'" [class.bubble--user]="bubble.role === 'user'">
+          {{ bubble.text }}
+        </div>
+      }
+      @if (error()) {
+        <div class="error-msg">{{ error() }}</div>
+      }
+    </div>
+
+    <div class="input-bar">
+      <input
+        class="chat-input"
+        type="text"
+        [placeholder]="placeholder"
+        [ngModel]="text()"
+        (ngModelChange)="text.set($event)"
+        (keydown.enter)="onSend()"
+        [disabled]="isDone || busy()"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      />
+      <button
+        type="button"
+        class="secondary-pill"
+        (click)="onSkip()"
+        [disabled]="isDone || busy()"
+      >Skip</button>
+      <button
+        type="button"
+        class="primary-pill"
+        (click)="onSend()"
+        [disabled]="isDone || busy() || !text().trim()"
+      >Send</button>
+    </div>
+
+    <footer class="onboard-footer">
+      <span class="footer-word">becoming</span>
+    </footer>
+
+  </div>
+</div>

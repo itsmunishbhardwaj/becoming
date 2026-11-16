@@ -1,0 +1,74 @@
+<div class="insights-page">
+  <div class="insights-container">
+
+    <h1 class="insights-h1">Insights</h1>
+
+    @if (loading()) {
+      <p class="insights-empty">Reading your vault…</p>
+    } @else if (goalStats().length === 0) {
+      <p class="insights-empty">No active goals yet.</p>
+    } @else {
+      <div class="stat-cards-list">
+        @for (gs of goalStats(); track gs.goal.id) {
+          <div class="stat-card">
+
+            <!-- Goal header -->
+            <div class="stat-card-header">
+              <span class="goal-dot" [style.background]="gs.color"></span>
+              <span class="goal-name">{{ gs.goal.name }}</span>
+            </div>
+
+            <!-- Stat blocks row -->
+            <div class="stat-blocks-row">
+              @for (s of gs.stats; track s.label) {
+                <div class="stat-block">
+                  <div class="stat-label">{{ s.label }}</div>
+                  <div class="stat-value" [style.color]="s.accent || null">{{ s.value }}</div>
+                </div>
+              }
+            </div>
+
+            <!-- Progress bar (only when target set) -->
+            @if (gs.progressPercent !== null) {
+              <div class="progress-bar-track" role="progressbar"
+                   [attr.aria-valuenow]="gs.progressPercent"
+                   aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar-fill"
+                     [style.width.%]="gs.progressPercent"
+                     [style.background]="gs.color"></div>
+              </div>
+            }
+
+            <!-- Meta lines -->
+            @if (gs.firstDate && gs.daysFollowing !== null) {
+              <div class="meta-line">
+                <span class="meta-label">Following since</span>
+                <span class="meta-value">{{ shortDate(gs.firstDate) }} &middot; {{ gs.daysFollowing }} days</span>
+              </div>
+            }
+
+            @if (gs.longestStreak > 0 && gs.longestEnded) {
+              <div class="meta-line">
+                <span class="meta-label">Longest run ended</span>
+                <span class="meta-value">{{ shortDate(gs.longestEnded) }}</span>
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Active insight -->
+    @if (activeInsight()) {
+      <section class="insight-section">
+        <div class="section-kicker">What I&rsquo;m noticing</div>
+        <app-insight-card
+          [question]="activeInsight()"
+          (answer)="dismissInsight($event.id)">
+        </app-insight-card>
+      </section>
+    }
+
+  </div>
+</div>

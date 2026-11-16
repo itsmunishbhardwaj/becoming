@@ -1,0 +1,227 @@
+:host { display: block; }
+
+.quick-create-page {
+  min-height: 100vh;
+  background: var(--paper-bg);
+  padding: 44px 26px 80px;
+
+  > * {
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.back-link {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--paper-dim);
+  text-decoration: none;
+  margin-bottom: 32px;
+
+  &:hover { color: var(--paper-ink); }
+}
+
+.form-header {
+  display: block;
+  margin-bottom: 32px;
+}
+
+.kicker {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  margin-bottom: 8px;
+}
+
+.h1 {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--paper-ink);
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.tagline {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--paper-dim);
+  margin: 0;
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+
+.field-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--paper-faint);
+  font-size: 12px;
+}
+
+.field-hint-block {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--paper-faint);
+  margin-top: 2px;
+}
+
+.field-input {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--paper-ink);
+  background: var(--paper-card);
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  outline: none;
+  appearance: none;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: var(--paper-ink);
+  }
+
+  &::placeholder {
+    color: var(--paper-faint);
+  }
+
+  &--textarea {
+    resize: vertical;
+    font-family: var(--font-serif);
+    font-style: italic;
+    line-height: 1.55;
+  }
+}
+
+select.field-input {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235F5F5F' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+.color-picker-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.auto-chip {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--paper-dim);
+  background: var(--paper-card);
+  border: 1px solid var(--paper-line);
+  border-radius: 999px;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+
+  &:hover {
+    border-color: var(--paper-ink);
+    color: var(--paper-ink);
+  }
+
+  &--selected {
+    border-color: var(--paper-ink);
+    color: var(--paper-ink);
+    background: var(--paper-panel);
+  }
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.12s;
+
+  &:hover {
+    transform: scale(1.15);
+  }
+
+  &--selected {
+    transform: scale(1.1);
+  }
+}
+
+.error-msg {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: #c0392b;
+  margin: 0;
+}
+
+.submit-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.primary-pill {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--paper-bg);
+  background: var(--paper-ink);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.secondary-link {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--paper-dim);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--paper-ink);
+    text-decoration: underline;
+  }
+}

@@ -33,6 +33,7 @@ export const routes: Routes = [
       { path: 'journal',        component: JournalComponent },
       { path: 'journal/:id',    component: JournalComponent },
       { path: 'todo',           component: TodoComponent },
+      { path: 'todo/:date',     component: TodoComponent },
       { path: 'insights',       component: InsightsComponent },
       { path: 'coach-carter',   component: CoachCarterComponent },
       { path: '**',             redirectTo: 'calendar' },

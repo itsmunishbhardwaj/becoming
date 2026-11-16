@@ -1,0 +1,161 @@
+<div class="journal-page">
+  <div class="journal-container">
+
+    <!-- ── Composer ──────────────────────────────────────────────────────── -->
+    <div class="composer-card">
+
+      @if (activePrompt()) {
+        <div class="prompt-label">{{ promptLabel(activePrompt()) }}</div>
+      }
+
+      <textarea
+        class="composer-textarea"
+        [(ngModel)]="text"
+        (ngModelChange)="onTextChange($event)"
+        (keydown.meta.enter)="save()"
+        placeholder="What happened today…"
+        rows="4"
+        autofocus
+      ></textarea>
+
+      <!-- Prompt chips -->
+      <div class="chip-row">
+        @for (p of PROMPTS; track p.key) {
+          <button
+            class="chip"
+            [class.chip--active]="activePrompt() === p.key"
+            (click)="togglePrompt(p.key)"
+            type="button"
+          >{{ p.label }}</button>
+        }
+      </div>
+
+      <!-- Date picker -->
+      <div class="meta-row">
+        <label class="meta-label">Date</label>
+        <input
+          class="date-input"
+          type="date"
+          [ngModel]="date()"
+          (ngModelChange)="onDateChange($event)"
+        />
+      </div>
+
+      <!-- Goal tag chips -->
+      @if (activeGoals().length > 0) {
+        <div class="chip-row chip-row--goals">
+          @for (g of activeGoals(); track g.id) {
+            <button
+              class="goal-tag"
+              [class.goal-tag--active]="goalIds().includes(g.id)"
+              [style.--tag-color]="goalColor(g)"
+              (click)="toggleGoalTag(g.id)"
+              type="button"
+            >{{ g.name }}</button>
+          }
+        </div>
+      }
+
+      <!-- Save row -->
+      <div class="save-row">
+        <button
+          class="save-btn"
+          (click)="save()"
+          [disabled]="!text().trim() || saving()"
+          type="button"
+        >{{ saving() ? 'Saving…' : 'Save entry' }}</button>
+        <span class="save-hint">⌘ + Enter to save</span>
+      </div>
+
+    </div>
+
+    <!-- ── Filter bar ─────────────────────────────────────────────────────── -->
+    <div class="filter-bar">
+      <select class="filter-select" [ngModel]="filterGoalId()" (ngModelChange)="filterGoalId.set($event)">
+        <option value="">All goals</option>
+        @for (g of activeGoals(); track g.id) {
+          <option [value]="g.id">{{ g.name }}</option>
+        }
+      </select>
+
+      <select class="filter-select" [ngModel]="filterPrompt()" (ngModelChange)="filterPrompt.set($event)">
+        <option value="">All prompts</option>
+        @for (p of PROMPTS; track p.key) {
+          <option [value]="p.key">{{ p.label }}</option>
+        }
+      </select>
+
+      @if (hasFilters()) {
+        <button class="clear-filter-btn" (click)="clearFilters()" type="button">Clear</button>
+      }
+    </div>
+
+    <!-- ── Entry list ─────────────────────────────────────────────────────── -->
+    @if (loading()) {
+      <p class="state-msg">Loading entries…</p>
+    } @else if (filteredEntries().length === 0) {
+      <p class="state-msg">No entries yet.</p>
+    } @else {
+      <div class="entries-list">
+        @for (entry of filteredEntries(); track entry.id) {
+          <div class="entry-card">
+
+            <!-- Header -->
+            <div class="entry-header">
+              <span class="entry-date">
+                {{ formatDate(entry.date) }}
+                @if (entry.editedAt) {
+                  <span class="edited-badge">edited</span>
+                }
+              </span>
+
+              <div class="entry-actions">
+                @if (isConfirming(entry.id)) {
+                  <span class="confirm-label">Delete?</span>
+                  <button class="danger-yes" (click)="confirmDelete(entry.id)" type="button">Yes</button>
+                  <button class="danger-no"  (click)="cancelDelete(entry.id)"  type="button">No</button>
+                } @else {
+                  <button class="delete-btn" (click)="startDelete(entry.id)" type="button" aria-label="Delete entry">✕</button>
+                }
+              </div>
+            </div>
+
+            <!-- Prompt label -->
+            @if (entry.prompt) {
+              <div class="entry-prompt-label">{{ promptLabel(entry.prompt) }}</div>
+            }
+
+            <!-- Text -->
+            <p
+              class="entry-text"
+              [class.entry-text--collapsed]="isLong(entry.text) && !isExpanded(entry.id)"
+              [class.entry-text--expanded]="isExpanded(entry.id)"
+            >{{ entry.text }}</p>
+
+            @if (isLong(entry.text) && !isExpanded(entry.id)) {
+              <button class="expand-btn" (click)="toggleExpand(entry.id)" type="button">Read more</button>
+            }
+
+            @if (isExpanded(entry.id)) {
+              <button class="less-btn" (click)="toggleExpand(entry.id)" type="button">Less</button>
+            }
+
+            <!-- Goal tags -->
+            @if (entry.goalIds.length > 0) {
+              <div class="goal-tags-row">
+                @for (gid of entry.goalIds; track gid) {
+                  <span
+                    class="goal-tag goal-tag--small"
+                    [style.--tag-color]="goalColor(goalById(gid))"
+                  >{{ goalById(gid)?.name ?? gid }}</span>
+                }
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>

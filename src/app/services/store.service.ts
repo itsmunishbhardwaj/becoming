@@ -4,7 +4,7 @@ import {
   listGoals, getGoal, saveGoal, deleteGoal,
   readLog, readLogsInRange, appendLog, deleteLogEvent, saveNote,
   listJournal, saveJournal, deleteJournal,
-  listTasks, addTask, setTaskDone, reorderTasks, carryTask,
+  listTasks, addTask, setTaskDone, reorderTasks, carryTask, listTaskLog,
   listContracts, saveContract, retireContract,
 } from '../core/store';
 
@@ -46,6 +46,7 @@ export class StoreService {
   setTaskDone = setTaskDone;
   reorderTasks = reorderTasks;
   carryTask = carryTask;
+  listTaskLog = listTaskLog;
   listContracts = listContracts;
   saveContract = saveContract;
   retireContract = retireContract;

@@ -67,3 +67,45 @@
   @media (hover: hover) and (pointer: fine) { &:hover { opacity: 0.65; } }
   &:active { transform: scale(0.96); opacity: 0.45; }
 }
+
+// ── Full month view (showWeekPills) ────────────────────────────────────────
+
+.month-card--full {
+  padding: 0;
+  animation: none;
+}
+
+.dow-row--pills {
+  grid-template-columns: repeat(7, 1fr) 28px;
+}
+
+.week-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr) 28px;
+  gap: clamp(6px, 1vw, 14px);
+  justify-items: center;
+  align-items: center;
+  margin-bottom: clamp(6px, 1vw, 14px);
+}
+
+.cell-wrap {
+  width: 100%;
+  max-width: clamp(44px, 8vw, 64px);
+}
+
+.week-pill {
+  width: 22px; height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--paper-line);
+  background: transparent;
+  color: var(--paper-dim);
+  font-size: 12px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  line-height: 1;
+  transition: background 120ms ease;
+
+  @media (hover: hover) and (pointer: fine) { &:hover { background: var(--paper-panel); } }
+}

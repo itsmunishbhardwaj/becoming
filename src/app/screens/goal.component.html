@@ -1,0 +1,169 @@
+@if (goal() === undefined) {
+  <div class="goal-loading">Loading…</div>
+} @else if (goal() === null) {
+  <div class="goal-loading">Goal not found.</div>
+} @else {
+
+<div class="goal-page">
+  <div class="goal-container">
+
+    <!-- Back link -->
+    <a routerLink="/goals" class="back-link">← Life</a>
+
+    <!-- Header -->
+    <header class="goal-header">
+      <div class="orb-wrap">
+        <div class="goal-orb orb-breathe"
+             [style.background]="orbGradient()"
+             [style.view-transition-name]="'orb-' + goal()!.id">
+        </div>
+        <div>
+          <h1 class="goal-h1" [style.view-transition-name]="'goal-name-' + goal()!.id">
+            {{ goal()!.name }}
+          </h1>
+          <div class="goal-meta">{{ totalEvents() }} days marked</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Ambition quote -->
+    @if (goal()!.ambition) {
+      <blockquote class="ambition-quote" [style.border-left-color]="catHue()">
+        {{ goal()!.ambition }}
+      </blockquote>
+    }
+
+    <!-- Two-column layout -->
+    <div class="goal-layout">
+
+      <!-- Sidebar -->
+      <aside class="goal-sidebar">
+
+        <!-- Current round -->
+        @if (currentRound()) {
+          <div class="sidebar-section">
+            <div class="sidebar-kicker">This stretch</div>
+            <div class="round-info">
+              <div class="round-info__label">Round {{ currentRound()!.n }}</div>
+              <div class="round-info__target">{{ formatTarget(goal()!, currentRound()!) }}</div>
+              <div class="round-info__dates">
+                {{ humanDay(currentRound()!.startDate) }} → {{ humanDay(currentRound()!.endDate) }}
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Rounds dots -->
+        @if (goal()!.rounds?.length) {
+          <div class="sidebar-section">
+            <div class="sidebar-kicker">Rounds</div>
+            <div class="round-dots">
+              @for (r of goal()!.rounds; track r.n) {
+                <span
+                  class="round-dot"
+                  [class.round-dot--current]="r.n === goal()!.currentRound"
+                  [class.round-dot--past]="r.n < goal()!.currentRound"
+                  [style.background]="r.n <= goal()!.currentRound ? catHue() : ''"
+                  [title]="'Round ' + r.n">
+                </span>
+              }
+            </div>
+            <ul class="round-list">
+              @for (r of goal()!.rounds; track r.n) {
+                <li class="round-item"
+                    [class.round-item--current]="r.n === goal()!.currentRound">
+                  R{{ r.n }} · {{ formatTarget(goal()!, r) }}
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        <!-- Time of day -->
+        <div class="sidebar-section">
+          <div class="sidebar-kicker">Time of day</div>
+          <input
+            class="time-input"
+            type="time"
+            [value]="goal()!.goalTime ?? ''"
+            (change)="onTimeChange($event)"
+            placeholder="—"
+          />
+        </div>
+
+        <!-- Adjust rounds link -->
+        <a [routerLink]="['/onboard']"
+           [queryParams]="{ goalId: goal()!.id, turn: 'roundsPreview' }"
+           class="action-link">
+          Adjust rounds →
+        </a>
+
+      </aside>
+
+      <!-- Main -->
+      <main class="goal-main">
+
+        <!-- Notes timeline -->
+        <section class="notes-section">
+          <div class="sidebar-kicker">Notes</div>
+          @if (notesTimeline().length === 0) {
+            <p class="empty-hint">No notes yet. Write on a day to capture context.</p>
+          } @else {
+            <div class="notes-timeline">
+              @for (note of notesTimeline(); track note.date) {
+                <div class="note-entry">
+                  <div class="note-date">{{ humanDay(note.date) }}</div>
+                  <div class="note-text">{{ note.text }}</div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <!-- Recent activity -->
+        @if (recentEvents().length > 0) {
+          <section class="activity-section">
+            <div class="sidebar-kicker">Recent activity</div>
+            <ul class="activity-list">
+              @for (evt of recentEvents(); track evt.date + evt.verb) {
+                <li class="activity-row">
+                  <span class="activity-dot" [style.background]="catHue()"></span>
+                  <span class="activity-date">{{ humanDay(evt.date) }}</span>
+                  <span class="activity-label">{{ formatEvent(evt) }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <!-- Mini calendar card -->
+        <section class="cal-section">
+          <div class="cal-card" (click)="expandToCalendar()">
+            <div class="cal-card-header">
+              <span class="sidebar-kicker cal-card-kicker">Calendar</span>
+              <span class="cal-card-hint">tap to expand →</span>
+            </div>
+            <app-month-block
+              [year]="calMonthInfo().y.toString()"
+              [monthIdx]="calMonthInfo().m"
+              [goals]="[goal()!]"
+              [adherenceMaps]="miniAdherenceMaps()"
+              [focus]="goal()!"
+              [pen]="goal()!"
+              [todayISO]="today"
+              [blobScale]="1"
+              [showWeekPills]="false"
+              [projectedDates]="emptySet"
+              (dayTap)="handleMiniDayTap($event)"
+              (dayOpen)="router.navigate(['/day', $event])"
+            />
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+  </div>
+</div>
+
+}
