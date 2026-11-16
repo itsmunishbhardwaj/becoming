@@ -288,11 +288,11 @@ export default function Day() {
         </div>
       )}
 
-      <div style={{ padding: "18px 20px 12px 28px" }}>
+      <div style={{ padding: "18px 28px 12px 28px" }}>
         <MiniCalendar viewDate={date} onSelectDate={(iso) => { nav(`/day/${iso}`); if (!desktop) setSidebarOpen(false); }} />
       </div>
 
-      <div style={{ padding: "6px 20px 12px 28px" }}>
+      <div style={{ padding: "6px 28px 12px 28px" }}>
         <div style={sectionHeaderStyle}>My goals</div>
         {activeGoals.length === 0 && (
           <div style={{ fontSize: 13, color: PAPER.faint, fontStyle: "italic", marginTop: 8 }}>No active goals</div>
@@ -308,7 +308,7 @@ export default function Day() {
       </div>
 
       {/* Logged / Notes / Add tabs */}
-      <div style={{ flex: 1, padding: "6px 20px 32px 28px" }}>
+      <div style={{ flex: 1, padding: "6px 28px 32px 28px" }}>
         <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
           {[["log", "Logged"], ["notes", "Notes"], ["add", "Add"]].map(([key, label]) => (
             <button
