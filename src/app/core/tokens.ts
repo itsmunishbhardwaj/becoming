@@ -38,6 +38,14 @@ export const FONT = {
   sans:  "'Instrument Sans', 'Instrument Sans Fallback', 'Inter', system-ui, sans-serif",
 };
 
+export const RADIUS = {
+  r1:     '22px 18px 24px 19px',
+  r2:     '18px 23px 17px 22px',
+  screen: '28px',
+  pill:   '999px',
+  blob:   '67% 33% 52% 48% / 42% 58% 35% 65%',
+};
+
 export const STATE = {
   ACTIVE:    'active',
   DRIFT:     'drift',

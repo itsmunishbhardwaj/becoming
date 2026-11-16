@@ -1,0 +1,52 @@
+<svg [attr.viewBox]="'0 0 ' + size + ' ' + size"
+     [attr.data-iso]="isoDate"
+     (click)="toggle.emit()"
+     (dblclick)="onDblClick($event)"
+     (mouseenter)="emitTip()"
+     (mouseleave)="setTip.emit(null)"
+     style="display:block;width:100%;height:auto;cursor:pointer"
+     [style.overflow]="(showHalo || blobScale > 1) ? 'visible' : 'hidden'"
+     [style.view-transition-name]="viewTransitionId || null">
+
+  @if (showHalo) {
+    <defs>
+      <radialGradient [id]="haloId" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#2B2B2B" stop-opacity="0.55"/>
+        <stop offset="45%"  stop-color="#2B2B2B" stop-opacity="0.32"/>
+        <stop offset="80%"  stop-color="#2B2B2B" stop-opacity="0.10"/>
+        <stop offset="100%" stop-color="#2B2B2B" stop-opacity="0"/>
+      </radialGradient>
+      <filter [id]="haloBlurId" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="2.2"/>
+      </filter>
+    </defs>
+    <circle [attr.cx]="c" [attr.cy]="c" r="24"
+            [attr.fill]="'url(#' + haloId + ')'"
+            [attr.filter]="'url(#' + haloBlurId + ')'"/>
+  }
+
+  @if (showText) {
+    <text [attr.x]="c" y="16" text-anchor="middle"
+          font-family="Inter,system-ui,sans-serif"
+          font-size="9" font-weight="400"
+          fill="#2B2B2B" opacity="0.4"
+          style="font-variant-numeric:tabular-nums">
+      {{ dayIdx + 1 }}
+    </text>
+  }
+
+  @for (m of marks; track m.g.id) {
+    <g class="blob-enter">
+      <defs>
+        <radialGradient [id]="m.g.id + '-' + m.seed"
+                        gradientUnits="userSpaceOnUse"
+                        [attr.cx]="m.cx - (m.big ? 11.0 : 8.5) * blobScale * 0.3"
+                        [attr.cy]="m.cy - (m.big ? 10.5 : 8.0) * blobScale * 0.4"
+                        [attr.r]="Math.max((m.big ? 11.0 : 8.5), (m.big ? 10.5 : 8.0)) * blobScale * 1.45">
+          <stop offset="0%"  [attr.stop-color]="m.color" stop-opacity="1"/>
+          <stop offset="80%" [attr.stop-color]="m.color" stop-opacity="0.58"/>
+        </radialGradient>
+      </defs>
+    </g>
+  }
+</svg>

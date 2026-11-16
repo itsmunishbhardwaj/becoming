@@ -1,0 +1,39 @@
+:host { display: block; }
+
+.pen-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 20px 0 10px;
+}
+
+button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--paper-ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  touch-action: none;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease;
+
+  &.pen-chip--active {
+    background: var(--paper-card);
+    border-color: var(--paper-line);
+  }
+
+  &.pen-chip--dimmed { color: var(--paper-faint); }
+}
+
+.chip-orb {
+  width: 14px; height: 14px;
+  border-radius: 67% 33% 52% 48% / 42% 58% 35% 65%;
+  flex-shrink: 0;
+}
+
+.chip-days { color: var(--paper-dim); font-variant-numeric: tabular-nums; }

@@ -1,0 +1,20 @@
+<div class="pen-chips">
+  @for (g of goals; track g.id) {
+    <button
+      [class.pen-chip--active]="isPen(g)"
+      [class.pen-chip--dimmed]="isDimmed(g)"
+      [attr.aria-pressed]="isPen(g)"
+      (pointerdown)="startPress(g.id)"
+      (pointerup)="endPress()"
+      (pointerleave)="endPress()"
+      (pointercancel)="endPress()"
+      (click)="onChipClick(g)">
+      <span class="chip-orb" [style.background]="gradient(g)"
+            [style.opacity]="isDimmed(g) ? 0.3 : 1"></span>
+      {{ g.name }}
+      @if (isPen(g) && days(g) > 0) {
+        <span class="chip-days">· {{ days(g) }} days</span>
+      }
+    </button>
+  }
+</div>
