@@ -128,6 +128,8 @@ export default function Day() {
       left: 0,
       right: 0,
       overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
       background: PAPER.bg,
       color: PAPER.ink,
       fontFamily: FONT.sans,
