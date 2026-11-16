@@ -1,0 +1,49 @@
+@if (open) {
+  <div class="sheet-backdrop" (click)="close.emit()"></div>
+  <div class="sheet" role="dialog" aria-label="Log your day">
+    <div class="sheet-handle"></div>
+
+    <textarea
+      class="sheet-input"
+      placeholder="What did you do today?"
+      [value]="text()"
+      (input)="onTextChange($any($event.target).value)"
+      autofocus
+      rows="3">
+    </textarea>
+
+    @if (parsed().length > 0) {
+      <div class="sheet-parsed">
+        @for (evt of parsed(); track $index) {
+          <div class="sheet-row">
+            @if (routedGoal(evt)) {
+              <span class="sheet-orb"
+                    [style.background]="'radial-gradient(circle at 35% 30%, ' + goalColor(routedGoal(evt)!) + ', ' + goalColor(routedGoal(evt)!) + '99 80%)'">
+              </span>
+              <span class="sheet-goal-name">{{ routedGoal(evt)!.name }}</span>
+              <span class="sheet-verb">{{ evt.verb }}</span>
+            } @else {
+              <span class="sheet-verb sheet-verb--plain">{{ evt.verb }}</span>
+              @if (evt.raw) {
+                <span class="sheet-raw">{{ evt.raw }}</span>
+              }
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @if (error()) {
+      <p class="sheet-error">{{ error() }}</p>
+    }
+
+    <div class="sheet-actions">
+      <button type="button" class="sheet-cancel" (click)="close.emit()">Cancel</button>
+      <button type="button" class="sheet-save"
+              [disabled]="saving() || !text().trim()"
+              (click)="save()">
+        {{ saving() ? 'Saving…' : 'Save' }}
+      </button>
+    </div>
+  </div>
+}

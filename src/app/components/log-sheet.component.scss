@@ -1,0 +1,123 @@
+:host { display: block; }
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.18);
+  z-index: 400;
+  animation: fade-in 200ms ease both;
+}
+
+.sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  background: var(--paper-card);
+  border-radius: 24px 24px 0 0;
+  box-shadow: var(--paper-sheet-shadow);
+  padding: 12px 20px 32px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+  z-index: 401;
+  animation: slide-up 280ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (prefers-reduced-motion: reduce) { animation: none; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.sheet-handle {
+  width: 36px; height: 4px;
+  border-radius: 2px;
+  background: var(--paper-line);
+  margin: 0 auto 4px;
+  flex-shrink: 0;
+}
+
+.sheet-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--paper-ink);
+  background: transparent;
+  padding: 0;
+
+  &::placeholder { color: var(--paper-faint); }
+}
+
+.sheet-parsed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--paper-panel);
+  border-radius: 12px;
+}
+
+.sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--paper-ink);
+}
+
+.sheet-orb {
+  width: 14px; height: 14px;
+  border-radius: 67% 33% 52% 48% / 42% 58% 35% 65%;
+  flex-shrink: 0;
+}
+
+.sheet-goal-name { font-weight: 500; }
+.sheet-verb { color: var(--paper-dim); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.sheet-verb--plain { color: var(--paper-faint); }
+.sheet-raw { color: var(--paper-ink); }
+
+.sheet-error {
+  margin: 0;
+  font-size: 13px;
+  color: #9B4040;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.sheet-cancel, .sheet-save {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  border-radius: 999px;
+  padding: 8px 20px;
+  cursor: pointer;
+  border: 1px solid var(--paper-line);
+  transition: background 150ms ease, opacity 150ms ease;
+}
+
+.sheet-cancel {
+  background: transparent;
+  color: var(--paper-dim);
+}
+
+.sheet-save {
+  background: var(--paper-ink);
+  color: var(--paper-bg);
+  border-color: var(--paper-ink);
+
+  &:disabled { opacity: 0.4; cursor: default; }
+}
