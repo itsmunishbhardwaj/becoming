@@ -135,7 +135,7 @@ export default function TimeGrid({ date, goals, markedGoalIds, onToggleGoal }) {
               style={{
                 position: "absolute",
                 left: LABEL_W + 6,
-                right: 12,
+                right: 48,
                 top,
                 height,
                 border: "none",
