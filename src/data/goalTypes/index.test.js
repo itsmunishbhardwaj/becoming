@@ -92,3 +92,35 @@ describe("cadence.adherenceForDay", () => {
     })).toBe("hit");
   });
 });
+
+describe("wake.safeRateCeiling", () => {
+  const wake = getType("wake");
+  it("computes minimum safe days as steps * MIN_DAYS_PER_STEP (matches buildRounds' 10-day floor)", () => {
+    // 08:30 -> 07:30 is a 60min delta; steps = round(60/30) = 2; 2 * 10 = 20 days
+    expect(wake.safeRateCeiling("08:30", "07:30")).toEqual({ minDays: 20 });
+  });
+
+  it("handles a large delta needing far more than a quarter", () => {
+    // 23:00 -> 14:00 is a 540min delta; steps = round(540/30) = 18; 18 * 10 = 180 days
+    expect(wake.safeRateCeiling("23:00", "14:00")).toEqual({ minDays: 180 });
+  });
+});
+
+describe("cadence.safeRateCeiling", () => {
+  const cad = getType("cadence");
+  it("computes minimum safe days as steps * MIN_DAYS_PER_ROUND", () => {
+    // 1 -> 7 is 6 steps; 6 * 14 = 84 days
+    expect(cad.safeRateCeiling({ intervalDays: 1 }, { intervalDays: 7 })).toEqual({ minDays: 84 });
+  });
+
+  it("returns zero minDays when target equals baseline", () => {
+    expect(cad.safeRateCeiling({ intervalDays: 3 }, { intervalDays: 3 })).toEqual({ minDays: 0 });
+  });
+});
+
+describe("simple.safeRateCeiling", () => {
+  const simple = getType("simple");
+  it("returns null — no mechanical ceiling for simple goals", () => {
+    expect(simple.safeRateCeiling()).toBeNull();
+  });
+});

@@ -18,6 +18,13 @@ function addDays(iso, n) {
 
 const STEP_MIN = 30;
 
+const MIN_DAYS_PER_STEP = 10; // must match the perRound floor in buildRounds — keep these in sync
+
+export function safeRateCeiling(baseline, target) {
+  const steps = Math.max(1, Math.round(Math.abs(toMin(baseline) - toMin(target)) / STEP_MIN));
+  return { minDays: steps * MIN_DAYS_PER_STEP };
+}
+
 export function buildRounds(baseline, target, startDate, endDate) {
   const b = toMin(baseline);
   const t = toMin(target);

@@ -9,6 +9,11 @@ function addDays(iso, n) {
 
 const MIN_DAYS_PER_ROUND = 14;
 
+export function safeRateCeiling(baseline, target) {
+  const steps = Math.max(0, target.intervalDays - baseline.intervalDays);
+  return { minDays: steps * MIN_DAYS_PER_ROUND };
+}
+
 export function buildRounds(baseline, target, startDate, endDate) {
   const b = baseline.intervalDays;
   const t = target.intervalDays;
