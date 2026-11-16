@@ -9,7 +9,8 @@ import { daysInMonth, isoAtDay } from "../lib/calendarMonth.js";
 import { planDayTap } from "../data/dayTap.js";
 import Orb from "../components/Orb.jsx";
 import MonthGrid from "../components/MonthGrid.jsx";
-import { goalColor, PALETTE } from "../lib/goalColor.js";
+import { goalColor } from "../lib/goalColor.js";
+import ColorWheel from "../components/ColorWheel.jsx";
 
 function formatTarget(goal, r) {
   if (typeof goal.baseline === "string") return `wake by ${r.targetValue}`;
@@ -220,38 +221,13 @@ export default function Goal() {
             </div>
           </div>
 
-          {/* Color picker */}
+          {/* Color picker modal */}
           {editingColor && (
-            <div style={{
-              marginTop: 16, padding: "14px 16px",
-              background: PAPER.panel, borderRadius: 14,
-            }}>
-              <div style={kicker}>
-                Color {savingColor && "· saving…"}
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 10 }}>
-                {PALETTE.map((p) => (
-                  <button
-                    key={p.color}
-                    type="button"
-                    onClick={() => pickColor(p.color)}
-                    disabled={savingColor}
-                    aria-label={p.name}
-                    aria-pressed={catHue === p.color}
-                    title={p.name}
-                    style={{
-                      width: 36, height: 36,
-                      borderRadius: RADIUS.blob,
-                      background: `radial-gradient(circle at 35% 30%, ${p.color}, ${p.color}99 80%)`,
-                      boxShadow: catHue === p.color ? `0 0 0 2px ${PAPER.ink}` : "none",
-                      outline: "none",
-                      border: "none", cursor: savingColor ? "default" : "pointer", padding: 0,
-                    }}
-                    className="orb-breathe"
-                  />
-                ))}
-              </div>
-            </div>
+            <ColorWheel
+              value={catHue}
+              onChange={(hex) => !savingColor && pickColor(hex)}
+              onClose={() => setEditingColor(false)}
+            />
           )}
         </header>
 
