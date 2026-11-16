@@ -1,0 +1,111 @@
+@use '@angular/material' as mat;
+@use 'app/theme/tokens' as t;
+
+// ── Google Fonts ──────────────────────────────────────────────────────────
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Instrument+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+// ── Material theme ─────────────────────────────────────────────────────────
+html {
+  height: 100%;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$violet-palette,
+    ),
+    typography: (
+      plain-family:  #{t.$font-sans},
+      brand-family:  #{t.$font-serif},
+      bold-weight:   600,
+      medium-weight: 500,
+      regular-weight: 400,
+    ),
+    density: 0,
+  ));
+
+  // ── Override Material CSS vars with Becoming paper theme ─────────────────
+  --mat-sys-background:          #{t.$paper-bg};
+  --mat-sys-surface:             #{t.$paper-card};
+  --mat-sys-surface-variant:     #{t.$paper-panel};
+  --mat-sys-on-surface:          #{t.$paper-ink};
+  --mat-sys-on-surface-variant:  #{t.$paper-dim};
+  --mat-sys-outline:             #{t.$paper-line};
+  --mat-sys-outline-variant:     #{t.$paper-line};
+  --mat-sys-primary:             #{t.$paper-ink};
+  --mat-sys-on-primary:          #{t.$paper-card};
+}
+
+// ── Reset + globals ─────────────────────────────────────────────────────────
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  color-scheme: light;
+  margin: 0;
+  height: 100%;
+  background-color: t.$paper-bg;
+  color: t.$paper-ink;
+  font-family: t.$font-sans;
+  font-size: t.$type-body;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ── CSS custom properties (runtime access from Angular components) ──────────
+:root {
+  // Paper surfaces
+  --paper-bg:          #{t.$paper-bg};
+  --paper-card:        #{t.$paper-card};
+  --paper-line:        #{t.$paper-line};
+  --paper-panel:       #{t.$paper-panel};
+  --paper-ink:         #{t.$paper-ink};
+  --paper-dim:         #{t.$paper-dim};
+  --paper-faint:       #{t.$paper-faint};
+  --paper-whisper:     #{t.$paper-whisper};
+  --paper-track:       #{t.$paper-track};
+  --paper-trough:      #{t.$paper-trough};
+  --paper-miss:        #{t.$paper-miss};
+  --paper-affirm:      #{t.$paper-affirm};
+  --paper-affirm-line: #{t.$paper-affirm-line};
+  --paper-affirm-ink:  #{t.$paper-affirm-ink};
+  --paper-scrim:       #{t.$paper-scrim};
+
+  // Category colors (accessible via var(--cat-health) etc.)
+  --cat-ai:            #{t.$cat-ai};
+  --cat-career:        #{t.$cat-career};
+  --cat-health:        #{t.$cat-health};
+  --cat-relationships: #{t.$cat-relationships};
+  --cat-reading:       #{t.$cat-reading};
+  --cat-creativity:    #{t.$cat-creativity};
+  --cat-finance:       #{t.$cat-finance};
+
+  // Typography
+  --font-serif: #{t.$font-serif};
+  --font-sans:  #{t.$font-sans};
+
+  // Spacing
+  --space-xs:  #{t.$space-xs};
+  --space-sm:  #{t.$space-sm};
+  --space-md:  #{t.$space-md};
+  --space-lg:  #{t.$space-lg};
+  --space-xl:  #{t.$space-xl};
+  --screen-pad: #{t.$space-screen-pad};
+}
+
+// ── Utility classes ─────────────────────────────────────────────────────────
+.font-serif { font-family: t.$font-serif; }
+.font-sans  { font-family: t.$font-sans; }
+
+.text-ink   { color: t.$paper-ink; }
+.text-dim   { color: t.$paper-dim; }
+.text-faint { color: t.$paper-faint; }
+
+// Respect motion preferences globally
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

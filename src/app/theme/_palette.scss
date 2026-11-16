@@ -1,0 +1,97 @@
+// Custom Material 3 palette built from Becoming's paper theme.
+// Material expects hue-based palettes; we map our paper surfaces to M3 slots.
+// @use this file in styles.scss; never @use directly in components.
+@use '@angular/material' as mat;
+@use 'tokens' as t;
+
+// Paper-grey as primary palette (neutral, non-blue — overrides Azure default)
+$becoming-primary-palette: (
+  0:   #000000,
+  10:  #1a1a1a,
+  20:  #2b2b2b,  // $paper-ink
+  25:  #333333,
+  30:  #3d3d3d,
+  35:  #474747,
+  40:  #5f5f5f,  // $paper-dim
+  50:  #7a7a7a,
+  60:  #9a9a9a,  // $paper-faint
+  70:  #b5b5b5,
+  80:  #d0d0d0,
+  90:  #e2e2e2,  // $paper-line
+  95:  #ebebeb,  // $paper-panel
+  98:  #f5f5f5,
+  99:  #fafafa,  // $paper-card
+  100: #ffffff,
+  secondary: (
+    0:   #000000,
+    10:  #1f1b08,
+    20:  #342e14,
+    25:  #3f3819,
+    30:  #4b431e,
+    35:  #574f24,
+    40:  #635b29,
+    50:  #7d7338,
+    60:  #988b4c,
+    70:  #b4a564,
+    80:  #d0bf7e,  // close to $cat-creativity amber
+    90:  #eddca0,
+    95:  #f9eec0,
+    98:  #fdf8e7,
+    99:  #fffdf4,
+    100: #ffffff,
+  ),
+  neutral: (
+    0:   #000000,
+    10:  #1a1c1e,
+    20:  #2f3033,
+    25:  #3a3b3e,
+    30:  #454749,
+    35:  #515355,
+    40:  #5d5f61,
+    50:  #76787a,
+    60:  #909194,
+    70:  #aaabae,
+    80:  #c6c6c9,
+    90:  #e2e2e5,
+    95:  #f0f0f3,  // close to $paper-bg
+    98:  #f8f8fb,
+    99:  #fafafa,
+    100: #ffffff,
+  ),
+  neutral-variant: (
+    0:   #000000,
+    10:  #181c22,
+    20:  #2d3038,
+    25:  #383b43,
+    30:  #43474f,
+    35:  #4f525b,
+    40:  #5b5e67,
+    50:  #737780,
+    60:  #8d9099,
+    70:  #a8abb4,
+    80:  #c3c6cf,
+    90:  #dfe2eb,
+    95:  #edf0f9,
+    98:  #f8f9ff,
+    99:  #fdfbff,
+    100: #ffffff,
+  ),
+  error: (
+    0:   #000000,
+    10:  #410002,
+    20:  #690005,
+    25:  #7e0007,
+    30:  #93000a,
+    35:  #a80710,
+    40:  #ba1a1a,
+    50:  #de3730,
+    60:  #ff5449,
+    70:  #ff897d,
+    80:  #ffb4ab,
+    90:  #ffdad6,
+    95:  #ffedea,
+    98:  #fff8f7,
+    99:  #fffbff,
+    100: #ffffff,
+  ),
+);

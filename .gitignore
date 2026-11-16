@@ -31,3 +31,5 @@ vault/
 *-mobile.png
 journal.png
 todo.png
+.angular/
+.vite/
