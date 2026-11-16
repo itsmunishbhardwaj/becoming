@@ -1,0 +1,26 @@
+@if (desktop()) {
+  <nav class="top-nav">
+    <a routerLink="/year" class="logo">Becoming</a>
+    <div class="top-tabs">
+      @for (tab of tabs; track tab.path) {
+        <a [routerLink]="tab.path" routerLinkActive="top-tab--active" class="top-tab">
+          {{ tab.label }}
+        </a>
+      }
+    </div>
+  </nav>
+  <main class="content content--top">
+    <router-outlet />
+  </main>
+} @else {
+  <main class="content content--bottom">
+    <router-outlet />
+  </main>
+  <nav class="bottom-nav">
+    @for (tab of tabs; track tab.path) {
+      <a [routerLink]="tab.path" routerLinkActive="bottom-tab--active" class="bottom-tab">
+        <span class="bottom-label">{{ tab.short }}</span>
+      </a>
+    }
+  </nav>
+}
