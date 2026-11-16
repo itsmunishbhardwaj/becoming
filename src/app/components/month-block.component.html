@@ -1,0 +1,35 @@
+<div class="month-card">
+  <button type="button" class="month-name" (click)="monthOpen.emit(monthIdx)">
+    {{ name }}
+  </button>
+
+  <div class="dow-row">
+    @for (d of dow; track $index) {
+      <span class="dow-cell">{{ d }}</span>
+    }
+  </div>
+
+  <div class="days-grid">
+    @for (b of leadBlanks; track b) {
+      <span aria-hidden="true"></span>
+    }
+    @for (cell of dayCells; track cell.iso) {
+      <app-day-cell
+        [monthIdx]="monthIdx"
+        [monthName]="short"
+        [dayIdx]="cell.dayIdx"
+        [isoDate]="cell.iso"
+        [goals]="goals"
+        [adherenceMaps]="adherenceMaps"
+        [focus]="focus"
+        [pen]="pen"
+        [isToday]="cell.iso === todayISO"
+        [showHalo]="showHalo && cell.iso === todayISO"
+        [blobScale]="1"
+        (toggle)="dayTap.emit(cell.iso)"
+        (open)="dayOpen.emit(cell.iso)"
+        (setTip)="setTip.emit($event)"
+      />
+    }
+  </div>
+</div>

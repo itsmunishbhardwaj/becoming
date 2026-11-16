@@ -1,0 +1,123 @@
+@if (!goalsLoaded()) {
+  <div class="loading">
+    <p>Reading your vault…</p>
+  </div>
+} @else if (goals().length === 0) {
+  <div class="empty">
+    <p>Nothing to look back on yet — set your first goal on <a routerLink="/goals">Goals</a>.</p>
+  </div>
+} @else {
+  <div class="cal-shell"
+       (pointerdown)="onPointerDown($event)"
+       (pointermove)="onPointerMove($event)"
+       (pointerup)="onPinchEnd($event)"
+       (pointercancel)="onPinchEnd($event)">
+
+    <!-- Hero header -->
+    <header class="cal-header">
+      <div>
+        <div class="cal-kicker">{{ year }} · in progress</div>
+        <h1 class="cal-h1">Your year,<br>day by day.</h1>
+      </div>
+
+      <div class="cal-stat">
+        @if (totalMarkedDays() > 0) {
+          <div class="cal-count" [style.color]="penColor() || 'var(--paper-ink)'">
+            {{ totalMarkedDays() }}
+          </div>
+          <div class="cal-count-label">days marked</div>
+          <button type="button" class="cal-today-btn"
+                  [class.cal-today-btn--marked]="todayMarked()"
+                  (click)="onTodayClick()">
+            today
+          </button>
+        } @else {
+          <button type="button" class="cal-today-btn cal-today-btn--lg"
+                  [class.cal-today-btn--marked]="todayMarked()"
+                  (click)="onTodayClick()">
+            Today
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- Goal chips (vertical orb + name) -->
+    <div class="cal-chips" role="group" aria-label="Select a goal to log">
+      @for (g of goals(); track g.id) {
+        <button type="button" class="cal-chip"
+                [class.cal-chip--dimmed]="!!penId() && penId() !== g.id"
+                [attr.aria-pressed]="penId() === g.id"
+                (click)="togglePen(g)">
+          <div class="cal-chip-orb orb-breathe"
+               [style.background]="'radial-gradient(circle at 35% 30%, ' + goalColor(g) + ', ' + goalColor(g) + '99 80%)'"
+               [style.box-shadow]="penId() === g.id ? ('0 0 0 2.5px var(--paper-ink)') : 'none'">
+          </div>
+          <div class="cal-chip-name"
+               [style.color]="penId() === g.id ? 'var(--paper-ink)' : 'var(--paper-faint)'">
+            {{ g.name }}
+          </div>
+          @if (penId() === g.id && penDays() > 0) {
+            <div class="cal-chip-days">{{ penDays() }}d</div>
+          }
+        </button>
+      }
+    </div>
+
+    <!-- Guidance line -->
+    <p class="cal-guidance">
+      @if (pen()) {
+        Tap the days you moved <em>{{ pen()!.name }}</em>.
+      } @else if (totalMarkedDays() === 0) {
+        Pick a goal above, then tap the days you moved it.
+      }
+    </p>
+
+    <!-- Focused goal ambition -->
+    @if (pen()) {
+      <div class="cal-ambition" [style.border-inline-start-color]="penColor()">
+        <span class="cal-ambition-text">"{{ pen()!.ambition }}"</span>
+      </div>
+    }
+
+    <!-- 12-month grid -->
+    <div class="cal-months">
+      @for (i of monthIdxs; track i) {
+        <app-month-block
+          [year]="year"
+          [monthIdx]="i"
+          [goals]="goals()"
+          [adherenceMaps]="adherenceMaps()"
+          [focus]="pen()"
+          [pen]="pen()"
+          [todayISO]="todayISO"
+          [showHalo]="todayMarked()"
+          (dayTap)="onDayTap($event)"
+          (dayOpen)="onDayOpen($event)"
+          (monthOpen)="onMonthOpen($event)"
+          (setTip)="tip.set($event)"
+        />
+      }
+    </div>
+
+    <!-- Tooltip -->
+    @if (tip()) {
+      <div class="cal-tip">
+        <span class="cal-tip-date">
+          {{ tip()!.iso | date:'EEE' }} · {{ tip()!.month }} {{ tip()!.day }}
+        </span>
+        @for (m of tip()!.marks; track m.g.id) {
+          <span class="cal-tip-mark">
+            <span class="cal-tip-orb"
+                  [style.background]="'radial-gradient(circle at 35% 30%, ' + goalColor(m.g) + ', ' + goalColor(m.g) + '99 80%)'">
+            </span>
+            {{ m.g.name }}
+          </span>
+        }
+      </div>
+    }
+
+    <footer class="cal-footer">
+      <a routerLink="/goals" class="cal-footer-link">Goals →</a>
+    </footer>
+  </div>
+}

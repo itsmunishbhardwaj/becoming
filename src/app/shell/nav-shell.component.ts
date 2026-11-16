@@ -12,7 +12,7 @@ interface NavTab {
 }
 
 const TABS: NavTab[] = [
-  { label: 'Year',         short: 'Year',    path: '/year',         exact: false },
+  { label: 'Calendar',     short: 'Cal',     path: '/calendar',     exact: false },
   { label: 'Goals',        short: 'Goals',   path: '/goals',        exact: false },
   { label: 'Journal',      short: 'Journal', path: '/journal',      exact: false },
   { label: 'To-do',        short: 'To-do',   path: '/todo',         exact: false },

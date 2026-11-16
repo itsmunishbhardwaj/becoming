@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { NavShellComponent } from './shell/nav-shell.component';
-import { YearComponent }        from './screens/year.component';
+import { NavShellComponent }    from './shell/nav-shell.component';
+import { CalendarComponent }    from './screens/calendar.component';
 import { GoalsComponent }       from './screens/goals.component';
 import { GoalComponent }        from './screens/goal.component';
 import { QuickCreateComponent } from './screens/quick-create.component';
@@ -21,20 +21,21 @@ export const routes: Routes = [
     path: '',
     component: NavShellComponent,
     children: [
-      { path: '',              redirectTo: 'year', pathMatch: 'full' },
-      { path: 'year',          component: YearComponent },
-      { path: 'day/:date',     component: DayComponent },
-      { path: 'month/:month',  component: MonthComponent },
-      { path: 'week/:week',    component: WeekComponent },
-      { path: 'goals',         component: GoalsComponent },
-      { path: 'goal/:id',      component: GoalComponent },
-      { path: 'create',        component: QuickCreateComponent },
-      { path: 'journal',       component: JournalComponent },
-      { path: 'journal/:id',   component: JournalComponent },
-      { path: 'todo',          component: TodoComponent },
-      { path: 'insights',      component: InsightsComponent },
-      { path: 'coach-carter',  component: CoachCarterComponent },
-      { path: '**',            redirectTo: 'year' },
+      { path: '',               redirectTo: 'calendar', pathMatch: 'full' },
+      { path: 'year',           redirectTo: 'calendar' },
+      { path: 'calendar',       component: CalendarComponent },
+      { path: 'day/:date',      component: DayComponent },
+      { path: 'month/:month',   component: MonthComponent },
+      { path: 'week/:week',     component: WeekComponent },
+      { path: 'goals',          component: GoalsComponent },
+      { path: 'goal/:id',       component: GoalComponent },
+      { path: 'create',         component: QuickCreateComponent },
+      { path: 'journal',        component: JournalComponent },
+      { path: 'journal/:id',    component: JournalComponent },
+      { path: 'todo',           component: TodoComponent },
+      { path: 'insights',       component: InsightsComponent },
+      { path: 'coach-carter',   component: CoachCarterComponent },
+      { path: '**',             redirectTo: 'calendar' },
     ],
   },
 ];
