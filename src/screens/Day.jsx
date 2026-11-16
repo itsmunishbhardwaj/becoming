@@ -416,9 +416,13 @@ export default function Day() {
       {/* Below top bar: sidebar (grey) + main white panel */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden", minWidth: 0 }}>
 
-        {/* Permanent sidebar — desktop, toggleable */}
-        {desktop && sidebarOpen && (
-          <aside style={desktopSidebarStyle}>
+        {/* Permanent sidebar — desktop, animates width open↔closed */}
+        {desktop && (
+          <aside style={{
+            ...desktopSidebarStyle,
+            width: sidebarOpen ? 248 : 0,
+            transition: "width 0.25s cubic-bezier(0.4,0,0.2,1)",
+          }}>
             {sidebarContent}
           </aside>
         )}
