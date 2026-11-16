@@ -521,7 +521,7 @@ const desktopSidebarStyle = {
   background: PAPER.bg,
   overflow: "hidden",
   display: "flex", flexDirection: "column",
-  paddingRight: 48,
+  paddingRight: 38,
   boxSizing: "border-box",
 };
 
