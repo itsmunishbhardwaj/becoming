@@ -32,7 +32,11 @@
     } @else if (enriched().length === 0) {
       <div class="empty-state">
         <p class="empty-quote">"One step, one punch, one round at a time."</p>
-        <p class="empty-sub">No goals yet. Tap + to start one.</p>
+        <p class="empty-sub">No goals yet.</p>
+        <a routerLink="/create" class="new-goal-btn new-goal-btn--empty">
+          <span class="plus-ring">+</span>
+          begin something
+        </a>
       </div>
     } @else {
       <div class="section-label">Your goals</div>
@@ -46,11 +50,6 @@
           <span class="plus-ring">+</span>
           begin something new
         </a>
-        <div>
-          <a routerLink="/onboard" class="onboard-link">
-            or walk it out with the Coach Carter breakdown →
-          </a>
-        </div>
       </div>
     }
   </main>
@@ -61,17 +60,11 @@
     @if (loaded()) {
       <app-mini-year-grid [logs]="rawLogs()" [goals]="store.goals()" />
     }
-    <div class="footer-nav">
-      <div class="footer-links">
-        <a routerLink="/calendar" class="footer-link">Calendar →</a>
-        <a [routerLink]="['/month', currentMonth]" class="footer-link">Month →</a>
+    @if (enriched().length > 0) {
+      <div class="footer-count">
+        {{ enriched().length }} goal{{ enriched().length === 1 ? '' : 's' }} in motion
       </div>
-      @if (enriched().length > 0) {
-        <span class="footer-count">
-          {{ enriched().length }} goal{{ enriched().length === 1 ? '' : 's' }} in motion
-        </span>
-      }
-    </div>
+    }
   </footer>
 
 </div>
