@@ -32,7 +32,11 @@
     } @else if (enriched().length === 0) {
       <div class="empty-state">
         <p class="empty-quote">"One step, one punch, one round at a time."</p>
-        <p class="empty-sub">No goals yet. Tap + to start one.</p>
+        <p class="empty-sub">No goals yet.</p>
+        <a routerLink="/create" class="new-goal-btn new-goal-btn--empty">
+          <span class="plus-ring">+</span>
+          begin something
+        </a>
       </div>
     } @else {
       <div class="section-label">Your goals</div>
