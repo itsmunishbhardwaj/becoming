@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
@@ -30,6 +30,7 @@ const TABS: NavTab[] = [
 })
 export class NavShellComponent {
   private bp = inject(BreakpointObserver);
+  private router = inject(Router);
   readonly auth = inject(AuthService);
 
   readonly tabs = TABS;
@@ -54,5 +55,6 @@ export class NavShellComponent {
   async signOut() {
     await this.auth.signOut();
     this.profileOpen.set(false);
+    this.router.navigate(['/signin']);
   }
 }
