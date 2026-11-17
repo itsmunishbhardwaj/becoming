@@ -248,23 +248,26 @@ export class DayComponent implements OnInit, AfterViewInit {
 
   slotBg(goal: Goal, logged: boolean): string {
     const hex = goalColor(goal);
-    if (!hex.startsWith('#') || hex.length < 7) return logged ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.06)';
+    if (!hex.startsWith('#') || hex.length < 7) return logged ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.18)';
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
     return logged
-      ? `rgba(${r},${g},${b},0.82)`
-      : `rgba(${r},${g},${b},0.10)`;
+      ? `rgba(${r},${g},${b},0.80)`
+      : `rgba(${r},${g},${b},0.22)`;
   }
 
   slotTextColor(goal: Goal, logged: boolean): string {
-    if (!logged) return goalColor(goal);
     const hex = goalColor(goal);
-    if (!hex.startsWith('#')) return '#fff';
+    if (!hex.startsWith('#') || hex.length < 7) return logged ? '#fff' : '#2B2B2B';
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
-    return (r * 0.299 + g * 0.587 + b * 0.114) > 165 ? '#2B2B2B' : '#fff';
+    if (logged) {
+      return (r * 0.299 + g * 0.587 + b * 0.114) > 165 ? '#2B2B2B' : '#fff';
+    }
+    // Unlogged: dark ink, slightly tinted toward the goal color
+    return '#2B2B2B';
   }
 
   slotTimeRange(slot: GoalSlot): string {
