@@ -11,11 +11,12 @@ import { todayLocalISO, addDaysLocalISO } from '../core/date';
 import { daysInMonth, isoAtDay } from '../core/calendarMonth';
 import type { Goal, Log, AdherenceStatus } from '../core/types';
 import { MonthBlockComponent } from '../components/month-block.component';
+import { ColorWheelComponent } from '../components/color-wheel.component';
 
 @Component({
   selector: 'app-goal',
   standalone: true,
-  imports: [RouterLink, MonthBlockComponent],
+  imports: [RouterLink, MonthBlockComponent, ColorWheelComponent],
   templateUrl: './goal.component.html',
   styleUrl: './goal.component.scss',
 })
@@ -31,6 +32,7 @@ export class GoalComponent implements OnInit {
   // ── State ────────────────────────────────────────────────────────────────
   readonly goal = signal<Goal | null | undefined>(undefined);
   readonly logs = signal<Log[]>([]);
+  readonly colorWheelOpen = signal(false);
 
   // ── Computed ─────────────────────────────────────────────────────────────
   readonly calMonthInfo = computed(() => {
@@ -153,6 +155,18 @@ export class GoalComponent implements OnInit {
   }
 
   // ── Mutations ─────────────────────────────────────────────────────────────
+  async updateColor(hex: string): Promise<void> {
+    const g = this.goal();
+    if (!g) return;
+    const next = { ...g, color: hex };
+    this.goal.set(next);
+    try {
+      await this.store.saveGoal(next);
+    } catch {
+      this.goal.set(g);
+    }
+  }
+
   async updateGoalTime(timeStr: string): Promise<void> {
     const g = this.goal();
     if (!g) return;
