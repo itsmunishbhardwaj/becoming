@@ -550,18 +550,159 @@
   }
 }
 
-// ── Time grid stub ────────────────────────────────────────────────────────────
-.time-grid-stub {
+// ── Time grid ─────────────────────────────────────────────────────────────────
+.time-grid {
   flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   overflow: hidden;
+  position: relative;
+}
 
-  p {
-    font-family: var(--font-sans);
-    font-size: 13px;
-    color: var(--paper-faint);
-    margin: 0;
-  }
+.tg-allday {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 12px 6px 56px;
+  border-bottom: 1px solid var(--paper-line);
+}
+
+.tg-allday-pill {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.tg-scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--paper-line) transparent;
+
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--paper-line); border-radius: 2px; }
+}
+
+.tg-inner {
+  position: relative;
+  padding-bottom: 24px;
+}
+
+// ── Hour rows ─────────────────────────────────────────────────────────────────
+.tg-hours {
+  display: flex;
+  flex-direction: column;
+}
+
+.tg-hour {
+  height: 60px;
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.tg-hour-label {
+  flex-shrink: 0;
+  width: 48px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  color: var(--paper-faint);
+  text-align: right;
+  padding-right: 8px;
+  line-height: 1;
+  margin-top: -6px; // baseline sits above the separator
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+
+.tg-hour-sep {
+  flex: 1;
+  height: 1px;
+  background: var(--paper-line);
+  margin-top: 0;
+}
+
+// ── Events layer ──────────────────────────────────────────────────────────────
+.tg-events {
+  position: absolute;
+  top: 0;
+  left: 56px;
+  right: 10px;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.tg-event {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-left: 3px solid;
+  border-radius: 0 6px 6px 0;
+  padding: 3px 6px;
+  overflow: hidden;
+  pointer-events: auto;
+  cursor: default;
+  box-sizing: border-box;
+}
+
+.tg-event-name {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--paper-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.tg-event-dur {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  color: var(--paper-dim);
+}
+
+// ── Current time ──────────────────────────────────────────────────────────────
+.tg-now {
+  position: absolute;
+  left: -8px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.tg-now-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--paper-ink);
+}
+
+.tg-now-line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--paper-ink);
+  opacity: 0.5;
+}
+
+// ── Empty hint ────────────────────────────────────────────────────────────────
+.tg-empty-hint {
+  position: absolute;
+  top: 50%;
+  left: 56px;
+  right: 10px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--paper-faint);
+  text-align: center;
 }

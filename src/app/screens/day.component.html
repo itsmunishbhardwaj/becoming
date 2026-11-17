@@ -165,8 +165,68 @@
       </div>
     </div>
 
-    <div class="time-grid-stub">
-      <p>Time grid — coming soon</p>
+    <!-- ── Time grid ──────────────────────────────────────────────────── -->
+    <div class="time-grid">
+
+      <!-- Unscheduled events strip -->
+      @if (untimedEvents().length > 0) {
+        <div class="tg-allday">
+          @for (e of untimedEvents(); track $index) {
+            <span class="tg-allday-pill"
+                  [style.background]="goalColor(goalById(e.goalId))"
+                  [style.color]="'#fff'">
+              {{ eventLabel(e) }}
+            </span>
+          }
+        </div>
+      }
+
+      <!-- Scrollable 24-hour column -->
+      <div class="tg-scroll" #timeScroll>
+        <div class="tg-inner">
+
+          <!-- Hour rows -->
+          <div class="tg-hours">
+            @for (h of HOURS; track h) {
+              <div class="tg-hour">
+                <span class="tg-hour-label">{{ hourLabel(h) }}</span>
+                <div class="tg-hour-sep"></div>
+              </div>
+            }
+          </div>
+
+          <!-- Events layer -->
+          <div class="tg-events">
+            @for (e of timedEvents(); track $index) {
+              <div class="tg-event"
+                   [style.top.px]="eventTop(e)"
+                   [style.height.px]="eventHeight(e)"
+                   [style.border-left-color]="goalColor(goalById(e.goalId))"
+                   [style.background]="eventBg(goalById(e.goalId))">
+                <span class="tg-event-name">{{ e.verb }}</span>
+                @if (e.durationMin) {
+                  <span class="tg-event-dur">{{ e.durationMin }}m</span>
+                }
+              </div>
+            }
+
+            <!-- Current time indicator (today only) -->
+            @if (isToday()) {
+              <div class="tg-now" [style.top.px]="currentTimeTop()">
+                <span class="tg-now-dot"></span>
+                <span class="tg-now-line"></span>
+              </div>
+            }
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Empty state: no events at all -->
+      @if (events().length === 0) {
+        <div class="tg-empty-hint">A quiet day. Rest counts too.</div>
+      }
+
     </div>
   </main>
 
