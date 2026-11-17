@@ -23,7 +23,6 @@
   flex-shrink: 0;
   height: 56px;
   background: var(--paper-bg);
-  border-bottom: 1px solid var(--paper-line);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -152,20 +151,41 @@
   position: relative;
 }
 
+// ── Sidebar track — controls layout width on desktop ─────────────────────────
+// The track is the clipping container whose width animates 0 → 248px.
+// The sidebar inside keeps its natural width and slides via transform,
+// so its content never gets squished (GCal-style push).
+.sidebar-track {
+  flex-shrink: 0;
+
+  &--desktop {
+    width: 0;
+    overflow: hidden;
+    transition: width 240ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.sidebar-track--open { width: 248px; }
+  }
+}
+
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 .sidebar {
   flex-shrink: 0;
-  width: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--paper-bg);
-  border-right: 1px solid var(--paper-line);
-  transition: width 240ms cubic-bezier(0.4, 0, 0.2, 1);
 
-  // Desktop: push layout
+  // Desktop: fixed width, slides via transform inside the track
   &--desktop {
-    &.sidebar--open { width: 248px; }
+    width: 248px;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: hidden;
+
+    &.sidebar--open {
+      transform: translateX(0);
+      overflow-y: auto;
+    }
   }
 
   // Mobile: absolute drawer overlay
@@ -178,16 +198,10 @@
     transform: translateX(-100%);
     z-index: 15;
     transition: transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: visible;
     overflow-y: auto;
 
     &.sidebar--open { transform: translateX(0); }
   }
-}
-
-// Desktop open: show content (overflow: hidden clips when width=0)
-.sidebar--desktop.sidebar--open {
-  overflow-y: auto;
 }
 
 // ── Sidebar backdrop (mobile) ─────────────────────────────────────────────────
@@ -495,8 +509,7 @@
 // ── Main panel ────────────────────────────────────────────────────────────────
 .main-panel {
   flex: 1;
-  background: white;
-  border-top-left-radius: 18px;
+  background: var(--paper-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -509,7 +522,6 @@
   align-items: center;
   gap: 12px;
   padding: 14px 20px 10px;
-  border-bottom: 1px solid var(--paper-line);
 }
 
 .day-weekday {
