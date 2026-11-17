@@ -191,18 +191,6 @@ export class GoalComponent implements OnInit {
     this.updateGoalTime(value);
   }
 
-  async updateColor(hex: string): Promise<void> {
-    const g = this.goal();
-    if (!g) return;
-    const next = { ...g, color: hex };
-    this.goal.set(next);
-    try {
-      await this.store.saveGoal(next);
-    } catch {
-      this.goal.set(g);
-    }
-  }
-
   async handleMiniDayTap(iso: string): Promise<void> {
     const g = this.goal();
     if (!g) return;

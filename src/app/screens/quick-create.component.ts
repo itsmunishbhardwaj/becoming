@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { StoreService } from '../services/store.service';
 import { CATS } from '../core/tokens';
@@ -20,7 +20,7 @@ function endOfYearISO(): string {
 @Component({
   selector: 'app-quick-create',
   standalone: true,
-  imports: [FormsModule, RouterLink, ColorWheelComponent],
+  imports: [FormsModule, ColorWheelComponent],
   templateUrl: './quick-create.component.html',
   styleUrl: './quick-create.component.scss',
 })
