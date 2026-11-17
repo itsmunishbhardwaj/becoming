@@ -197,7 +197,24 @@
 
           <!-- Events layer -->
           <div class="tg-events">
-            @for (e of timedEvents(); track $index) {
+
+            <!-- Scheduled goal slots (ghost → filled on click) -->
+            @for (slot of goalSlots(); track slot.goal.id) {
+              <div class="tg-slot"
+                   [class.tg-slot--logged]="!!slot.event"
+                   [style.top.px]="slot.top"
+                   [style.height.px]="slot.height"
+                   [style.background]="slotBg(slot.goal, !!slot.event)"
+                   [style.border-color]="goalColor(slot.goal)"
+                   [style.color]="slotTextColor(slot.goal, !!slot.event)"
+                   (click)="toggleSlot(slot)">
+                <span class="tg-slot-name">{{ slot.goal.name }}</span>
+                <span class="tg-slot-time">{{ slotTimeRange(slot) }}</span>
+              </div>
+            }
+
+            <!-- Orphan timed events (goals with no goalTime but manually logged) -->
+            @for (e of orphanTimedEvents(); track $index) {
               <div class="tg-event"
                    [style.top.px]="eventTop(e)"
                    [style.height.px]="eventHeight(e)"

@@ -11,6 +11,13 @@ import { addDaysLocalISO, todayLocalISO } from '../core/date';
 import { goalColor } from '../core/goalColor';
 import type { Goal, Log, LogEvent } from '../core/types';
 
+interface GoalSlot {
+  goal: Goal;
+  event: LogEvent | null;
+  top: number;
+  height: number;
+}
+
 const DOW_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DOW_SHORT  = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const MONTH_NAMES = [
@@ -103,8 +110,38 @@ export class DayComponent implements OnInit, AfterViewInit {
   readonly HOURS = Array.from({length: 24}, (_, i) => i);
   readonly PX_PER_MIN = 1; // 60px per hour
 
+  // Active goals that have a scheduled time
+  readonly scheduledGoals = computed(() =>
+    this.activeGoals().filter(g => !!g.goalTime)
+  );
+
+  // One slot per scheduled goal — ghost when unlogged, filled when logged
+  readonly goalSlots = computed<GoalSlot[]>(() =>
+    this.scheduledGoals().map(goal => {
+      const event = this.events().find(e => e.goalId === goal.id) ?? null;
+      const [h, m] = goal.goalTime!.split(':').map(Number);
+      return {
+        goal,
+        event,
+        top:    (h * 60 + m) * this.PX_PER_MIN,
+        height: Math.max(44, (event?.durationMin ?? 60) * this.PX_PER_MIN),
+      };
+    })
+  );
+
+  // Logged timed events for goals that have no scheduled goalTime
+  private readonly scheduledGoalIds = computed(() =>
+    new Set(this.scheduledGoals().map(g => g.id))
+  );
+
+  readonly orphanTimedEvents = computed(() =>
+    this.events().filter(e => !!e.time && !this.scheduledGoalIds().has(e.goalId))
+  );
+
   readonly timedEvents   = computed(() => this.events().filter(e => !!e.time));
-  readonly untimedEvents = computed(() => this.events().filter(e => !e.time));
+  readonly untimedEvents = computed(() =>
+    this.events().filter(e => !e.time && !this.scheduledGoalIds().has(e.goalId))
+  );
 
   private readonly nowMinutes = signal(this.calcNowMinutes());
 
@@ -209,6 +246,38 @@ export class DayComponent implements OnInit, AfterViewInit {
     return `rgba(${r},${g},${b},0.14)`;
   }
 
+  slotBg(goal: Goal, logged: boolean): string {
+    const hex = goalColor(goal);
+    if (!hex.startsWith('#') || hex.length < 7) return logged ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.06)';
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return logged
+      ? `rgba(${r},${g},${b},0.82)`
+      : `rgba(${r},${g},${b},0.10)`;
+  }
+
+  slotTextColor(goal: Goal, logged: boolean): string {
+    if (!logged) return goalColor(goal);
+    const hex = goalColor(goal);
+    if (!hex.startsWith('#')) return '#fff';
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return (r * 0.299 + g * 0.587 + b * 0.114) > 165 ? '#2B2B2B' : '#fff';
+  }
+
+  slotTimeRange(slot: GoalSlot): string {
+    const [h, m] = slot.goal.goalTime!.split(':').map(Number);
+    const start = slot.goal.goalTime!;
+    const dur = slot.event?.durationMin ?? 60;
+    const endTotal = h * 60 + m + dur;
+    const eh = Math.floor(endTotal / 60) % 24;
+    const em = endTotal % 60;
+    const end = `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
+    return `${start} – ${end}`;
+  }
+
   goalById(id: string): Goal | undefined {
     return this.goals().find((g) => g.id === id);
   }
@@ -289,6 +358,21 @@ export class DayComponent implements OnInit, AfterViewInit {
   }
 
   // ── Mutations ─────────────────────────────────────────────────────────────
+
+  async toggleSlot(slot: GoalSlot): Promise<void> {
+    if (slot.event) {
+      await this.store.deleteLogEvent(this.date(), slot.event);
+    } else {
+      const event: LogEvent = {
+        verb: 'done',
+        goalId: slot.goal.id,
+        time: slot.goal.goalTime ?? undefined,
+        durationMin: 60,
+      };
+      await this.store.appendLog(this.date(), event);
+    }
+    await this.refreshLog();
+  }
 
   async deleteEvent(event: LogEvent): Promise<void> {
     await this.store.deleteLogEvent(this.date(), event);

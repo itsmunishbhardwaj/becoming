@@ -666,6 +666,49 @@
   color: var(--paper-dim);
 }
 
+// ── Goal slots ────────────────────────────────────────────────────────────────
+.tg-slot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border: 1.5px dashed;
+  border-radius: 6px;
+  padding: 5px 8px;
+  overflow: hidden;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 180ms ease, border-style 180ms ease, filter 100ms ease;
+  user-select: none;
+
+  &:hover { filter: brightness(0.93); }
+  &:active { filter: brightness(0.86); }
+
+  &--logged {
+    border-style: solid;
+    border-color: transparent !important;
+  }
+}
+
+.tg-slot-name {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.tg-slot-time {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  opacity: 0.8;
+  line-height: 1.3;
+  margin-top: 1px;
+}
+
 // ── Current time ──────────────────────────────────────────────────────────────
 .tg-now {
   position: absolute;
