@@ -32,6 +32,8 @@
     @if (viewSwitcherOpen()) {
       <div class="view-dropdown" (click)="$event.stopPropagation()">
         <button class="view-option view-option--active">Day</button>
+        <button class="view-option" (click)="goToWeek()">Week</button>
+        <button class="view-option" (click)="goToMonth()">Month</button>
         <button class="view-option" (click)="goToYear()">Year</button>
       </div>
     }

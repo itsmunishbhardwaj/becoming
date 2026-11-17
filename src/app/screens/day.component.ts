@@ -349,6 +349,20 @@ export class DayComponent implements OnInit, AfterViewInit {
     this.viewSwitcherOpen.set(false);
   }
 
+  goToMonth(): void {
+    const { y, m } = isoToYMD(this.date());
+    const ym = `${y}-${String(m).padStart(2, '0')}`;
+    this.router.navigate(['/month', ym]);
+    this.viewSwitcherOpen.set(false);
+  }
+
+  goToWeek(): void {
+    const d = new Date(this.date() + 'T00:00:00');
+    const sundayISO = addDaysLocalISO(this.date(), -d.getDay());
+    this.router.navigate(['/week', sundayISO]);
+    this.viewSwitcherOpen.set(false);
+  }
+
   toggleSidebar(): void {
     this.sidebarOpen.update((v) => !v);
   }
