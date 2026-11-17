@@ -8,6 +8,23 @@
         </a>
       }
     </div>
+    <div class="profile-wrap">
+      <button class="profile-btn" (click)="profileOpen.set(!profileOpen())" [attr.aria-expanded]="profileOpen()">
+        <span class="profile-initial">{{ userInitial() }}</span>
+      </button>
+      @if (profileOpen()) {
+        <div class="profile-dropdown">
+          @if (isGuest()) {
+            <div class="profile-info">Signed in as guest</div>
+            <a routerLink="/signin" class="profile-item" (click)="profileOpen.set(false)">Create account</a>
+          } @else {
+            <div class="profile-info">{{ auth.session()?.user?.email }}</div>
+          }
+          <button class="profile-item profile-item--danger" (click)="signOut()">Sign out</button>
+        </div>
+        <div class="profile-backdrop" (click)="profileOpen.set(false)"></div>
+      }
+    </div>
   </nav>
   <main class="content content--top">
     <router-outlet />

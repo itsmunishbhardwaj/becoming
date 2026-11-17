@@ -18,8 +18,13 @@ export class AuthService {
 
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly initialized = signal(false);
+
   constructor() {
-    getSession().then((s) => this.session.set(s));
+    getSession().then((s) => {
+      this.session.set(s);
+      this.initialized.set(true);
+    });
 
     const sub = onAuthStateChange((s) => this.session.set(s));
     this.destroyRef.onDestroy(() => sub.data.subscription.unsubscribe());

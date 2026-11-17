@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth.guard';
 import { NavShellComponent }    from './shell/nav-shell.component';
 import { CalendarComponent }    from './screens/calendar.component';
 import { GoalsComponent }       from './screens/goals.component';
@@ -20,6 +21,7 @@ export const routes: Routes = [
   {
     path: '',
     component: NavShellComponent,
+    canActivate: [authGuard],
     children: [
       { path: '',               redirectTo: 'calendar', pathMatch: 'full' },
       { path: 'year',           redirectTo: 'calendar' },

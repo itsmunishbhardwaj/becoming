@@ -3,6 +3,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
+import { AuthService } from '../services/auth.service';
 
 interface NavTab {
   label: string;
@@ -29,11 +30,29 @@ const TABS: NavTab[] = [
 })
 export class NavShellComponent {
   private bp = inject(BreakpointObserver);
+  readonly auth = inject(AuthService);
 
   readonly tabs = TABS;
+  readonly profileOpen = signal(false);
 
   readonly desktop = toSignal(
     this.bp.observe('(min-width: 768px)').pipe(map((s) => s.matches)),
     { initialValue: typeof window !== 'undefined' && window.innerWidth >= 768 },
   );
+
+  readonly userInitial = computed(() => {
+    const user = this.auth.session()?.user;
+    if (!user) return '?';
+    const email = user.email ?? '';
+    return email.charAt(0).toUpperCase() || '?';
+  });
+
+  readonly isGuest = computed(() => {
+    return this.auth.session()?.user?.is_anonymous ?? false;
+  });
+
+  async signOut() {
+    await this.auth.signOut();
+    this.profileOpen.set(false);
+  }
 }
