@@ -122,6 +122,10 @@ export class MonthComponent implements OnInit {
   // ── Swipe gesture state ────────────────────────────────────────────────
   private swipe: { x0: number; y0: number; t0: number } | null = null;
 
+  // ── Trackpad wheel swipe state ────────────────────────────────────────
+  private wheelAccum = 0;
+  private wheelCooldown = false;
+
   // ── Pinch gesture state ────────────────────────────────────────────────
   private pinch: {
     ptrs: Map<number, { x: number; y: number }>;
@@ -265,6 +269,21 @@ export class MonthComponent implements OnInit {
     const dir = classifySwipe({ dx, dy, dtMs });
     if (dir === 'next') this.navigate(1);
     else if (dir === 'prev') this.navigate(-1);
+  }
+
+  // ── Trackpad horizontal swipe ─────────────────────────────────────────
+  onWheel(e: WheelEvent): void {
+    if (this.wheelCooldown) return;
+    // Only respond to dominantly horizontal wheel motion
+    if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 1.5) return;
+    this.wheelAccum += e.deltaX;
+    if (Math.abs(this.wheelAccum) > 80) {
+      const dir = this.wheelAccum > 0 ? 1 : -1;
+      this.wheelAccum = 0;
+      this.wheelCooldown = true;
+      this.navigate(dir as 1 | -1);
+      setTimeout(() => { this.wheelCooldown = false; }, 600);
+    }
   }
 
   // ── Pinch → navigate out ───────────────────────────────────────────────
