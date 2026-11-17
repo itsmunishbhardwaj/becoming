@@ -1,4 +1,4 @@
-const _env = (import.meta as unknown as { env: Record<string, string> }).env;
+const _env: Record<string, string> = (import.meta as unknown as { env?: Record<string, string> }).env ?? {};
 
 export const environment = {
   production: true,

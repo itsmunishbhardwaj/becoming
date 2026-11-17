@@ -17,7 +17,6 @@ import { SignInComponent }      from './screens/sign-in.component';
 
 export const routes: Routes = [
   { path: 'signin',  component: SignInComponent },
-  { path: 'onboard', component: OnboardComponent },
   {
     path: '',
     component: NavShellComponent,
@@ -38,6 +37,7 @@ export const routes: Routes = [
       { path: 'todo/:date',     component: TodoComponent },
       { path: 'insights',       component: InsightsComponent },
       { path: 'coach-carter',   component: CoachCarterComponent },
+      { path: 'onboard',        component: OnboardComponent },
       { path: '**',             redirectTo: 'calendar' },
     ],
   },

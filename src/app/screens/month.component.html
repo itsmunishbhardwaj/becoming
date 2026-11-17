@@ -9,21 +9,33 @@
        (pointerdown)="onPointerDown($event)"
        (pointermove)="onPointerMove($event)"
        (pointerup)="onPinchEnd($event)"
-       (pointercancel)="onPinchEnd($event)">
+       (pointercancel)="onPinchEnd($event)"
+       (click)="viewSwitcherOpen() && toggleViewSwitcher()">
 
     <div class="month-shell">
 
-      <!-- Header row: view pills + nav arrows -->
+      <!-- Header row: nav arrows + view dropdown -->
       <header class="month-header">
-        <div class="month-view-pills" role="group" aria-label="View switcher">
-          <button type="button" class="view-pill" (click)="goToCalendar()" aria-label="Year view">Y</button>
-          <button type="button" class="view-pill view-pill--active" aria-current="page" aria-label="Month view">M</button>
-          <a class="view-pill" routerLink="/week" aria-label="Week view">W</a>
-        </div>
-
         <div class="month-nav" aria-label="Month navigation">
           <button type="button" class="month-nav-btn" (click)="navigate(-1)" aria-label="Previous month">‹</button>
           <button type="button" class="month-nav-btn" (click)="navigate(1)"  aria-label="Next month">›</button>
+        </div>
+
+        <div class="view-switcher-wrap">
+          <button class="view-switcher-btn" (click)="toggleViewSwitcher(); $event.stopPropagation()">
+            Month
+            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" class="chevron">
+              <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          @if (viewSwitcherOpen()) {
+            <div class="view-dropdown" (click)="$event.stopPropagation()">
+              <button class="view-option" (click)="goToDay()">Day</button>
+              <button class="view-option" (click)="goToWeekView()">Week</button>
+              <button class="view-option view-option--active">Month</button>
+              <button class="view-option" (click)="goToCalendar()">Year</button>
+            </div>
+          }
         </div>
       </header>
 
@@ -55,16 +67,12 @@
         [showHalo]="false"
         [blobScale]="1.6"
         [projectedDates]="projectedSet()"
-        [showWeekPills]="true"
+        [showWeekPills]="false"
         (dayTap)="onDayTap($event)"
         (dayOpen)="onDayOpen($event)"
         (monthOpen)="onMonthOpen($event)"
         (weekPillClick)="onWeekPillClick($event)"
       />
-
-      <footer class="month-footer">
-        <a routerLink="/goals" class="month-footer-link">Goals →</a>
-      </footer>
 
     </div>
   </div>

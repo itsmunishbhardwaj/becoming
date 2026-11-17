@@ -671,22 +671,17 @@
   position: absolute;
   left: 0;
   right: 0;
-  border: 1.5px dashed;
   border-radius: 6px;
   padding: 5px 8px;
   overflow: hidden;
   cursor: pointer;
+  pointer-events: auto;
   box-sizing: border-box;
-  transition: background 180ms ease, border-style 180ms ease, filter 100ms ease;
+  transition: filter 100ms ease;
   user-select: none;
 
   &:hover { filter: brightness(0.93); }
   &:active { filter: brightness(0.86); }
-
-  &--logged {
-    border-style: solid;
-    border-color: transparent !important;
-  }
 }
 
 .tg-slot-name {

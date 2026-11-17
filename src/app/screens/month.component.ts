@@ -2,12 +2,12 @@ import {
   Component, inject, signal, computed, effect, OnInit, DestroyRef, HostListener,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { StoreService } from '../services/store.service';
 import { dailyAdherence } from '../core/adherence';
 import { planDayTap } from '../core/dayTap';
 import { projectedDates as computeProjectedDates } from '../core/projection';
-import { todayLocalISO } from '../core/date';
+import { todayLocalISO, addDaysLocalISO } from '../core/date';
 import { classifySwipe } from '../core/swipe';
 import { centroidOf, distanceOf, classifyPinch } from '../core/pinchGesture';
 import type { Goal, Log, AdherenceStatus, LogEvent } from '../core/types';
@@ -45,7 +45,7 @@ function offsetMonth(year: string, monthIdx: number, delta: number): string {
 @Component({
   selector: 'app-month',
   standalone: true,
-  imports: [RouterLink, MonthBlockComponent, PenChipsComponent],
+  imports: [MonthBlockComponent, PenChipsComponent],
   templateUrl: './month.component.html',
   styleUrl: './month.component.scss',
 })
@@ -56,6 +56,7 @@ export class MonthComponent implements OnInit {
   private destroy = inject(DestroyRef);
 
   readonly todayISO = todayLocalISO();
+  readonly viewSwitcherOpen = signal(false);
 
   // ── Parsed route param ─────────────────────────────────────────────────
   readonly year      = signal<string>(new Date().getFullYear().toString());
@@ -184,9 +185,26 @@ export class MonthComponent implements OnInit {
 
   // ── View pills ─────────────────────────────────────────────────────────
 
+  toggleViewSwitcher(): void {
+    this.viewSwitcherOpen.update((v) => !v);
+  }
+
   goToCalendar(): void {
     const q = this.penId() ? { pen: this.penId() } : {};
     this.router.navigate(['/calendar'], { queryParams: q });
+    this.viewSwitcherOpen.set(false);
+  }
+
+  goToDay(): void {
+    this.router.navigate(['/day', this.todayISO]);
+    this.viewSwitcherOpen.set(false);
+  }
+
+  goToWeekView(): void {
+    const today = new Date();
+    const sundayISO = addDaysLocalISO(this.todayISO, -today.getDay());
+    this.router.navigate(['/week', sundayISO]);
+    this.viewSwitcherOpen.set(false);
   }
 
   // ── Day tap ────────────────────────────────────────────────────────────

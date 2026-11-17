@@ -1,6 +1,4 @@
 <div class="quick-create-page">
-  <a routerLink="/" class="back-link">← Life</a>
-
   <header class="form-header">
     <span class="kicker">New goal</span>
     <h1 class="h1">Name it. Track it.</h1>
@@ -121,7 +119,6 @@
       <button type="submit" class="primary-pill" [disabled]="saving()">
         {{ saving() ? 'Creating…' : 'Create goal' }}
       </button>
-      <a routerLink="/onboard" class="secondary-link">Guided breakdown instead →</a>
     </div>
 
   </form>
