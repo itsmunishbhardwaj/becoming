@@ -94,16 +94,61 @@
   &--marked { border-color: var(--paper-ink); background: var(--paper-card); color: var(--paper-ink); }
 }
 
-// ── Goal chips ────────────────────────────────────────────────────────────
+// ── Goals row (chips + add button) ───────────────────────────────────────
+
+.cal-goals-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding-top: 28px;
+}
 
 .cal-chips {
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding: 28px 0 4px;
+  flex: 1;
+  padding: 0 0 4px;
   scrollbar-width: none;
 
   &::-webkit-scrollbar { display: none; }
+}
+
+.cal-chips-empty {
+  font-size: 12px;
+  color: var(--paper-faint);
+  padding: 6px 4px 8px;
+  align-self: center;
+}
+
+.cal-add-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  padding-bottom: 8px;
+}
+
+.cal-add-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--paper-line);
+  background: transparent;
+  color: var(--paper-dim);
+  font-size: 20px;
+  line-height: 1;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+
+  .cal-add-btn:hover & {
+    background: var(--paper-panel);
+    border-color: var(--paper-dim);
+    color: var(--paper-ink);
+  }
 }
 
 .cal-chip {
