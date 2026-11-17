@@ -1,13 +1,12 @@
 import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
 import type { Session } from '@supabase/supabase-js';
+import { supabase } from '../core/supabase';
 import {
   signInWithGoogle,
   signInWithEmail,
   signUpWithEmail,
   signInAsGuest,
   signOut,
-  getSession,
-  onAuthStateChange,
 } from '../core/auth';
 
 @Injectable({ providedIn: 'root' })
@@ -21,13 +20,16 @@ export class AuthService {
   readonly initialized = signal(false);
 
   constructor() {
-    getSession().then((s) => {
-      this.session.set(s);
-      this.initialized.set(true);
+    // INITIAL_SESSION fires once after Supabase resolves the auth state,
+    // including PKCE code exchange on OAuth callback. This is the only
+    // reliable signal that initialization is complete.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      this.session.set(session);
+      if (event === 'INITIAL_SESSION') {
+        this.initialized.set(true);
+      }
     });
-
-    const sub = onAuthStateChange((s) => this.session.set(s));
-    this.destroyRef.onDestroy(() => sub.data.subscription.unsubscribe());
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
   signInWithGoogle = signInWithGoogle;
