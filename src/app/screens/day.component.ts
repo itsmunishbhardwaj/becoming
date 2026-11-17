@@ -1,0 +1,256 @@
+import {
+  Component, inject, signal, computed, OnInit, DestroyRef,
+} from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { map } from 'rxjs/operators';
+import { StoreService } from '../services/store.service';
+import { addDaysLocalISO, todayLocalISO } from '../core/date';
+import { goalColor } from '../core/goalColor';
+import type { Goal, Log, LogEvent } from '../core/types';
+
+const DOW_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DOW_SHORT  = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const MONTH_NAMES = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December',
+];
+
+/** Build the grid of days (with leading nulls) for a given year/month. */
+function buildMiniGrid(y: number, m: number): (number | null)[] {
+  const firstDow = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const cells: (number | null)[] = Array(firstDow).fill(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  return cells;
+}
+
+function isoToYMD(iso: string): { y: number; m: number; d: number } {
+  const [y, mo, d] = iso.split('-').map(Number);
+  return { y, m: mo - 1, d };
+}
+
+function ymdToISO(y: number, m: number, d: number): string {
+  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
+function offsetMiniMonth(y: number, m: number, delta: number): { y: number; m: number } {
+  const dt = new Date(y, m + delta, 1);
+  return { y: dt.getFullYear(), m: dt.getMonth() };
+}
+
+@Component({
+  selector: 'app-day',
+  standalone: true,
+  imports: [RouterLink],
+  templateUrl: './day.component.html',
+  styleUrl: './day.component.scss',
+})
+export class DayComponent implements OnInit {
+  private route   = inject(ActivatedRoute);
+  private router  = inject(Router);
+  private store   = inject(StoreService);
+  private destroy = inject(DestroyRef);
+  private bp      = inject(BreakpointObserver);
+
+  readonly todayISO = todayLocalISO();
+
+  // ── Responsive ────────────────────────────────────────────────────────────
+  readonly desktop = toSignal(
+    this.bp.observe('(min-width: 768px)').pipe(map((s) => s.matches)),
+    { initialValue: typeof window !== 'undefined' && window.innerWidth >= 768 },
+  );
+
+  // ── Sidebar state ─────────────────────────────────────────────────────────
+  readonly sidebarOpen = signal(true);
+
+  // ── Route date ────────────────────────────────────────────────────────────
+  readonly date = signal<string>(this.todayISO);
+
+  readonly dateLabel = computed(() => {
+    const { y, m, d } = isoToYMD(this.date());
+    const dt = new Date(y, m, d);
+    return `${DOW_LABELS[dt.getDay()]}, ${MONTH_NAMES[m]} ${d}, ${y}`;
+  });
+
+  readonly weekdayLabel = computed(() => {
+    const { y, m, d } = isoToYMD(this.date());
+    return DOW_LABELS[new Date(y, m, d).getDay()];
+  });
+
+  readonly dayNumber = computed(() => isoToYMD(this.date()).d);
+
+  readonly isToday = computed(() => this.date() === this.todayISO);
+
+  // ── Data ──────────────────────────────────────────────────────────────────
+  readonly goals       = this.store.goals;
+  readonly goalsLoaded = this.store.goalsLoaded;
+
+  readonly activeGoals = computed(() => this.goals().filter((g) => g.state === 'active'));
+
+  private rawLog = signal<Log | null>(null);
+
+  readonly events = computed<LogEvent[]>(() => this.rawLog()?.events ?? []);
+
+  readonly notes = computed<Record<string, string>>(() => this.rawLog()?.notes ?? {});
+
+  // ── Sidebar tabs ──────────────────────────────────────────────────────────
+  readonly activeTab = signal<'logged' | 'notes' | 'add'>('logged');
+
+  // ── Mini calendar ─────────────────────────────────────────────────────────
+  readonly miniCalMonth = signal<{ y: number; m: number }>({
+    y: new Date().getFullYear(),
+    m: new Date().getMonth(),
+  });
+
+  readonly miniCalGrid = computed(() => {
+    const { y, m } = this.miniCalMonth();
+    return buildMiniGrid(y, m);
+  });
+
+  readonly miniCalLabel = computed(() => {
+    const { y, m } = this.miniCalMonth();
+    return `${MONTH_NAMES[m]} ${y}`;
+  });
+
+  readonly dowShort = DOW_SHORT;
+
+  // ── View switcher ─────────────────────────────────────────────────────────
+  readonly viewSwitcherOpen = signal(false);
+
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+  async ngOnInit(): Promise<void> {
+    if (!this.goalsLoaded()) await this.store.loadGoals();
+
+    this.route.params
+      .pipe(takeUntilDestroyed(this.destroy))
+      .subscribe(async (params) => {
+        const raw = params['date'] ?? '';
+        const iso = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : this.todayISO;
+        this.date.set(iso);
+
+        const { y, m } = isoToYMD(iso);
+        this.miniCalMonth.set({ y, m });
+
+        await this.refreshLog();
+      });
+  }
+
+  private async refreshLog(): Promise<void> {
+    const log = await this.store.readLog(this.date());
+    this.rawLog.set(log);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  goalColor(g: Goal | null | undefined): string { return goalColor(g); }
+
+  goalById(id: string): Goal | undefined {
+    return this.goals().find((g) => g.id === id);
+  }
+
+  eventsForGoal(goalId: string): LogEvent[] {
+    return this.events().filter((e) => e.goalId === goalId);
+  }
+
+  noteForGoal(goalId: string): string {
+    return this.notes()[goalId] ?? '';
+  }
+
+  eventLabel(e: LogEvent): string {
+    const parts: string[] = [e.verb];
+    if (e.time)        parts.push(e.time);
+    if (e.durationMin) parts.push(`${e.durationMin}m`);
+    if (e.payload)     parts.push(e.payload);
+    return parts.join(' · ');
+  }
+
+  miniCellISO(d: number | null): string | null {
+    if (d === null) return null;
+    const { y, m } = this.miniCalMonth();
+    return ymdToISO(y, m, d);
+  }
+
+  miniCellIsSelected(d: number | null): boolean {
+    if (d === null) return false;
+    return this.miniCellISO(d) === this.date();
+  }
+
+  miniCellIsToday(d: number | null): boolean {
+    if (d === null) return false;
+    return this.miniCellISO(d) === this.todayISO;
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+
+  goToday(): void {
+    this.router.navigate(['/day', this.todayISO]);
+  }
+
+  prevDay(): void {
+    this.router.navigate(['/day', addDaysLocalISO(this.date(), -1)]);
+  }
+
+  nextDay(): void {
+    this.router.navigate(['/day', addDaysLocalISO(this.date(), 1)]);
+  }
+
+  miniCalPrev(): void {
+    const { y, m } = this.miniCalMonth();
+    this.miniCalMonth.set(offsetMiniMonth(y, m, -1));
+  }
+
+  miniCalNext(): void {
+    const { y, m } = this.miniCalMonth();
+    this.miniCalMonth.set(offsetMiniMonth(y, m, 1));
+  }
+
+  navigateToMiniDay(d: number | null): void {
+    if (d === null) return;
+    const iso = this.miniCellISO(d);
+    if (iso) this.router.navigate(['/day', iso]);
+  }
+
+  goToYear(): void {
+    this.router.navigate(['/calendar']);
+    this.viewSwitcherOpen.set(false);
+  }
+
+  toggleSidebar(): void {
+    this.sidebarOpen.update((v) => !v);
+  }
+
+  toggleViewSwitcher(): void {
+    this.viewSwitcherOpen.update((v) => !v);
+  }
+
+  // ── Mutations ─────────────────────────────────────────────────────────────
+
+  async deleteEvent(event: LogEvent): Promise<void> {
+    await this.store.deleteLogEvent(this.date(), event);
+    await this.refreshLog();
+  }
+
+  async addDefaultEvent(goal: Goal): Promise<void> {
+    const baseline = goal.baseline as string | { intervalDays: number } | null;
+    const event: LogEvent = typeof baseline === 'string'
+      ? { verb: 'wake', time: '07:00', goalId: goal.id }
+      : (baseline as { intervalDays?: number } | null)?.intervalDays != null
+        ? { verb: 'session', durationMin: 10, goalId: goal.id }
+        : { verb: 'done', goalId: goal.id };
+    await this.store.appendLog(this.date(), event);
+    await this.refreshLog();
+  }
+
+  async saveNote(goalId: string, value: string): Promise<void> {
+    await this.store.saveNote(this.date(), goalId, value);
+    await this.refreshLog();
+  }
+
+  onNoteBlur(goalId: string, event: Event): void {
+    const value = (event.target as HTMLTextAreaElement).value;
+    this.saveNote(goalId, value);
+  }
+}

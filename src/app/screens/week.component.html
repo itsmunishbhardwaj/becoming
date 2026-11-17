@@ -1,0 +1,78 @@
+@if (!goalsLoaded()) {
+  <div class="week-loading">
+    <p>Reading your vault…</p>
+  </div>
+} @else {
+  <div class="week-page"
+       (touchstart)="onTouchStart($event)"
+       (touchend)="onTouchEnd($event)"
+       (pointerdown)="onPointerDown($event)"
+       (pointermove)="onPointerMove($event)"
+       (pointerup)="onPinchEnd($event)"
+       (pointercancel)="onPinchEnd($event)">
+
+    <div class="week-shell">
+
+      <!-- Header row: view pills + nav arrows -->
+      <header class="week-header">
+        <div class="week-view-pills" role="group" aria-label="View switcher">
+          <button type="button" class="view-pill" (click)="goToCalendar()" aria-label="Year view">Y</button>
+          <button type="button" class="view-pill" (click)="goToMonth()" aria-label="Month view">M</button>
+          <button type="button" class="view-pill view-pill--active" aria-current="page" aria-label="Week view">W</button>
+        </div>
+
+        <div class="week-nav" aria-label="Week navigation">
+          <button type="button" class="week-nav-btn" (click)="navigate(-1)" aria-label="Previous week">‹</button>
+          <button type="button" class="week-nav-btn" (click)="navigate(1)"  aria-label="Next week">›</button>
+        </div>
+      </header>
+
+      <!-- Kicker + title -->
+      <div class="week-title-row">
+        <span class="week-kicker">WEEK OF</span>
+        <h1 class="week-h1">{{ weekLabel() }}</h1>
+      </div>
+
+      <!-- Pen chips -->
+      @if (goals().length > 0) {
+        <app-pen-chips
+          [goals]="goals()"
+          [penId]="penId()"
+          [penDayCount]="penDayCount"
+          (pick)="onPenPick($event)"
+        />
+      }
+
+      <!-- 7-column day grid -->
+      <div class="week-days" [class]="slideClass()">
+        @for (day of days(); track day.iso) {
+          <div class="week-day" [attr.data-day-iso]="day.iso">
+            <span class="week-day-head">{{ day.letter }}</span>
+            <span class="week-day-num" [class.today]="day.iso === todayISO">{{ day.num }}</span>
+            <div class="week-cell">
+              <app-day-cell
+                [isoDate]="day.iso"
+                [goals]="goals()"
+                [adherenceMaps]="adherenceMaps()"
+                [focus]="pen()"
+                [pen]="pen()"
+                [isToday]="day.iso === todayISO"
+                [showHalo]="false"
+                [blobScale]="1.4"
+                [hideDayNumber]="true"
+                [projectedDates]="projectedSet() ?? emptySet"
+                (toggle)="onDayTap(day.iso)"
+                (open)="onDayOpen(day.iso)"
+              />
+            </div>
+          </div>
+        }
+      </div>
+
+      <footer class="week-footer">
+        <a routerLink="/goals" class="week-footer-link">Goals →</a>
+      </footer>
+
+    </div>
+  </div>
+}

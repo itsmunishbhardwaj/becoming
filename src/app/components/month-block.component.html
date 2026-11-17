@@ -1,0 +1,76 @@
+<div class="month-card" [class.month-card--full]="showWeekPills">
+  @if (!showWeekPills) {
+    <button type="button" class="month-name" (click)="monthOpen.emit(monthIdx)">
+      {{ name }}
+    </button>
+  }
+
+  <div class="dow-row" [class.dow-row--pills]="showWeekPills">
+    @for (d of dow; track $index) {
+      <span class="dow-cell">{{ d }}</span>
+    }
+    @if (showWeekPills) { <span aria-hidden="true"></span> }
+  </div>
+
+  @if (!showWeekPills) {
+    <!-- Flat grid for calendar overview -->
+    <div class="days-grid">
+      @for (b of leadBlanks; track b) {
+        <span aria-hidden="true"></span>
+      }
+      @for (cell of dayCells; track cell.iso) {
+        <app-day-cell
+          [monthIdx]="monthIdx"
+          [monthName]="short"
+          [dayIdx]="cell.dayIdx"
+          [isoDate]="cell.iso"
+          [goals]="goals"
+          [adherenceMaps]="adherenceMaps"
+          [focus]="focus"
+          [pen]="pen"
+          [isToday]="cell.iso === todayISO"
+          [showHalo]="showHalo && cell.iso === todayISO"
+          [blobScale]="blobScale"
+          [projectedDates]="projectedDates ?? emptySet"
+          (toggle)="dayTap.emit(cell.iso)"
+          (open)="dayOpen.emit(cell.iso)"
+          (setTip)="setTip.emit($event)"
+        />
+      }
+    </div>
+  } @else {
+    <!-- Row-per-week grid with week pills -->
+    @for (week of weeks; track week.sundayISO) {
+      <div class="week-row">
+        @for (cell of week.cells; track cell.iso) {
+          @if (cell.iso) {
+            <div class="cell-wrap">
+              <app-day-cell
+                [monthIdx]="monthIdx"
+                [monthName]="short"
+                [dayIdx]="cell.dayIdx"
+                [isoDate]="cell.iso"
+                [goals]="goals"
+                [adherenceMaps]="adherenceMaps"
+                [focus]="focus"
+                [pen]="pen"
+                [isToday]="cell.iso === todayISO"
+                [showHalo]="false"
+                [blobScale]="blobScale"
+                [projectedDates]="projectedDates ?? emptySet"
+                (toggle)="dayTap.emit(cell.iso)"
+                (open)="dayOpen.emit(cell.iso)"
+                (setTip)="setTip.emit($event)"
+              />
+            </div>
+          } @else {
+            <span aria-hidden="true"></span>
+          }
+        }
+        <button type="button" class="week-pill"
+                [attr.aria-label]="'Week of ' + week.sundayISO"
+                (click)="weekPillClick.emit(week.sundayISO)">›</button>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,220 @@
+:host { display: block; }
+
+// ── Loading ──────────────────────────────────────────────────────────────
+
+.week-loading {
+  min-height: 100vh;
+  background: var(--paper-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  color: var(--paper-dim);
+  font-size: 15px;
+}
+
+// ── Page shell ───────────────────────────────────────────────────────────
+
+.week-page {
+  min-height: 100vh;
+  background: var(--paper-bg);
+  color: var(--paper-ink);
+  font-family: var(--font-sans);
+  padding: clamp(20px, 3vw, 40px) clamp(20px, 4vw, 64px) 80px;
+  touch-action: pan-y;
+}
+
+.week-shell {
+  max-width: 720px;
+  margin: 0 auto;
+
+  @media (min-width: 900px) { max-width: 960px; }
+}
+
+// ── Header row ───────────────────────────────────────────────────────────
+
+.week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+// ── View pills ───────────────────────────────────────────────────────────
+
+.week-view-pills {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.view-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--paper-line);
+  background: transparent;
+  color: var(--paper-faint);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: var(--paper-card); color: var(--paper-dim); }
+  }
+
+  &--active {
+    background: var(--paper-ink);
+    border-color: var(--paper-ink);
+    color: var(--paper-bg);
+    cursor: default;
+  }
+}
+
+// ── Nav arrows ───────────────────────────────────────────────────────────
+
+.week-nav {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.week-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--paper-line);
+  background: transparent;
+  color: var(--paper-dim);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: var(--paper-card); color: var(--paper-ink); }
+  }
+
+  &:active { background: var(--paper-line); }
+}
+
+// ── Title row ────────────────────────────────────────────────────────────
+
+.week-title-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 24px;
+}
+
+.week-kicker {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+}
+
+.week-h1 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(24px, 4vw, 44px);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--paper-ink);
+  margin: 0;
+}
+
+// ── Day grid ─────────────────────────────────────────────────────────────
+
+.week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 24px;
+  overflow: hidden;
+
+  &.week-slide-next { animation: week-slide-next 220ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+  &.week-slide-prev { animation: week-slide-prev 220ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    &.week-slide-next,
+    &.week-slide-prev { animation: none; }
+  }
+}
+
+.week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.week-day-head {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+  line-height: 1;
+}
+
+.week-day-num {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--paper-dim);
+  line-height: 1;
+
+  &.today {
+    color: var(--paper-ink);
+    font-weight: 600;
+  }
+}
+
+.week-cell {
+  width: 100%;
+  max-width: clamp(64px, 8vw, 96px);
+  aspect-ratio: 1;
+}
+
+// ── Slide keyframes ──────────────────────────────────────────────────────
+
+@keyframes week-slide-next {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+@keyframes week-slide-prev {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0);     }
+}
+
+// ── Footer ───────────────────────────────────────────────────────────────
+
+.week-footer {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.week-footer-link {
+  color: var(--paper-faint);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 120ms ease;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: var(--paper-dim); }
+  }
+}

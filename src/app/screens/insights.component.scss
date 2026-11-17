@@ -1,0 +1,162 @@
+:host { display: block; }
+
+.insights-page {
+  min-height: 100vh;
+  background: var(--paper-bg);
+  padding: clamp(28px, 4vw, 56px) clamp(20px, 4vw, 64px) 120px;
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+  color: var(--paper-ink);
+}
+
+.insights-container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.insights-h1 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(36px, 5vw, 56px);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--paper-ink);
+  margin: 0 0 36px;
+}
+
+.insights-empty {
+  font-style: italic;
+  color: var(--paper-faint);
+  font-size: 15px;
+  margin: 0;
+}
+
+// ── Stat cards list ─────────────────────────────────────────────────────────
+
+.stat-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// ── Stat card ───────────────────────────────────────────────────────────────
+
+.stat-card {
+  background: var(--paper-card);
+  border: 1px solid var(--paper-line);
+  border-radius: 22px 18px 24px 19px;
+  padding: 20px 22px 18px;
+}
+
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 16px;
+}
+
+.goal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.goal-name {
+  font-family: var(--font-serif);
+  font-size: 17.5px;
+  font-weight: 400;
+  color: var(--paper-ink);
+  line-height: 1.2;
+}
+
+// ── Stat blocks row ─────────────────────────────────────────────────────────
+
+.stat-blocks-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 72px;
+}
+
+.stat-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.stat-value {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--paper-ink);
+  line-height: 1.1;
+  transition: color 200ms ease;
+}
+
+// ── Progress bar ─────────────────────────────────────────────────────────────
+
+.progress-bar-track {
+  height: 4px;
+  background: var(--paper-trough);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 400ms ease;
+  max-width: 100%;
+}
+
+// ── Meta lines ───────────────────────────────────────────────────────────────
+
+.meta-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+
+  &:first-of-type { margin-top: 2px; }
+}
+
+.meta-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.meta-value {
+  font-size: 12.5px;
+  color: var(--paper-dim);
+}
+
+// ── Insight section ──────────────────────────────────────────────────────────
+
+.insight-section {
+  margin-top: 40px;
+}
+
+.section-kicker {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+  font-weight: 500;
+  margin-bottom: 12px;
+}

@@ -128,11 +128,15 @@ What to keep clean *now* so the Angular port is cheap:
 
 ## Rough sequence when migration starts
 
+All Angular work happens on a **feature branch** (`feat/angular-migration`) inside this repo. No separate repository. The branch replaces the React root when merged.
+
+**CI runs on every PR and push** via GitHub Actions (`.github/workflows/ci.yml`). Gate: `ng test --watch=false` + `ng build --configuration=production` must both pass before any merge to `main`. Vercel automatically deploys a preview URL per branch — that IS the staging environment.
+
 1. Design Supabase schema. Mirror current vault shape: `goals`, `logs`, `events`, `insights_dismissed`.
 2. Vercel + LLM proxy first (smallest scope, needed by both frontends).
-3. Rewrite React web as **Angular + Angular Material** on Vercel, backed by Supabase. TypeScript is default. Phases:
-   - 3a. Scaffold Angular app (`ng new becoming --standalone --style=scss --routing --strict`), add Material, port `tokens.js` to SCSS + custom Material palette, deploy empty shell to Vercel.
-   - 3b. Port `src/data/*` + `src/lib/*` + `src/onboard/*` to `src/app/core/*.ts` (rename, add types, ports tests as `.spec.ts`).
+3. Rewrite React web as **Angular + Angular Material** on Vercel, backed by Supabase. TypeScript is default. Phases, each as its own PR off `feat/angular-migration`:
+   - 3a. ✅ Scaffold Angular app, add Material, port `tokens.js` to SCSS + custom Material palette, update CI to Angular toolchain.
+   - 3b. Port `src/data/*` + `src/lib/*` + `src/onboard/*` to `src/app/core/*.ts` (rename, add types, port tests as `.spec.ts`).
    - 3c. Build `StoreService`, `AuthService`, `SupabaseService`, `LlmService` with same method signatures as current modules.
    - 3d. Build leaf components (Orb, Blob, GoalCard, InsightCard, TimeGrid, ColorWheel) as Angular standalone components.
    - 3e. Build `NavShell` with `MatSidenav` (gets GCal-style animation for free).

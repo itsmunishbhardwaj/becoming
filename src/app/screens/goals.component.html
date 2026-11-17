@@ -1,0 +1,82 @@
+<!-- Intro overlay -->
+@if (showIntro()) {
+  <div class="intro-overlay" aria-hidden="true">
+    <div class="intro-container">
+      <div class="intro-text">Becoming</div>
+      <div class="intro-reflect" aria-hidden="true">Becoming</div>
+    </div>
+  </div>
+}
+
+<div class="home-layout">
+
+  <!-- Header -->
+  <header class="home-header">
+    <div class="home-date">{{ today }}</div>
+  </header>
+
+  <!-- Main -->
+  <main class="home-main">
+
+    @if (activeInsight()) {
+      <div class="insight-wrap">
+        <app-insight-card
+          [question]="activeInsight()"
+          (answer)="dismissInsight($event.id)">
+        </app-insight-card>
+      </div>
+    }
+
+    @if (!loaded()) {
+      <p class="state-msg">Reading your vault…</p>
+    } @else if (enriched().length === 0) {
+      <div class="empty-state">
+        <p class="empty-quote">"One step, one punch, one round at a time."</p>
+        <p class="empty-sub">No goals yet. Tap + to start one.</p>
+      </div>
+    } @else {
+      <div class="section-label">Your goals</div>
+      <div class="goals-list">
+        @for (g of enriched(); track g.id; let i = $index) {
+          <app-goal-card [goal]="g" [index]="i" />
+        }
+      </div>
+      <div class="new-goal-row">
+        <a routerLink="/create" class="new-goal-btn">
+          <span class="plus-ring">+</span>
+          begin something new
+        </a>
+        <div>
+          <a routerLink="/onboard" class="onboard-link">
+            or walk it out with the Coach Carter breakdown →
+          </a>
+        </div>
+      </div>
+    }
+  </main>
+
+  <!-- Footer — activity grid -->
+  <footer class="home-footer">
+    <div class="section-label">This year</div>
+    @if (loaded()) {
+      <app-mini-year-grid [logs]="rawLogs()" [goals]="store.goals()" />
+    }
+    <div class="footer-nav">
+      <div class="footer-links">
+        <a routerLink="/calendar" class="footer-link">Calendar →</a>
+        <a [routerLink]="['/month', currentMonth]" class="footer-link">Month →</a>
+      </div>
+      @if (enriched().length > 0) {
+        <span class="footer-count">
+          {{ enriched().length }} goal{{ enriched().length === 1 ? '' : 's' }} in motion
+        </span>
+      }
+    </div>
+  </footer>
+
+</div>
+
+@if (enriched().length > 0) {
+  <app-log-blob (clicked)="sheetOpen.set(true)" />
+  <app-log-sheet [open]="sheetOpen()" (close)="sheetOpen.set(false)" (saved)="onSaved()" />
+}

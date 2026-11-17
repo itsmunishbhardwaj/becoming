@@ -1,0 +1,36 @@
+<a [routerLink]="['/goal', goal.id]"
+   class="goal-card"
+   [class.goal-card--dormant]="dormant"
+   [style.border-top]="index === 0 ? '1px solid var(--paper-line)' : 'none'">
+
+  <!-- Orb -->
+  <div class="goal-orb"
+       [class.orb-breathe]="!dormant"
+       [style.background]="gradient"
+       [style.animation-delay]="orbDelay"
+       [style.view-transition-name]="'orb-' + goal.id">
+  </div>
+
+  <!-- Name + bar -->
+  <div class="goal-inner">
+    <div class="goal-name"
+         [style.view-transition-name]="'goal-name-' + goal.id">
+      {{ goal.name }}
+    </div>
+    <div class="momentum-track">
+      <div class="momentum-fill"
+           [style.width]="(momentum * 100) + '%'"
+           [style.background]="color">
+      </div>
+    </div>
+    @if (goal.state === 'drift') {
+      <div class="drift-hint">quiet lately</div>
+    }
+  </div>
+
+  <!-- Headline -->
+  <div class="goal-headline">
+    <span class="headline-n">{{ goal.headline?.n ?? '' }}</span>
+    <span class="headline-unit">{{ goal.headline?.unit ?? '' }}</span>
+  </div>
+</a>

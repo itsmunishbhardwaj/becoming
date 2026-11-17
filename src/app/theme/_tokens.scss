@@ -1,0 +1,70 @@
+// Design tokens — single source of truth for Angular app.
+// Codified from src/tokens.js (React). Figma: "Becoming — UI/UX" (97VazqojfNOspymPEF0uc1).
+
+// ── Category palette ────────────────────────────────────────────────────
+$cat-ai:            #A8BEE8;
+$cat-career:        #E8A8BA;
+$cat-health:        #98C9AE;
+$cat-relationships: #EBC3A0;
+$cat-reading:       #BBA8E0;
+$cat-creativity:    #DDB84E;
+$cat-finance:       #7FC8C4;
+
+$category-colors: (
+  'ai':            $cat-ai,
+  'career':        $cat-career,
+  'health':        $cat-health,
+  'relationships': $cat-relationships,
+  'reading':       $cat-reading,
+  'creativity':    $cat-creativity,
+  'finance':       $cat-finance,
+);
+
+// ── Paper surfaces ───────────────────────────────────────────────────────
+$paper-bg:          #F0F0F0;
+$paper-card:        #FAFAFA;
+$paper-line:        #E2E2E2;
+$paper-panel:       #EBEBEB;
+$paper-ink:         #2B2B2B;
+$paper-dim:         #5F5F5F;
+$paper-faint:       #9A9A9A;
+$paper-whisper:     #A89070;  // DRIFT ONLY — muted amber
+$paper-track:       #E2E2E2;
+$paper-trough:      rgba(0, 0, 0, 0.06);
+$paper-miss:        #EBEBEB;
+$paper-affirm:      #DCEAE2;
+$paper-affirm-line: #C3DACD;
+$paper-affirm-ink:  #5F8672;
+$paper-scrim:       rgba(0, 0, 0, 0.12);
+$paper-shadow:      0 6px 20px rgba(0, 0, 0, 0.08);
+$paper-sheet-shadow: 0 -10px 40px rgba(0, 0, 0, 0.12);
+$paper-card-border: #E2E2E2;
+
+// ── Typography ───────────────────────────────────────────────────────────
+$font-serif: 'Fraunces', 'Fraunces Fallback', Georgia, serif;
+$font-sans:  'Instrument Sans', 'Instrument Sans Fallback', 'Inter', system-ui, sans-serif;
+
+// ── Type scale (px) ──────────────────────────────────────────────────────
+$type-h1:         28px;
+$type-goal-name:  17.5px;
+$type-goal-title: 26px;
+$type-ambition:   16px;
+$type-body:       14px;
+$type-meta:       12.5px;
+$type-small:      12px;
+$type-kicker:     11px;
+
+// ── Radii ─────────────────────────────────────────────────────────────────
+$radius-r1:     22px 18px 24px 19px;
+$radius-r2:     18px 23px 17px 22px;
+$radius-screen: 28px;
+$radius-pill:   999px;
+$radius-blob:   67% 33% 52% 48% / 42% 58% 35% 65%;
+
+// ── Spacing ────────────────────────────────────────────────────────────────
+$space-xs:         4px;
+$space-sm:         8px;
+$space-md:         12px;
+$space-lg:         18px;
+$space-xl:         26px;
+$space-screen-pad: 26px;

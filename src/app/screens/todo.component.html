@@ -1,0 +1,162 @@
+<div class="todo-page">
+  <div class="todo-container">
+
+    <!-- ── Date switcher ──────────────────────────────────────────────────── -->
+    <div class="switcher-row">
+      <button class="nav-btn" (click)="prevDay()" aria-label="Previous day">
+        <svg width="7" height="12" viewBox="0 0 7 12" fill="none">
+          <path d="M6 1L1 6L6 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <span class="date-label">{{ dateLabel() }}</span>
+
+      <button class="nav-btn" (click)="nextDay()" aria-label="Next day">
+        <svg width="7" height="12" viewBox="0 0 7 12" fill="none">
+          <path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      @if (!isToday()) {
+        <button class="today-btn" (click)="goToday()">Today</button>
+      }
+    </div>
+
+    @if (loading()) {
+      <p class="loading-text">Loading…</p>
+    } @else {
+
+      <!-- ── Carry forward banner ──────────────────────────────────────────── -->
+      @if (carryTasks().length > 0) {
+        <div class="carry-banner">
+          <span class="carry-kicker">From yesterday</span>
+          @for (task of carryTasks(); track task.id) {
+            <div class="carry-row">
+              <span class="carry-title">{{ task.title }}</span>
+              <button class="carry-yes-btn" (click)="handleCarry(task)">Carry forward</button>
+              <button class="carry-no-btn" (click)="dismissCarry(task)">Dismiss</button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ── Goals section ────────────────────────────────────────────────── -->
+      @if (activeGoals().length > 0) {
+        <section>
+          <p class="section-kicker">Goals for today</p>
+          @for (goal of activeGoals(); track goal.id) {
+            <button
+              class="goal-row"
+              [style.background]="isMarked(goal.id) ? goalColor(goal) + '18' : 'var(--paper-card)'"
+              [style.border]="'1px solid ' + (isMarked(goal.id) ? goalColor(goal) + '44' : 'var(--paper-line)')"
+              (click)="toggleGoal(goal)"
+            >
+              <span
+                class="goal-checkbox"
+                [style.border-color]="isMarked(goal.id) ? goalColor(goal) : 'var(--paper-faint)'"
+                [style.background]="isMarked(goal.id) ? goalColor(goal) : 'transparent'"
+              >
+                @if (isMarked(goal.id)) {
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                    <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                }
+              </span>
+              <span class="goal-dot" [style.background]="goalColor(goal)"></span>
+              <span class="goal-name">{{ goal.name }}</span>
+            </button>
+          }
+        </section>
+
+        <div class="divider"></div>
+      }
+
+      <!-- ── Own tasks section ────────────────────────────────────────────── -->
+      <section>
+        <p class="section-kicker">Own tasks</p>
+
+        <!-- Add task form -->
+        <div class="task-form">
+          <input
+            class="task-input"
+            type="text"
+            placeholder="Add a task…"
+            [ngModel]="taskInput()"
+            (ngModelChange)="taskInput.set($event)"
+            (keydown)="onTaskInputKeydown($event)"
+          />
+          <button
+            class="add-task-btn"
+            (click)="handleAddTask(taskInput())"
+            [disabled]="!taskInput().trim() || busy()"
+          >Add</button>
+        </div>
+
+        <!-- Active tasks (draggable) -->
+        @for (task of activeTasks(); track task.id; let i = $index) {
+          <div
+            class="task-row"
+            [class.task-row--drag-over]="dragOverIndex() === i"
+            draggable="true"
+            (dragstart)="onDragStart(i)"
+            (dragenter)="onDragEnter(i)"
+            (dragend)="onDragEnd()"
+            (dragover)="$event.preventDefault()"
+          >
+            <button
+              class="task-checkbox"
+              (click)="toggleTask(task)"
+              [attr.aria-label]="'Mark done: ' + task.title"
+            ></button>
+            <span class="task-title">{{ task.title }}</span>
+            @if (goalById(task.goalId); as g) {
+              <span class="task-goal-tag" [style.color]="goalColor(g)" [style.border-color]="goalColor(g) + '44'">
+                {{ g.name }}
+              </span>
+            }
+            @if (task.dueTime) {
+              <span class="task-time">{{ task.dueTime }}</span>
+            }
+          </div>
+        }
+
+        @if (activeTasks().length === 0) {
+          <p class="empty-hint">No tasks yet — add one above.</p>
+        }
+      </section>
+
+      <!-- ── Done section ─────────────────────────────────────────────────── -->
+      @if (taskLog().length > 0) {
+        <div class="done-section">
+          <button class="done-toggle" (click)="doneOpen.update(v => !v)">
+            <svg
+              width="10" height="6" viewBox="0 0 10 6" fill="none"
+              [style.transform]="doneOpen() ? 'rotate(180deg)' : 'rotate(0)'"
+              style="transition: transform 180ms ease; flex-shrink: 0"
+            >
+              <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Done ({{ taskLog().length }})
+          </button>
+
+          @if (doneOpen()) {
+            @for (task of taskLog(); track task.id) {
+              <div class="done-row">
+                <span class="done-check">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                    <path d="M1 4L3.5 6.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <span class="done-title">{{ task.title }}</span>
+                @if (task.doneAt) {
+                  <span class="task-time">{{ formatDoneTime(task.doneAt) }}</span>
+                }
+              </div>
+            }
+          }
+        </div>
+      }
+
+    }
+  </div>
+</div>

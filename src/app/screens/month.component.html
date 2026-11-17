@@ -1,0 +1,71 @@
+@if (!goalsLoaded()) {
+  <div class="month-loading">
+    <p>Reading your vault…</p>
+  </div>
+} @else {
+  <div class="month-page"
+       (touchstart)="onTouchStart($event)"
+       (touchend)="onTouchEnd($event)"
+       (pointerdown)="onPointerDown($event)"
+       (pointermove)="onPointerMove($event)"
+       (pointerup)="onPinchEnd($event)"
+       (pointercancel)="onPinchEnd($event)">
+
+    <div class="month-shell">
+
+      <!-- Header row: view pills + nav arrows -->
+      <header class="month-header">
+        <div class="month-view-pills" role="group" aria-label="View switcher">
+          <button type="button" class="view-pill" (click)="goToCalendar()" aria-label="Year view">Y</button>
+          <button type="button" class="view-pill view-pill--active" aria-current="page" aria-label="Month view">M</button>
+          <a class="view-pill" routerLink="/week" aria-label="Week view">W</a>
+        </div>
+
+        <div class="month-nav" aria-label="Month navigation">
+          <button type="button" class="month-nav-btn" (click)="navigate(-1)" aria-label="Previous month">‹</button>
+          <button type="button" class="month-nav-btn" (click)="navigate(1)"  aria-label="Next month">›</button>
+        </div>
+      </header>
+
+      <!-- Month title -->
+      <div class="month-title-row">
+        <h1 class="month-h1" [class]="slideClass()">{{ monthName }}</h1>
+        <span class="month-kicker">{{ year() }}</span>
+      </div>
+
+      <!-- Pen chips -->
+      @if (goals().length > 0) {
+        <app-pen-chips
+          [goals]="goals()"
+          [penId]="penId()"
+          [penDayCount]="penDayCount"
+          (pick)="onPenPick($event)"
+        />
+      }
+
+      <!-- Month block -->
+      <app-month-block
+        [year]="year()"
+        [monthIdx]="monthIdx()"
+        [goals]="goals()"
+        [adherenceMaps]="adherenceMaps()"
+        [focus]="pen()"
+        [pen]="pen()"
+        [todayISO]="todayISO"
+        [showHalo]="false"
+        [blobScale]="1.6"
+        [projectedDates]="projectedSet()"
+        [showWeekPills]="true"
+        (dayTap)="onDayTap($event)"
+        (dayOpen)="onDayOpen($event)"
+        (monthOpen)="onMonthOpen($event)"
+        (weekPillClick)="onWeekPillClick($event)"
+      />
+
+      <footer class="month-footer">
+        <a routerLink="/goals" class="month-footer-link">Goals →</a>
+      </footer>
+
+    </div>
+  </div>
+}

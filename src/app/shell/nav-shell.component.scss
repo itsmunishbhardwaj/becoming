@@ -1,0 +1,193 @@
+:host { display: block; }
+
+// ── Top nav (desktop ≥768px) ────────────────────────────────────────────────
+
+.top-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 48px;
+  background: var(--paper-card);
+  border-bottom: 1px solid var(--paper-line);
+  display: flex;
+  align-items: center;
+  padding: 0 max(22px, calc(env(safe-area-inset-left) + 16px));
+  gap: 32px;
+  z-index: 190;
+  box-sizing: border-box;
+  backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+}
+
+.logo {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.top-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.top-tab {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--paper-faint);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  transition: color 150ms ease, background 150ms ease;
+
+  &.top-tab--active {
+    color: var(--paper-ink);
+    font-weight: 500;
+    background: var(--paper-panel);
+  }
+}
+
+.profile-wrap {
+  position: relative;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.profile-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--paper-panel);
+  border: 1px solid var(--paper-line);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 140ms ease;
+
+  &:hover { background: var(--paper-line); }
+}
+
+.profile-initial {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--paper-ink);
+  line-height: 1;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--paper-card);
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  min-width: 180px;
+  overflow: hidden;
+  z-index: 200;
+}
+
+.profile-info {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--paper-faint);
+  padding: 10px 14px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-item {
+  display: block;
+  width: 100%;
+  padding: 9px 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--paper-dim);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 100ms ease;
+
+  &:hover { background: var(--paper-line); color: var(--paper-ink); }
+
+  &--danger {
+    color: #c0392b;
+    &:hover { background: rgba(192,57,43,0.06); color: #c0392b; }
+  }
+}
+
+.profile-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+}
+
+.content--top {
+  padding-top: 48px;
+}
+
+// ── Bottom nav (mobile <768px) ──────────────────────────────────────────────
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: calc(60px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--paper-card);
+  border-top: 1px solid var(--paper-line);
+  display: flex;
+  align-items: stretch;
+  z-index: 190;
+  backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+}
+
+.bottom-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  gap: 4px;
+  position: relative;
+}
+
+.bottom-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--paper-faint);
+  transition: color 150ms ease, font-weight 150ms ease;
+}
+
+.bottom-tab--active .bottom-label {
+  color: var(--paper-ink);
+  font-weight: 500;
+}
+
+.bottom-tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--paper-ink);
+}
+
+.content--bottom {
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+}

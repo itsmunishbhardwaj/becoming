@@ -1,0 +1,171 @@
+<div class="top-bar">
+  <button class="icon-btn burger" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+      <rect y="0"  width="18" height="2" rx="1" fill="currentColor"/>
+      <rect y="6"  width="12" height="2" rx="1" fill="currentColor"/>
+      <rect y="12" width="18" height="2" rx="1" fill="currentColor"/>
+    </svg>
+  </button>
+
+  <button class="today-btn" [class.today-btn--active]="isToday()" (click)="goToday()">Today</button>
+
+  <button class="icon-btn nav-arrow" (click)="prevDay()" aria-label="Previous day">
+    <svg width="8" height="13" viewBox="0 0 8 13" fill="none">
+      <path d="M7 1L1.5 6.5L7 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+  <button class="icon-btn nav-arrow" (click)="nextDay()" aria-label="Next day">
+    <svg width="8" height="13" viewBox="0 0 8 13" fill="none">
+      <path d="M1 1L6.5 6.5L1 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <span class="date-label">{{ dateLabel() }}</span>
+
+  <div class="view-switcher-wrap">
+    <button class="view-switcher-btn" (click)="toggleViewSwitcher()">
+      Day
+      <svg width="10" height="6" viewBox="0 0 10 6" fill="none" class="chevron">
+        <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    @if (viewSwitcherOpen()) {
+      <div class="view-dropdown" (click)="$event.stopPropagation()">
+        <button class="view-option view-option--active">Day</button>
+        <button class="view-option" (click)="goToYear()">Year</button>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="content-area" (click)="viewSwitcherOpen() && toggleViewSwitcher()">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside class="sidebar" [class.sidebar--open]="sidebarOpen()" [class.sidebar--desktop]="desktop()">
+
+    <!-- Mini calendar -->
+    <div class="mini-cal">
+      <div class="mini-cal-header">
+        <button class="mini-nav-btn" (click)="miniCalPrev()" aria-label="Previous month">
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
+            <path d="M5 1L1 5L5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <span class="mini-cal-label">{{ miniCalLabel() }}</span>
+        <button class="mini-nav-btn" (click)="miniCalNext()" aria-label="Next month">
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
+            <path d="M1 1L5 5L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="mini-dow-row">
+        @for (label of dowShort; track $index) {
+          <span class="mini-dow">{{ label }}</span>
+        }
+      </div>
+
+      <div class="mini-grid">
+        @for (d of miniCalGrid(); track $index) {
+          <button
+            class="mini-cell"
+            [class.mini-cell--empty]="d === null"
+            [class.mini-cell--today]="miniCellIsToday(d)"
+            [class.mini-cell--selected]="miniCellIsSelected(d)"
+            (click)="navigateToMiniDay(d)"
+            [disabled]="d === null"
+            [attr.aria-label]="d ? miniCellISO(d) : null"
+          >{{ d !== null ? d : '' }}</button>
+        }
+      </div>
+    </div>
+
+    <!-- Goals list -->
+    <div class="sidebar-goals">
+      @for (g of activeGoals(); track g.id) {
+        <div class="sidebar-goal-row">
+          <span class="goal-dot" [style.background]="goalColor(g)"></span>
+          <span class="goal-name">{{ g.name }}</span>
+        </div>
+      }
+      @if (activeGoals().length === 0) {
+        <span class="sidebar-empty">No active goals</span>
+      }
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar">
+      <button class="tab-btn" [class.tab-btn--active]="activeTab() === 'logged'" (click)="activeTab.set('logged')">Logged</button>
+      <button class="tab-btn" [class.tab-btn--active]="activeTab() === 'notes'"  (click)="activeTab.set('notes')">Notes</button>
+      <button class="tab-btn" [class.tab-btn--active]="activeTab() === 'add'"    (click)="activeTab.set('add')">Add</button>
+    </div>
+
+    <!-- Tab content -->
+    <div class="tab-content">
+
+      @if (activeTab() === 'logged') {
+        @if (events().length === 0) {
+          <p class="tab-empty">Nothing logged yet.</p>
+        }
+        @for (evt of events(); track $index) {
+          <div class="logged-row">
+            <span class="logged-dot" [style.background]="goalColor(goalById(evt.goalId))"></span>
+            <span class="logged-summary">{{ eventLabel(evt) }}</span>
+            <button class="delete-btn" (click)="deleteEvent(evt)" aria-label="Delete event">✕</button>
+          </div>
+        }
+      }
+
+      @if (activeTab() === 'notes') {
+        @for (g of activeGoals(); track g.id) {
+          <div class="notes-block">
+            <label class="notes-goal-label" [style.color]="goalColor(g)">{{ g.name }}</label>
+            <textarea
+              class="notes-textarea"
+              [value]="noteForGoal(g.id)"
+              (blur)="onNoteBlur(g.id, $event)"
+              placeholder="Notes for today…"
+              rows="3"
+            ></textarea>
+          </div>
+        }
+        @if (activeGoals().length === 0) {
+          <p class="tab-empty">No active goals.</p>
+        }
+      }
+
+      @if (activeTab() === 'add') {
+        @for (g of activeGoals(); track g.id) {
+          <button class="add-goal-btn" (click)="addDefaultEvent(g)">
+            <span class="add-dot" [style.background]="goalColor(g)"></span>
+            <span>{{ g.name }}</span>
+          </button>
+        }
+        @if (activeGoals().length === 0) {
+          <p class="tab-empty">No active goals.</p>
+        }
+      }
+
+    </div>
+  </aside>
+
+  <!-- Mobile overlay backdrop -->
+  @if (!desktop() && sidebarOpen()) {
+    <div class="sidebar-backdrop" (click)="toggleSidebar()"></div>
+  }
+
+  <!-- ── Main panel ───────────────────────────────────────────────────────── -->
+  <main class="main-panel">
+    <div class="day-header">
+      <span class="day-weekday">{{ weekdayLabel() }}</span>
+      <div class="day-number-circle" [class.day-number-circle--today]="isToday()">
+        {{ dayNumber() }}
+      </div>
+    </div>
+
+    <div class="time-grid-stub">
+      <p>Time grid — coming soon</p>
+    </div>
+  </main>
+
+</div>

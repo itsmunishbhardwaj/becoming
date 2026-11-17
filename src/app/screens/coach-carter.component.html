@@ -1,0 +1,353 @@
+<div class="coach-carter-page">
+  <div class="container">
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         MAIN VIEW
+    ══════════════════════════════════════════════════════════════════ -->
+    @if (view() === 'main') {
+
+      <h1 class="h1">Coach Carter</h1>
+
+      <!-- Goal picker -->
+      @if (loading()) {
+        <p class="state-msg">Loading…</p>
+      } @else if (activeGoals().length === 0) {
+        <p class="state-msg">No active goals yet. <a routerLink="/create">Create one →</a></p>
+      } @else {
+        <div class="section-kicker">Goal</div>
+        <select
+          class="goal-select"
+          [ngModel]="selectedGoalId()"
+          (ngModelChange)="selectedGoalId.set($event)"
+        >
+          @for (g of activeGoals(); track g.id) {
+            <option [value]="g.id">{{ g.name }}</option>
+          }
+        </select>
+
+        <!-- Plan placeholder -->
+        <div class="plan-placeholder">
+          <div class="section-kicker">Plan</div>
+          @if (selectedGoal()?.howWeGetThere) {
+            <p class="plan-text">{{ selectedGoal()!.howWeGetThere }}</p>
+          } @else {
+            <p class="plan-empty">No plan written for this goal yet.</p>
+          }
+        </div>
+
+        <!-- Contract section for selected goal -->
+        @if (goalContract()) {
+          <div class="contract-row">
+            <div class="contract-row-meta">
+              <div class="section-kicker">Contract</div>
+              <p class="contract-row-change">{{ goalContract()!.change }}</p>
+              <p class="contract-row-date">
+                Signed {{ shortDate(goalContract()!.signedAt ?? goalContract()!.createdAt) }}
+              </p>
+            </div>
+            <div class="contract-row-actions">
+              <button class="view-btn" type="button" (click)="openRead(goalContract()!)">
+                Read
+              </button>
+              <button class="retire-btn" type="button" (click)="retireContract(goalContract()!)">
+                Retire
+              </button>
+            </div>
+          </div>
+        } @else if (selectedGoal()) {
+          <div class="sign-section">
+            <div class="section-kicker">Contract</div>
+            <p class="no-contract-msg">No active contract for this goal.</p>
+            <button class="sign-btn" type="button" (click)="openCompose(selectedGoal()!)">
+              Sign a contract
+            </button>
+          </div>
+        }
+
+        <!-- All contracts list -->
+        @if (allActiveContracts().length > 0) {
+          <div class="all-contracts-section">
+            <div class="section-kicker">All Contracts</div>
+            <div class="all-contracts-list">
+              @for (c of contracts(); track c.id) {
+                <div class="all-contract-row" [class.all-contract-row--retired]="!!c.retiredAt">
+                  <div class="all-contract-row-info">
+                    <span
+                      class="all-contract-goal-dot"
+                      [style.background]="goalColor(contractGoal(c))"
+                    ></span>
+                    <span class="all-contract-goal-name">{{ contractGoal(c)?.name ?? c.goalId }}</span>
+                    <span class="all-contract-change">{{ c.change }}</span>
+                  </div>
+                  <div class="all-contract-row-actions">
+                    @if (c.retiredAt) {
+                      <span class="retired-badge">Retired</span>
+                    } @else {
+                      <button class="view-btn view-btn--sm" type="button" (click)="openRead(c)">
+                        Read
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         COMPOSE VIEW
+    ══════════════════════════════════════════════════════════════════ -->
+    @if (view() === 'compose') {
+      <button class="back-btn" type="button" (click)="backToMain()">← Back</button>
+
+      <div class="doc-wrap">
+
+        <!-- Document header -->
+        <div class="doc-header">
+          <div class="doc-brand">BECOMING</div>
+          <hr class="doc-hr" />
+          <div class="doc-title">Contract of Personal Commitment</div>
+          <div class="doc-date">{{ todayLong() }}</div>
+        </div>
+
+        <!-- Parties -->
+        <div class="doc-section">
+          <div class="doc-article-title">Parties</div>
+          <p class="doc-body">
+            <strong>BETWEEN:</strong> {{ userName() || 'The Undersigned' }}<br />
+            <strong>AND:</strong> {{ composingForGoal()?.name ?? 'this goal' }}
+          </p>
+        </div>
+
+        <!-- Whereas -->
+        @if (composingForGoal()?.ambition) {
+          <div class="doc-section">
+            <div class="doc-article-title">Whereas</div>
+            <p class="doc-body doc-quote">"{{ composingForGoal()!.ambition }}"</p>
+          </div>
+        }
+
+        <!-- Article I — Commitment -->
+        <div class="doc-section">
+          <div class="doc-article-title">Article I — Commitment</div>
+          <div class="commit-fields">
+            <span class="doc-body">I will&nbsp;</span>
+            <input
+              class="commit-input"
+              type="text"
+              placeholder="describe the specific action"
+              [ngModel]="composingAction()"
+              (ngModelChange)="composingAction.set($event)"
+            />
+            <span class="doc-body">&nbsp;by&nbsp;</span>
+            <input
+              class="commit-input commit-input--date"
+              type="date"
+              [ngModel]="composingByDate()"
+              (ngModelChange)="composingByDate.set($event)"
+            />
+            <span class="doc-body">.</span>
+          </div>
+        </div>
+
+        <!-- Article II — Terms -->
+        <div class="doc-section">
+          <div class="doc-article-title">Article II — Terms</div>
+          <textarea
+            class="terms-textarea"
+            rows="4"
+            placeholder="Describe what success looks like, how you'll measure it, and what you'll do if you fall short…"
+            [ngModel]="composingTerms()"
+            (ngModelChange)="composingTerms.set($event)"
+          ></textarea>
+        </div>
+
+        <!-- Article III — Acknowledgment -->
+        <div class="doc-section">
+          <div class="doc-article-title">Article III — Acknowledgment</div>
+          <p class="doc-body">
+            By signing below, {{ userName() || 'the undersigned' }} agrees to the commitment
+            and terms set forth in this contract, and acknowledges full personal responsibility
+            for its fulfilment.
+          </p>
+        </div>
+
+        <!-- Signature -->
+        @if (!signing()) {
+          <div class="doc-section">
+            <button
+              class="sign-btn"
+              type="button"
+              [disabled]="!composingAction().trim() || !composingByDate().trim()"
+              (click)="signing.set(true)"
+            >
+              Sign this contract
+            </button>
+          </div>
+        } @else {
+          <div class="doc-section">
+            <div class="doc-article-title">Signature</div>
+            <div class="sig-canvas-wrap">
+              <canvas
+                #sigCanvas
+                class="sig-canvas"
+                width="480"
+                height="120"
+                (pointerdown)="startDraw($event)"
+                (pointermove)="drawSig($event)"
+                (pointerup)="endDraw()"
+                (pointerleave)="endDraw()"
+              ></canvas>
+              <div class="sig-line"></div>
+              <p class="sig-hint">Draw your signature above</p>
+            </div>
+            <div class="sig-actions">
+              @if (!capturedSvg()) {
+                <button class="sign-btn" type="button" (click)="captureSig()">
+                  Confirm signature
+                </button>
+                <button class="cancel-btn" type="button" (click)="clearSig()">
+                  Clear
+                </button>
+              } @else {
+                <button
+                  class="sign-btn"
+                  type="button"
+                  [disabled]="savingContract()"
+                  (click)="handleConfirmSign()"
+                >
+                  {{ savingContract() ? 'Saving…' : 'Finalise contract' }}
+                </button>
+                <button class="cancel-btn" type="button" (click)="clearSig()">
+                  Redo
+                </button>
+              }
+              <button class="cancel-btn" type="button" (click)="signing.set(false)">
+                Cancel
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Footer -->
+        <div class="doc-footer">
+          <span class="footer-brand">Becoming</span>
+          <span class="footer-tagline">You said you would. Now do it.</span>
+        </div>
+
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         READ VIEW
+    ══════════════════════════════════════════════════════════════════ -->
+    @if (view() === 'read' && readingContract()) {
+      <div class="read-actions-top">
+        <button class="back-btn" type="button" (click)="backToMain()">← Back</button>
+        <div class="read-btn-group">
+          <button class="print-btn" type="button" (click)="printContract()">
+            Print this contract
+          </button>
+          @if (!readingContract()!.retiredAt) {
+            <button class="retire-btn" type="button" (click)="retireContract(readingContract()!)">
+              Retire
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="doc-wrap doc-wrap--read">
+
+        <!-- Document header -->
+        <div class="doc-header">
+          <div class="doc-brand">BECOMING</div>
+          <hr class="doc-hr" />
+          <div class="doc-title">Contract of Personal Commitment</div>
+          <div class="doc-date">
+            {{ longDate(readingContract()!.signedAt ?? readingContract()!.createdAt) }}
+          </div>
+        </div>
+
+        <!-- Parties -->
+        <div class="doc-section">
+          <div class="doc-article-title">Parties</div>
+          <p class="doc-body">
+            <strong>BETWEEN:</strong> {{ userName() || 'The Undersigned' }}<br />
+            <strong>AND:</strong> {{ contractGoal(readingContract()!)?.name ?? readingContract()!.goalId }}
+          </p>
+        </div>
+
+        <!-- Whereas -->
+        @if (contractGoal(readingContract()!)?.ambition) {
+          <div class="doc-section">
+            <div class="doc-article-title">Whereas</div>
+            <p class="doc-body doc-quote">"{{ contractGoal(readingContract()!)!.ambition }}"</p>
+          </div>
+        }
+
+        <!-- Article I — Commitment -->
+        <div class="doc-section">
+          <div class="doc-article-title">Article I — Commitment</div>
+          <p class="doc-body">{{ readingContract()!.change }}</p>
+        </div>
+
+        <!-- Article II — Terms -->
+        @if (readingContract()!.terms) {
+          <div class="doc-section">
+            <div class="doc-article-title">Article II — Terms</div>
+            <p class="doc-body read-terms">{{ readingContract()!.terms }}</p>
+          </div>
+        }
+
+        <!-- Article III — Acknowledgment -->
+        <div class="doc-section">
+          <div class="doc-article-title">Article III — Acknowledgment</div>
+          <p class="doc-body">
+            By signing below, {{ userName() || 'the undersigned' }} agrees to the commitment
+            and terms set forth in this contract, and acknowledges full personal responsibility
+            for its fulfilment.
+          </p>
+        </div>
+
+        <!-- Signature -->
+        <div class="doc-section">
+          <div class="doc-article-title">Signature</div>
+          @if (readingContract()!.signatureSvg) {
+            <div class="sig-read-wrap">
+              <img
+                class="sig-img"
+                [src]="svgDataUrl(readingContract()!.signatureSvg!)"
+                alt="Signature"
+              />
+              <div class="sig-line"></div>
+            </div>
+          } @else {
+            <div class="sig-read-wrap">
+              <div class="sig-line"></div>
+            </div>
+          }
+          @if (readingContract()!.signedAt) {
+            <p class="sig-signed-date">
+              Signed {{ longDate(readingContract()!.signedAt!) }}
+            </p>
+          }
+          @if (readingContract()!.retiredAt) {
+            <p class="retired-notice">
+              Retired {{ shortDate(readingContract()!.retiredAt!) }}
+            </p>
+          }
+        </div>
+
+        <!-- Footer -->
+        <div class="doc-footer">
+          <span class="footer-brand">Becoming</span>
+          <span class="footer-tagline">You said you would. Now do it.</span>
+        </div>
+
+      </div>
+    }
+
+  </div>
+</div>
