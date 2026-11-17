@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 import type { Goal, AdherenceStatus } from '../core/types';
 import { goalColor } from '../core/goalColor';
+import { BlobComponent } from './blob.component';
 
 interface BlobMark {
   g: Goal;
@@ -21,6 +22,7 @@ export interface TipData {
 @Component({
   selector: 'app-day-cell',
   standalone: true,
+  imports: [BlobComponent],
   templateUrl: './day-cell.component.html',
 })
 export class DayCellComponent implements OnChanges {

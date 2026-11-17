@@ -108,6 +108,13 @@ export class GoalComponent implements OnInit {
     return `radial-gradient(circle at 35% 30%, ${c}, ${c}99 80%)`;
   });
 
+  readonly timeMode = computed<'none' | 'allday' | 'specific'>(() => {
+    const t = this.goal()?.goalTime;
+    if (!t) return 'none';
+    if (t === 'allday') return 'allday';
+    return 'specific';
+  });
+
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   async ngOnInit(): Promise<void> {
     if (!this.store.goalsLoaded()) await this.store.loadGoals();
@@ -167,7 +174,7 @@ export class GoalComponent implements OnInit {
     }
   }
 
-  async updateGoalTime(timeStr: string): Promise<void> {
+  async updateGoalTime(timeStr: string | null): Promise<void> {
     const g = this.goal();
     if (!g) return;
     const next = { ...g, goalTime: timeStr || null };
@@ -182,6 +189,18 @@ export class GoalComponent implements OnInit {
   onTimeChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.updateGoalTime(value);
+  }
+
+  async updateColor(hex: string): Promise<void> {
+    const g = this.goal();
+    if (!g) return;
+    const next = { ...g, color: hex };
+    this.goal.set(next);
+    try {
+      await this.store.saveGoal(next);
+    } catch {
+      this.goal.set(g);
+    }
   }
 
   async handleMiniDayTap(iso: string): Promise<void> {

@@ -170,9 +170,18 @@
     <!-- ── Time grid ──────────────────────────────────────────────────── -->
     <div class="time-grid">
 
-      <!-- Unscheduled events strip -->
-      @if (untimedEvents().length > 0) {
+      <!-- All-day goals + unscheduled events strip -->
+      @if (allDayGoals().length > 0 || untimedEvents().length > 0) {
         <div class="tg-allday">
+          @for (goal of allDayGoals(); track goal.id) {
+            <span class="tg-allday-pill tg-allday-pill--goal"
+                  [class.tg-allday-pill--logged]="!!events().find(e => e.goalId === goal.id)"
+                  [style.background]="slotBg(goal, !!events().find(e => e.goalId === goal.id))"
+                  [style.color]="slotTextColor(goal, !!events().find(e => e.goalId === goal.id))"
+                  (click)="toggleAllDayGoal(goal)">
+              {{ goal.name }}
+            </span>
+          }
           @for (e of untimedEvents(); track $index) {
             <span class="tg-allday-pill"
                   [style.background]="goalColor(goalById(e.goalId))"

@@ -24,17 +24,10 @@
   }
 
   @for (m of marks; track m.g.id) {
-    <g class="blob-enter">
-      <defs>
-        <radialGradient [id]="m.g.id + '-' + m.seed"
-                        gradientUnits="userSpaceOnUse"
-                        [attr.cx]="m.cx - (m.big ? 11.0 : 8.5) * blobScale * 0.3"
-                        [attr.cy]="m.cy - (m.big ? 10.5 : 8.0) * blobScale * 0.4"
-                        [attr.r]="Math.max((m.big ? 11.0 : 8.5), (m.big ? 10.5 : 8.0)) * blobScale * 1.45">
-          <stop offset="0%"  [attr.stop-color]="m.color" stop-opacity="1"/>
-          <stop offset="80%" [attr.stop-color]="m.color" stop-opacity="0.58"/>
-        </radialGradient>
-      </defs>
+    <g appBlob class="blob-enter"
+       [cx]="m.cx" [cy]="m.cy"
+       [color]="m.color" [seed]="m.seed"
+       [big]="m.big" [opacity]="m.op" [scale]="blobScale">
     </g>
   }
 </svg>

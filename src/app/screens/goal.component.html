@@ -89,13 +89,20 @@
         <!-- Time of day -->
         <div class="sidebar-section">
           <div class="sidebar-kicker">Time of day</div>
-          <input
-            class="time-input"
-            type="time"
-            [value]="goal()!.goalTime ?? ''"
-            (change)="onTimeChange($event)"
-            placeholder="—"
-          />
+          <div class="time-mode-row">
+            <button type="button" class="time-mode-btn" [class.time-mode-btn--active]="timeMode() === 'none'" (click)="updateGoalTime(null)">None</button>
+            <button type="button" class="time-mode-btn" [class.time-mode-btn--active]="timeMode() === 'allday'" (click)="updateGoalTime('allday')">All day</button>
+            <button type="button" class="time-mode-btn" [class.time-mode-btn--active]="timeMode() === 'specific'" (click)="timeMode() !== 'specific' && updateGoalTime('')">Specific</button>
+          </div>
+          @if (timeMode() === 'specific') {
+            <input
+              class="time-input"
+              type="time"
+              [value]="goal()!.goalTime ?? ''"
+              (change)="onTimeChange($event)"
+              placeholder="—"
+            />
+          }
         </div>
 
         <!-- Adjust rounds link -->

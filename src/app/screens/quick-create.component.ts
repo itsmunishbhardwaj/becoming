@@ -36,6 +36,7 @@ export class QuickCreateComponent implements OnInit {
   colorMode = signal<string>('auto');
   wheelOpen = signal(false);
   endDate = signal(endOfYearISO());
+  timeMode = signal<'none' | 'allday' | 'specific'>('none');
   goalTime = signal('');
   ambition = signal('');
   error = signal('');
@@ -95,7 +96,7 @@ export class QuickCreateComponent implements OnInit {
         rounds,
         howWeGetThere: '',
         indicators: { right: [], wrong: [], stall: [] },
-        goalTime: this.goalTime() || null,
+        goalTime: this.timeMode() === 'allday' ? 'allday' : (this.timeMode() === 'specific' ? this.goalTime() || null : null),
       };
 
       await this.store.saveGoal(goal);
