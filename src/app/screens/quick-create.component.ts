@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { StoreService } from '../services/store.service';
 import { CATS } from '../core/tokens';
@@ -20,7 +20,7 @@ function endOfYearISO(): string {
 @Component({
   selector: 'app-quick-create',
   standalone: true,
-  imports: [FormsModule, RouterLink, ColorWheelComponent],
+  imports: [FormsModule, ColorWheelComponent],
   templateUrl: './quick-create.component.html',
   styleUrl: './quick-create.component.scss',
 })
@@ -36,6 +36,7 @@ export class QuickCreateComponent implements OnInit {
   colorMode = signal<string>('auto');
   wheelOpen = signal(false);
   endDate = signal(endOfYearISO());
+  timeMode = signal<'none' | 'allday' | 'specific'>('none');
   goalTime = signal('');
   ambition = signal('');
   error = signal('');
@@ -95,7 +96,7 @@ export class QuickCreateComponent implements OnInit {
         rounds,
         howWeGetThere: '',
         indicators: { right: [], wrong: [], stall: [] },
-        goalTime: this.goalTime() || null,
+        goalTime: this.timeMode() === 'allday' ? 'allday' : (this.timeMode() === 'specific' ? this.goalTime() || null : null),
       };
 
       await this.store.saveGoal(goal);

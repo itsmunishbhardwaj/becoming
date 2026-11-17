@@ -42,21 +42,17 @@
     <div class="field">
       <span class="field-label">Color</span>
       <div class="color-picker-row">
+        <button type="button" class="auto-chip" [class.auto-chip--selected]="colorMode() === 'auto'" (click)="selectAuto()">Auto</button>
         <button type="button" class="color-preview-btn" (click)="wheelOpen.set(true)">
           <span class="color-preview-dot" [style.background]="previewColor()"></span>
-          <span>{{ colorMode() === 'auto' ? 'Auto' : 'Custom' }}</span>
+          <span>{{ colorMode() === 'auto' ? 'Auto color' : 'Custom' }}</span>
           <span class="color-preview-change">Change →</span>
         </button>
       </div>
+      @if (wheelOpen()) {
+        <app-color-wheel [value]="previewColor()" (colorChange)="selectColor($event)" (closed)="wheelOpen.set(false)" />
+      }
     </div>
-
-    @if (wheelOpen()) {
-      <app-color-wheel
-        [value]="previewColor()"
-        (colorChange)="selectColor($event)"
-        (closed)="wheelOpen.set(false)"
-      />
-    }
 
     <!-- End date -->
     <div class="field">
@@ -73,18 +69,25 @@
 
     <!-- Time of day (optional) -->
     <div class="field">
-      <label class="field-label" for="goal-time">
-        Time of day <span class="field-hint">(optional)</span>
-      </label>
-      <input
-        id="goal-time"
-        class="field-input"
-        type="time"
-        [ngModel]="goalTime()"
-        (ngModelChange)="goalTime.set($event)"
-        name="goalTime"
-      />
-      <span class="field-hint-block">When you plan to work on this daily.</span>
+      <span class="field-label">Time of day <span class="field-hint">(optional)</span></span>
+      <div class="time-mode-row">
+        <button type="button" class="time-mode-btn" [class.time-mode-btn--active]="timeMode() === 'none'" (click)="timeMode.set('none')">None</button>
+        <button type="button" class="time-mode-btn" [class.time-mode-btn--active]="timeMode() === 'allday'" (click)="timeMode.set('allday')">All day</button>
+        <button type="button" class="time-mode-btn" [class.time-mode-btn--active]="timeMode() === 'specific'" (click)="timeMode.set('specific')">Specific time</button>
+      </div>
+      @if (timeMode() === 'specific') {
+        <input
+          id="goal-time"
+          class="field-input"
+          type="time"
+          [ngModel]="goalTime()"
+          (ngModelChange)="goalTime.set($event)"
+          name="goalTime"
+        />
+      }
+      @if (timeMode() === 'allday') {
+        <span class="field-hint-block">This goal spans the whole day — it'll appear as a banner in the day view.</span>
+      }
     </div>
 
     <!-- Ambition -->

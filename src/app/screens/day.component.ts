@@ -110,9 +110,14 @@ export class DayComponent implements OnInit, AfterViewInit {
   readonly HOURS = Array.from({length: 24}, (_, i) => i);
   readonly PX_PER_MIN = 1; // 60px per hour
 
-  // Active goals that have a scheduled time
+  // Active goals that have a specific clock time (excludes 'allday')
   readonly scheduledGoals = computed(() =>
-    this.activeGoals().filter(g => !!g.goalTime)
+    this.activeGoals().filter(g => !!g.goalTime && g.goalTime !== 'allday')
+  );
+
+  // Active goals marked all-day
+  readonly allDayGoals = computed(() =>
+    this.activeGoals().filter(g => g.goalTime === 'allday')
   );
 
   // One slot per scheduled goal — ghost when unlogged, filled when logged
@@ -134,13 +139,17 @@ export class DayComponent implements OnInit, AfterViewInit {
     new Set(this.scheduledGoals().map(g => g.id))
   );
 
+  private readonly allDayGoalIds = computed(() =>
+    new Set(this.allDayGoals().map(g => g.id))
+  );
+
   readonly orphanTimedEvents = computed(() =>
     this.events().filter(e => !!e.time && !this.scheduledGoalIds().has(e.goalId))
   );
 
   readonly timedEvents   = computed(() => this.events().filter(e => !!e.time));
   readonly untimedEvents = computed(() =>
-    this.events().filter(e => !e.time && !this.scheduledGoalIds().has(e.goalId))
+    this.events().filter(e => !e.time && !this.scheduledGoalIds().has(e.goalId) && !this.allDayGoalIds().has(e.goalId))
   );
 
   private readonly nowMinutes = signal(this.calcNowMinutes());
@@ -375,6 +384,16 @@ export class DayComponent implements OnInit, AfterViewInit {
   }
 
   // ── Mutations ─────────────────────────────────────────────────────────────
+
+  async toggleAllDayGoal(goal: Goal): Promise<void> {
+    const existing = this.events().find(e => e.goalId === goal.id);
+    if (existing) {
+      await this.store.deleteLogEvent(this.date(), existing);
+    } else {
+      await this.store.appendLog(this.date(), { verb: 'done', goalId: goal.id });
+    }
+    await this.refreshLog();
+  }
 
   async toggleSlot(slot: GoalSlot): Promise<void> {
     if (slot.event) {
