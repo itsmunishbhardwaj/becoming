@@ -50,8 +50,6 @@ export class DayCellComponent implements OnChanges {
   marks: BlobMark[] = [];
   hasContent = false;
   showText = false;
-  haloId = '';
-  haloBlurId = '';
 
   ngOnChanges(): void {
     const c = this.c;
@@ -82,8 +80,6 @@ export class DayCellComponent implements OnChanges {
 
     this.hasContent = this.marks.length > 0;
     this.showText = !this.hasContent && !this.hideDayNumber;
-    this.haloId = `halo-${this.isoDate}`;
-    this.haloBlurId = `halo-blur-${this.isoDate}`;
   }
 
   emitTip(): void {

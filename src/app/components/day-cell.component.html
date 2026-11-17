@@ -5,31 +5,19 @@
      (mouseenter)="emitTip()"
      (mouseleave)="setTip.emit(null)"
      style="display:block;width:100%;height:auto;cursor:pointer"
-     [style.overflow]="(showHalo || blobScale > 1) ? 'visible' : 'hidden'"
+     [style.overflow]="blobScale > 1 ? 'visible' : 'hidden'"
      [style.view-transition-name]="viewTransitionId || null">
 
   @if (showHalo) {
-    <defs>
-      <radialGradient [id]="haloId" cx="50%" cy="50%" r="50%">
-        <stop offset="0%"   stop-color="#2B2B2B" stop-opacity="0.55"/>
-        <stop offset="45%"  stop-color="#2B2B2B" stop-opacity="0.32"/>
-        <stop offset="80%"  stop-color="#2B2B2B" stop-opacity="0.10"/>
-        <stop offset="100%" stop-color="#2B2B2B" stop-opacity="0"/>
-      </radialGradient>
-      <filter [id]="haloBlurId" x="-100%" y="-100%" width="300%" height="300%">
-        <feGaussianBlur stdDeviation="2.2"/>
-      </filter>
-    </defs>
-    <circle [attr.cx]="c" [attr.cy]="c" r="24"
-            [attr.fill]="'url(#' + haloId + ')'"
-            [attr.filter]="'url(#' + haloBlurId + ')'"/>
+    <circle [attr.cx]="c" [attr.cy]="c" r="11.5" fill="#2B2B2B"/>
   }
 
-  @if (showText) {
+  @if (showText || showHalo) {
     <text [attr.x]="c" y="16" text-anchor="middle"
           font-family="Inter,system-ui,sans-serif"
-          font-size="9" font-weight="400"
-          fill="#2B2B2B" opacity="0.4"
+          font-size="9" [attr.font-weight]="showHalo ? '600' : '400'"
+          [attr.fill]="showHalo ? '#FFFFFF' : '#2B2B2B'"
+          [attr.opacity]="showHalo ? '1' : '0.4'"
           style="font-variant-numeric:tabular-nums">
       {{ dayIdx + 1 }}
     </text>
