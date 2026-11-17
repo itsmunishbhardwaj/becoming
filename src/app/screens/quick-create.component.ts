@@ -3,10 +3,11 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { StoreService } from '../services/store.service';
 import { CATS } from '../core/tokens';
-import { PALETTE, autoPickColor } from '../core/goalColor';
+import { autoPickColor } from '../core/goalColor';
 import { todayLocalISO } from '../core/date';
 import { buildRounds } from '../core/goalTypes/simple';
 import type { Goal } from '../core/types';
+import { ColorWheelComponent } from '../components/color-wheel.component';
 
 function slugify(s: string): string {
   return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'goal';
@@ -19,7 +20,7 @@ function endOfYearISO(): string {
 @Component({
   selector: 'app-quick-create',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, ColorWheelComponent],
   templateUrl: './quick-create.component.html',
   styleUrl: './quick-create.component.scss',
 })
@@ -28,12 +29,12 @@ export class QuickCreateComponent implements OnInit {
   private router = inject(Router);
 
   readonly CATS = CATS;
-  readonly PALETTE = PALETTE;
   readonly catKeys = Object.keys(CATS);
 
   name = signal('');
   cat = signal(Object.keys(CATS)[0]);
   colorMode = signal<string>('auto');
+  wheelOpen = signal(false);
   endDate = signal(endOfYearISO());
   goalTime = signal('');
   ambition = signal('');

@@ -10,10 +10,12 @@
     <!-- Header -->
     <header class="goal-header">
       <div class="orb-wrap">
-        <div class="goal-orb orb-breathe"
-             [style.background]="orbGradient()"
-             [style.view-transition-name]="'orb-' + goal()!.id">
-        </div>
+        <button type="button" class="orb-color-btn" (click)="colorWheelOpen.set(true)" aria-label="Change goal color">
+          <div class="goal-orb orb-breathe"
+               [style.background]="orbGradient()"
+               [style.view-transition-name]="'orb-' + goal()!.id">
+          </div>
+        </button>
         <div>
           <h1 class="goal-h1" [style.view-transition-name]="'goal-name-' + goal()!.id">
             {{ goal()!.name }}
@@ -21,6 +23,14 @@
           <div class="goal-meta">{{ totalEvents() }} days marked</div>
         </div>
       </div>
+
+      @if (colorWheelOpen()) {
+        <app-color-wheel
+          [value]="catHue()"
+          (colorChange)="updateColor($event)"
+          (closed)="colorWheelOpen.set(false)"
+        />
+      }
     </header>
 
     <!-- Ambition quote -->

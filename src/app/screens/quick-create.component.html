@@ -42,29 +42,21 @@
     <div class="field">
       <span class="field-label">Color</span>
       <div class="color-picker-row">
-        <button
-          type="button"
-          class="auto-chip"
-          [class.auto-chip--selected]="colorMode() === 'auto'"
-          (click)="selectAuto()"
-        >
-          Auto
+        <button type="button" class="color-preview-btn" (click)="wheelOpen.set(true)">
+          <span class="color-preview-dot" [style.background]="previewColor()"></span>
+          <span>{{ colorMode() === 'auto' ? 'Auto' : 'Custom' }}</span>
+          <span class="color-preview-change">Change →</span>
         </button>
-        @for (swatch of PALETTE; track swatch.color) {
-          <button
-            type="button"
-            class="color-swatch"
-            [class.color-swatch--selected]="colorMode() === swatch.color"
-            [style.background]="swatch.color"
-            [style.box-shadow]="colorMode() === swatch.color
-              ? '0 0 0 2px var(--paper-ink), 0 0 12px ' + swatch.color + '80'
-              : 'none'"
-            [title]="swatch.name"
-            (click)="selectColor(swatch.color)"
-          ></button>
-        }
       </div>
     </div>
+
+    @if (wheelOpen()) {
+      <app-color-wheel
+        [value]="previewColor()"
+        (colorChange)="selectColor($event)"
+        (closed)="wheelOpen.set(false)"
+      />
+    }
 
     <!-- End date -->
     <div class="field">

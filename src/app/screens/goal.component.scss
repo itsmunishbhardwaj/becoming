@@ -59,6 +59,16 @@
   gap: 16px;
 }
 
+.orb-color-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  &:hover .goal-orb { opacity: 0.82; }
+}
+
 .goal-orb {
   width: 48px;
   height: 48px;
