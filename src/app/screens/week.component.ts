@@ -2,7 +2,7 @@ import {
   Component, inject, signal, computed, effect, OnInit, DestroyRef, HostListener,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { StoreService } from '../services/store.service';
 import { dailyAdherence } from '../core/adherence';
 import { planDayTap } from '../core/dayTap';
@@ -53,7 +53,7 @@ function yyyymmddToISO(raw: string): string {
 @Component({
   selector: 'app-week',
   standalone: true,
-  imports: [RouterLink, PenChipsComponent, DayCellComponent],
+  imports: [PenChipsComponent, DayCellComponent],
   templateUrl: './week.component.html',
   styleUrl: './week.component.scss',
 })
@@ -67,6 +67,7 @@ export class WeekComponent implements OnInit {
 
   // ── Route param → anchor (Sunday ISO) ─────────────────────────────────
   readonly anchor = signal<string>(sundayOf(this.todayISO));
+  readonly viewSwitcherOpen = signal(false);
 
   // ── Data ───────────────────────────────────────────────────────────────
   readonly goals       = this.store.goals;
@@ -199,11 +200,16 @@ export class WeekComponent implements OnInit {
     if (e.key === 'ArrowRight') this.navigate(1);
   }
 
-  // ── View pills ─────────────────────────────────────────────────────────
+  // ── View switcher ──────────────────────────────────────────────────────
+
+  toggleViewSwitcher(): void {
+    this.viewSwitcherOpen.update((v) => !v);
+  }
 
   goToCalendar(): void {
     const q = this.penId() ? { pen: this.penId() } : {};
     this.router.navigate(['/calendar'], { queryParams: q });
+    this.viewSwitcherOpen.set(false);
   }
 
   goToMonth(): void {
@@ -211,6 +217,12 @@ export class WeekComponent implements OnInit {
     const ym  = iso.slice(0, 7); // "YYYY-MM"
     const q   = this.penId() ? { pen: this.penId() } : {};
     this.router.navigate(['/month', ym], { queryParams: q });
+    this.viewSwitcherOpen.set(false);
+  }
+
+  goToDay(): void {
+    this.router.navigate(['/day', this.todayISO]);
+    this.viewSwitcherOpen.set(false);
   }
 
   // ── Day tap ────────────────────────────────────────────────────────────
