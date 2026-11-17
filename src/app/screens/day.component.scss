@@ -23,7 +23,6 @@
   flex-shrink: 0;
   height: 56px;
   background: var(--paper-bg);
-  border-bottom: 1px solid var(--paper-line);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -152,20 +151,41 @@
   position: relative;
 }
 
+// ── Sidebar track — controls layout width on desktop ─────────────────────────
+// The track is the clipping container whose width animates 0 → 248px.
+// The sidebar inside keeps its natural width and slides via transform,
+// so its content never gets squished (GCal-style push).
+.sidebar-track {
+  flex-shrink: 0;
+
+  &--desktop {
+    width: 0;
+    overflow: hidden;
+    transition: width 240ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.sidebar-track--open { width: 248px; }
+  }
+}
+
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 .sidebar {
   flex-shrink: 0;
-  width: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--paper-bg);
-  border-right: 1px solid var(--paper-line);
-  transition: width 240ms cubic-bezier(0.4, 0, 0.2, 1);
 
-  // Desktop: push layout
+  // Desktop: fixed width, slides via transform inside the track
   &--desktop {
-    &.sidebar--open { width: 248px; }
+    width: 248px;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: hidden;
+
+    &.sidebar--open {
+      transform: translateX(0);
+      overflow-y: auto;
+    }
   }
 
   // Mobile: absolute drawer overlay
@@ -178,16 +198,10 @@
     transform: translateX(-100%);
     z-index: 15;
     transition: transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: visible;
     overflow-y: auto;
 
     &.sidebar--open { transform: translateX(0); }
   }
-}
-
-// Desktop open: show content (overflow: hidden clips when width=0)
-.sidebar--desktop.sidebar--open {
-  overflow-y: auto;
 }
 
 // ── Sidebar backdrop (mobile) ─────────────────────────────────────────────────
@@ -495,8 +509,7 @@
 // ── Main panel ────────────────────────────────────────────────────────────────
 .main-panel {
   flex: 1;
-  background: white;
-  border-top-left-radius: 18px;
+  background: var(--paper-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -509,7 +522,6 @@
   align-items: center;
   gap: 12px;
   padding: 14px 20px 10px;
-  border-bottom: 1px solid var(--paper-line);
 }
 
 .day-weekday {
@@ -538,18 +550,202 @@
   }
 }
 
-// ── Time grid stub ────────────────────────────────────────────────────────────
-.time-grid-stub {
+// ── Time grid ─────────────────────────────────────────────────────────────────
+.time-grid {
   flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   overflow: hidden;
+  position: relative;
+}
 
-  p {
-    font-family: var(--font-sans);
-    font-size: 13px;
-    color: var(--paper-faint);
-    margin: 0;
+.tg-allday {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 12px 6px 56px;
+  border-bottom: 1px solid var(--paper-line);
+}
+
+.tg-allday-pill {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.tg-scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--paper-line) transparent;
+
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--paper-line); border-radius: 2px; }
+}
+
+.tg-inner {
+  position: relative;
+  padding-bottom: 24px;
+}
+
+// ── Hour rows ─────────────────────────────────────────────────────────────────
+.tg-hours {
+  display: flex;
+  flex-direction: column;
+}
+
+.tg-hour {
+  height: 60px;
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.tg-hour-label {
+  flex-shrink: 0;
+  width: 48px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  color: var(--paper-faint);
+  text-align: right;
+  padding-right: 8px;
+  line-height: 1;
+  margin-top: -6px; // baseline sits above the separator
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+
+.tg-hour-sep {
+  flex: 1;
+  height: 1px;
+  background: var(--paper-line);
+  margin-top: 0;
+}
+
+// ── Events layer ──────────────────────────────────────────────────────────────
+.tg-events {
+  position: absolute;
+  top: 0;
+  left: 56px;
+  right: 10px;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.tg-event {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-left: 3px solid;
+  border-radius: 0 6px 6px 0;
+  padding: 3px 6px;
+  overflow: hidden;
+  pointer-events: auto;
+  cursor: default;
+  box-sizing: border-box;
+}
+
+.tg-event-name {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--paper-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.tg-event-dur {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  color: var(--paper-dim);
+}
+
+// ── Goal slots ────────────────────────────────────────────────────────────────
+.tg-slot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border: 1.5px dashed;
+  border-radius: 6px;
+  padding: 5px 8px;
+  overflow: hidden;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 180ms ease, border-style 180ms ease, filter 100ms ease;
+  user-select: none;
+
+  &:hover { filter: brightness(0.93); }
+  &:active { filter: brightness(0.86); }
+
+  &--logged {
+    border-style: solid;
+    border-color: transparent !important;
   }
+}
+
+.tg-slot-name {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.tg-slot-time {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  opacity: 0.8;
+  line-height: 1.3;
+  margin-top: 1px;
+}
+
+// ── Current time ──────────────────────────────────────────────────────────────
+.tg-now {
+  position: absolute;
+  left: -8px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.tg-now-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #EA4335;
+}
+
+.tg-now-line {
+  flex: 1;
+  height: 1.5px;
+  background: #EA4335;
+  opacity: 1;
+}
+
+// ── Empty hint ────────────────────────────────────────────────────────────────
+.tg-empty-hint {
+  position: absolute;
+  top: 50%;
+  left: 56px;
+  right: 10px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--paper-faint);
+  text-align: center;
 }
